@@ -19,8 +19,11 @@ export function AppLayout() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 border-r bg-white p-4">
         <div className="flex items-center gap-2 mb-8 px-2">
-          <div className="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center text-white font-bold">G</div>
-          <span className="font-bold text-xl tracking-tight text-rose-600">GlamOS</span>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E8A87C] to-[#C6426E] flex items-center justify-center text-white font-bold shadow-md shadow-rose-200/50">G</div>
+          <span className="font-bold text-xl tracking-tight">
+            <span className="bg-gradient-to-r from-[#C6426E] to-[#E8A87C] bg-clip-text text-transparent">Glam</span>
+            <span className="text-gray-800">OS</span>
+          </span>
         </div>
         
         <nav className="flex-1 space-y-1">
@@ -70,8 +73,11 @@ export function AppLayout() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 md:pb-0">
         <header className="h-14 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
           <div className="md:hidden flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-rose-500 flex items-center justify-center text-white text-xs font-bold">G</div>
-            <span className="font-bold text-rose-600">GlamOS</span>
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E8A87C] to-[#C6426E] flex items-center justify-center text-white text-xs font-bold shadow-sm">G</div>
+            <span className="font-bold">
+              <span className="bg-gradient-to-r from-[#C6426E] to-[#E8A87C] bg-clip-text text-transparent">Glam</span>
+              <span className="text-gray-800">OS</span>
+            </span>
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <span className="text-sm font-medium hidden sm:block">{user?.email}</span>
