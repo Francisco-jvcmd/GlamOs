@@ -1,0 +1,20 @@
+{
+  "name": "glamos",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Salon management — offline-first PWA/APK",
+  "scripts": {
+    "dev:api": "pnpm --filter @glamos/api dev",
+    "dev:web": "pnpm --filter @glamos/web dev",
+    "build:api": "pnpm --filter @glamos/api build",
+    "build:web": "pnpm --filter @glamos/web build",
+    "build:shared": "pnpm --filter @glamos/shared build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "db:migrate": "pnpm --filter @glamos/api db:migrate",
+    "db:migrate:create": "pnpm --filter @glamos/api db:migrate:create"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
