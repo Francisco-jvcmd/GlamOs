@@ -49,11 +49,13 @@ jobs:
           pnpm --filter @glamos/shared build
           pnpm --filter @glamos/web build
 
-      - name: Sync Capacitor Android
-        run: pnpm --filter @glamos/web exec cap sync android
-
       - name: Make Gradlew Executable
         run: chmod +x apps/web/android/gradlew
+
+      - name: Sync Capacitor Android
+        run: |
+          cd apps/web
+          npx cap sync android
 
       - name: Build Release APK
         run: |
