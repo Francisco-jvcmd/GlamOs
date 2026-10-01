@@ -1,17 +1,17 @@
 import { useAuth } from '../auth/auth-context';
 import { Navigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
 import { Capacitor } from '@capacitor/core';
+import { GlamOSLogo } from '../components/GlamOSLogo';
 
 const GOOGLE_CLIENT_ID =
   '205191300160-5nuvhdo94rkp84q7h1j663af3e35s893.apps.googleusercontent.com';
 
-/** Inline SVG Google "G" icon */
+/** SVG Google "G" icon */
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" className="mr-3 flex-shrink-0">
+    <svg viewBox="0 0 24 24" width="22" height="22" className="mr-3 flex-shrink-0">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
         fill="#4285F4"
@@ -32,90 +32,13 @@ function GoogleIcon() {
   );
 }
 
-/** GlamOS scissors + circuit logo icon */
-function GlamOSLogo() {
-  return (
-    <div className="relative mx-auto mb-6">
-      {/* Outer glow ring */}
-      <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#E8A87C] to-[#C6426E] p-[2px] shadow-2xl shadow-rose-300/40">
-        <div className="w-full h-full rounded-3xl bg-white flex items-center justify-center">
-          <svg viewBox="0 0 64 64" width="52" height="52">
-            {/* Scissors body */}
-            <defs>
-              <linearGradient id="ggrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#E8A87C" />
-                <stop offset="100%" stopColor="#C6426E" />
-              </linearGradient>
-            </defs>
-            {/* Left ring */}
-            <circle
-              cx="22"
-              cy="48"
-              r="7"
-              fill="none"
-              stroke="url(#ggrad)"
-              strokeWidth="3"
-            />
-            {/* Right ring */}
-            <circle
-              cx="42"
-              cy="48"
-              r="7"
-              fill="none"
-              stroke="url(#ggrad)"
-              strokeWidth="3"
-            />
-            {/* Left blade */}
-            <line
-              x1="22"
-              y1="41"
-              x2="38"
-              y2="16"
-              stroke="url(#ggrad)"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-            {/* Right blade */}
-            <line
-              x1="42"
-              y1="41"
-              x2="26"
-              y2="16"
-              stroke="url(#ggrad)"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-            {/* Circuit nodes on right blade */}
-            <circle cx="34" cy="28" r="2" fill="#C6426E" />
-            <circle cx="30" cy="22" r="1.5" fill="#E8A87C" />
-            {/* Circuit line */}
-            <line
-              x1="34"
-              y1="28"
-              x2="42"
-              y2="26"
-              stroke="#C6426E"
-              strokeWidth="1"
-              strokeLinecap="round"
-            />
-            <circle cx="42" cy="26" r="1.5" fill="#C6426E" />
-            {/* Digital pixels top */}
-            <rect x="24" y="10" width="3" height="3" rx="0.5" fill="#E8A87C" opacity="0.7" />
-            <rect x="28" y="8" width="2.5" height="2.5" rx="0.5" fill="#C6426E" opacity="0.5" />
-            <rect x="32" y="11" width="2" height="2" rx="0.5" fill="#C6426E" opacity="0.3" />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function LoginPage() {
   const { user, login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const initialized = useRef(false);
 
-  // Initialize Google Sign-In once when the component mounts
+  // Inicializar Google Sign-In con el Web Client ID
   useEffect(() => {
     const init = async () => {
       if (initialized.current) return;
@@ -127,9 +50,8 @@ export function LoginPage() {
             : window.location.origin + '/login',
         });
         initialized.current = true;
-        console.log('GoogleSignIn initialized successfully');
 
-        // If we're on web and this is a redirect callback, handle it
+        // Soporte para retorno de OAuth en navegador web
         if (!Capacitor.isNativePlatform()) {
           const url = new URL(window.location.href);
           if (url.searchParams.has('code') || url.searchParams.has('state')) {
@@ -141,6 +63,7 @@ export function LoginPage() {
               }
             } catch (callbackErr: any) {
               console.error('Redirect callback error:', callbackErr);
+              setErrorMessage('Error al completar el acceso vía web.');
             } finally {
               setIsLoading(false);
             }
@@ -159,10 +82,10 @@ export function LoginPage() {
   }
 
   const handleGoogleLogin = async () => {
+    setErrorMessage(null);
     try {
       setIsLoading(true);
 
-      // Ensure initialized
       if (!initialized.current) {
         await GoogleSignIn.initialize({
           clientId: GOOGLE_CLIENT_ID,
@@ -174,23 +97,26 @@ export function LoginPage() {
       }
 
       if (Capacitor.isNativePlatform()) {
-        // Android/iOS: signIn() returns a result directly
         const result = await GoogleSignIn.signIn();
         if (result.idToken) {
+          // El método login gestionará tanto la conexión al backend como el modo Offline Resiliente
           await login(result.idToken, 'android');
         } else {
-          alert('No se recibió token de Google.');
+          setErrorMessage('No se recibió la autorización de Google.');
         }
       } else {
-        // Web: signIn() redirects to Google OAuth page
         await GoogleSignIn.signIn();
       }
     } catch (err: any) {
       console.error('Error during Google Sign-In:', err);
-      if (err?.code === 'SIGN_IN_CANCELED') return;
-      alert(
-        'Error en inicio de sesión con Google: ' +
-          (err.message || 'Error desconocido'),
+      if (err?.code === 'SIGN_IN_CANCELED') {
+        setIsLoading(false);
+        return;
+      }
+      setErrorMessage(
+        err.message?.includes('network') || err.message?.includes('fetch')
+          ? 'Conexión limitada. Accediendo en modo local...'
+          : `Aviso de acceso: ${err.message || 'Intente nuevamente'}`
       );
     } finally {
       setIsLoading(false);
@@ -198,43 +124,63 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-rose-50 via-white to-orange-50 p-4">
-      {/* Decorative background blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-rose-200/30 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-200/20 rounded-full blur-3xl" />
+    <div className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden bg-[#FAF6F0] px-4 py-8 select-none">
+      {/* 1. Luxurious Ambient Gradients (Haute Beauté Glow) */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-gradient-to-br from-[#FDE68A]/40 to-[#FB7185]/30 blur-3xl" />
+        <div className="absolute top-1/2 -left-48 w-[28rem] h-[28rem] rounded-full bg-gradient-to-tr from-[#FDA4AF]/30 via-[#F6D365]/20 to-transparent blur-3xl" />
+        <div className="absolute -bottom-32 right-1/4 w-80 h-80 rounded-full bg-gradient-to-t from-[#E11D48]/15 via-[#FBBF24]/20 to-transparent blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-sm">
-        {/* Logo */}
-        <GlamOSLogo />
+      {/* 2. Main Luxury Card Container */}
+      <div className="relative z-10 w-full max-w-sm sm:max-w-md">
+        {/* Emblem & Branding */}
+        <div className="mb-6">
+          <GlamOSLogo size={112} />
+        </div>
 
-        {/* Brand name */}
-        <h1 className="text-center text-4xl font-bold tracking-tight mb-1">
-          <span className="bg-gradient-to-r from-[#C6426E] to-[#E8A87C] bg-clip-text text-transparent">
-            Glam
-          </span>
-          <span className="text-gray-800">OS</span>
-        </h1>
-        <p className="text-center text-gray-400 text-sm mb-10 tracking-wide">
-          Sistema de Gestión para Salones
-        </p>
+        {/* Haute Frosted Glass Panel */}
+        <div className="relative rounded-3xl bg-white/75 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(159,18,57,0.08)] border border-amber-200/50">
+          {/* Subtle gold corner accents */}
+          <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-300/60 rounded-tl-sm" />
+          <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-300/60 rounded-tr-sm" />
+          <div className="absolute bottom-3 left-3 w-3 h-3 border-b-2 border-l-2 border-amber-300/60 rounded-bl-sm" />
+          <div className="absolute bottom-3 right-3 w-3 h-3 border-b-2 border-r-2 border-amber-300/60 rounded-br-sm" />
 
-        {/* Login Card */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-rose-100/50 border border-white/60 p-8">
-          <p className="text-center text-gray-600 text-sm mb-6">
-            Ingresa con tu cuenta de Google para comenzar
-          </p>
+          <div className="text-center mb-6">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Gestión Integral de Belleza
+            </span>
+            <h2 className="text-xl font-bold text-gray-900 mt-3 font-serif" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+              Bienvenida a tu Salón
+            </h2>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              Ingresa para gestionar citas, ventas, inventario y tus clientes VIP.
+            </p>
+          </div>
 
+          {/* Error / Status Alert */}
+          {errorMessage && (
+            <div className="mb-5 p-3 rounded-xl bg-rose-50/90 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* Primary Action Button: Google Sign-In with Haute Metallic Trim */}
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center h-13 px-6 py-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-[0.98] transition-all duration-150 shadow-sm hover:shadow-md disabled:opacity-50 disabled:pointer-events-none text-sm font-medium text-gray-700"
+            className="group relative w-full h-14 flex items-center justify-center px-6 rounded-2xl bg-white hover:bg-amber-50/40 active:scale-[0.98] transition-all duration-200 shadow-[0_8px_20px_rgba(217,119,6,0.12)] hover:shadow-[0_12px_28px_rgba(217,119,6,0.2)] border-2 border-amber-300/70 disabled:opacity-60 disabled:pointer-events-none"
           >
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-amber-200/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
             {isLoading ? (
-              <>
+              <div className="flex items-center gap-3 text-amber-900 font-semibold text-sm">
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-rose-500"
+                  className="animate-spin h-5 w-5 text-amber-600"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -253,34 +199,44 @@ export function LoginPage() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Conectando...
-              </>
+                <span>Accediendo a tu espacio...</span>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center font-semibold text-gray-800 text-sm tracking-wide">
                 <GoogleIcon />
-                Iniciar sesión con Google
-              </>
+                <span>Continuar con Google</span>
+              </div>
             )}
           </button>
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-300 uppercase tracking-widest">
-              seguro y rápido
+          {/* Luxury Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
+            <span className="text-[10px] text-amber-800/50 uppercase tracking-[0.2em] font-medium">
+              Offline First Architecture
             </span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
           </div>
 
-          <p className="text-center text-xs text-gray-400 leading-relaxed">
-            Tus datos están protegidos con cifrado de extremo a extremo y
-            funcionan sin conexión.
-          </p>
+          {/* Value Props Pills */}
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100/80">
+              <span className="text-base block mb-0.5">⚡</span>
+              <p className="text-[11px] font-bold text-gray-800">100% Offline</p>
+              <p className="text-[10px] text-gray-500">Opera sin internet</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100/80">
+              <span className="text-base block mb-0.5">🔒</span>
+              <p className="text-[11px] font-bold text-gray-800">Cifrado Local</p>
+              <p className="text-[10px] text-gray-500">Tus datos en tu móvil</p>
+            </div>
+          </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-300 mt-8">
-          Versión 0.1.0 · Offline First · Powered by GlamOS
-        </p>
+        {/* Luxury Footer */}
+        <div className="text-center mt-6 text-xs text-amber-900/60 tracking-wider">
+          <p className="font-medium">GlamOS Haute Couture Edition · v0.1.0</p>
+        </div>
       </div>
     </div>
   );

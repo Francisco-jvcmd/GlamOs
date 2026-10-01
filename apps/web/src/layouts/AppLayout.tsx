@@ -2,6 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Receipt, Package, Users, Settings, PlusCircle, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '../auth/auth-context';
 import { cn } from '../lib/utils';
+import { GlamOSEmblem } from '../components/GlamOSLogo';
 
 export function AppLayout() {
   const { user } = useAuth();
@@ -15,14 +16,24 @@ export function AppLayout() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900">
+    <div className="flex h-screen bg-[#FAF7F2] text-gray-900">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-white p-4">
-        <div className="flex items-center gap-2 mb-8 px-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E8A87C] to-[#C6426E] flex items-center justify-center text-white font-bold shadow-md shadow-rose-200/50">G</div>
-          <span className="font-bold text-xl tracking-tight">
-            <span className="bg-gradient-to-r from-[#C6426E] to-[#E8A87C] bg-clip-text text-transparent">Glam</span>
-            <span className="text-gray-800">OS</span>
+      <aside className="hidden md:flex flex-col w-64 border-r border-amber-100 bg-white/80 backdrop-blur-md p-4">
+        <div className="flex items-center gap-3 mb-8 px-2">
+          <GlamOSEmblem size={40} />
+          <span className="font-bold text-2xl tracking-tight">
+            <span
+              className="font-serif italic font-bold bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] bg-clip-text text-transparent"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            >
+              Glam
+            </span>
+            <span
+              className="text-gray-900 font-extrabold uppercase text-lg tracking-wider ml-0.5"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              OS
+            </span>
           </span>
         </div>
         
@@ -73,10 +84,20 @@ export function AppLayout() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 md:pb-0">
         <header className="h-14 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
           <div className="md:hidden flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E8A87C] to-[#C6426E] flex items-center justify-center text-white text-xs font-bold shadow-sm">G</div>
-            <span className="font-bold">
-              <span className="bg-gradient-to-r from-[#C6426E] to-[#E8A87C] bg-clip-text text-transparent">Glam</span>
-              <span className="text-gray-800">OS</span>
+            <GlamOSEmblem size={32} />
+            <span className="font-bold text-lg tracking-tight">
+              <span
+                className="font-serif italic font-bold bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] bg-clip-text text-transparent"
+                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              >
+                Glam
+              </span>
+              <span
+                className="text-gray-900 font-extrabold uppercase text-sm tracking-wider ml-0.5"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                OS
+              </span>
             </span>
           </div>
           <div className="flex items-center gap-3 ml-auto">

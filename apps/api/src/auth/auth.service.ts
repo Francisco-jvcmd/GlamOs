@@ -12,13 +12,15 @@ export class AuthService {
   constructor(private db: DatabaseService) {}
 
   async authenticateWithGoogle(idToken: string, platform: 'web' | 'android') {
-    const client = platform === 'web' ? this.webClient : this.androidClient;
-    const clientId = platform === 'web' ? process.env.GOOGLE_CLIENT_ID_WEB : process.env.GOOGLE_CLIENT_ID_ANDROID;
-    
+    const allowedAudiences = [
+      process.env.GOOGLE_CLIENT_ID_WEB,
+      process.env.GOOGLE_CLIENT_ID_ANDROID,
+    ].filter(Boolean) as string[];
+
     try {
-      const ticket = await client.verifyIdToken({
+      const ticket = await this.webClient.verifyIdToken({
         idToken,
-        audience: clientId,
+        audience: allowedAudiences,
       });
       const payload = ticket.getPayload();
       if (!payload) throw new UnauthorizedException('Invalid Google token');
