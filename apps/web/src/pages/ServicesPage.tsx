@@ -23,6 +23,7 @@ export function ServicesPage() {
   const [name, setName] = useState('');
   const [basePrice, setBasePrice] = useState('');
   const [discountPercentage, setDiscountPercentage] = useState('0');
+  const [isSaving, setIsSaving] = useState(false);
 
   const filteredServices = services.filter((s: any) =>
     s.name?.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -45,12 +46,18 @@ export function ServicesPage() {
 
   const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !basePrice || !db) return;
+    if (!name.trim() || !basePrice) return;
+
+    if (!db) {
+      alert('La base de datos local aún se está sincronizando. Por favor intenta de nuevo en unos segundos.');
+      return;
+    }
 
     const orgId = user?.org || 'default_org';
     const now = new Date().toISOString();
 
     try {
+      setIsSaving(true);
       if (editingServiceId) {
         const doc = await db.services.findOne(editingServiceId).exec();
         if (doc) {
@@ -77,9 +84,11 @@ export function ServicesPage() {
         });
       }
       setIsModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error al guardar servicio:', err);
-      alert('Error al guardar el servicio en la base de datos local.');
+      alert('Error al guardar servicio: ' + (err?.message || 'Error desconocido'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -278,9 +287,12 @@ export function ServicesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-                  Descuento Activo (%)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Descuento Promocional (%)
+                  </label>
+                  <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded">Opcional</span>
+                </div>
                 <Input
                   type="number"
                   min="0"
@@ -290,6 +302,9 @@ export function ServicesPage() {
                   placeholder="0"
                   className="h-11 rounded-xl font-mono"
                 />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Rebaja promocional temporal (ej. 10% OFF). Deja en 0 si el servicio no tiene descuento.
+                </p>
               </div>
 
               <div className="pt-3 flex gap-3">
@@ -298,14 +313,16 @@ export function ServicesPage() {
                   variant="outline"
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 rounded-xl"
+                  disabled={isSaving}
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold rounded-xl shadow-md"
+                  disabled={isSaving}
+                  className="flex-1 bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold rounded-xl shadow-md disabled:opacity-50"
                 >
-                  {editingServiceId ? 'Guardar Cambios' : 'Crear Servicio'}
+                  {isSaving ? 'Guardando...' : editingServiceId ? 'Guardar Cambios' : 'Crear Servicio'}
                 </Button>
               </div>
             </form>

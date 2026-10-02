@@ -27,29 +27,37 @@ export async function getDatabase(): Promise<GlamDatabase> {
   if (dbPromise) return dbPromise;
 
   dbPromise = (async () => {
-    if (navigator.storage && navigator.storage.persist) {
-      await navigator.storage.persist();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+        await navigator.storage.persist().catch(() => {});
+      }
+    } catch {}
+
+    try {
+      const db = await createRxDatabase<DatabaseCollections>({
+        name: 'glamosdb',
+        storage: getRxStorageDexie(),
+        multiInstance: true,
+        eventReduce: true,
+        ignoreDuplicate: true,
+      });
+
+      await db.addCollections({
+        sales: { schema: schemas.salesSchema },
+        sale_items: { schema: schemas.saleItemsSchema },
+        services: { schema: schemas.servicesSchema },
+        products: { schema: schemas.productsSchema },
+        clients: { schema: schemas.clientsSchema },
+        stock_movements: { schema: schemas.stockMovementsSchema },
+        fixed_expenses: { schema: schemas.fixedExpensesSchema },
+      });
+
+      return db;
+    } catch (err) {
+      console.error('Error inicializando base de datos RxDB:', err);
+      dbPromise = null;
+      throw err;
     }
-
-    const db = await createRxDatabase<DatabaseCollections>({
-      name: 'glamosdb',
-      storage: getRxStorageDexie(),
-      multiInstance: true,
-      eventReduce: true,
-      ignoreDuplicate: true,
-    });
-
-    await db.addCollections({
-      sales: { schema: schemas.salesSchema },
-      sale_items: { schema: schemas.saleItemsSchema },
-      services: { schema: schemas.servicesSchema },
-      products: { schema: schemas.productsSchema },
-      clients: { schema: schemas.clientsSchema },
-      stock_movements: { schema: schemas.stockMovementsSchema },
-      fixed_expenses: { schema: schemas.fixedExpensesSchema },
-    });
-
-    return db;
   })();
 
   return dbPromise;

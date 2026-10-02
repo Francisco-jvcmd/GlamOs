@@ -16,8 +16,8 @@ export const salesSchema = {
   type: 'object' as const,
   properties: {
     id:                     { type: 'string', maxLength: 100 },
-    organization_id:        { type: 'string' },
-    employee_id:            { type: 'string' },
+    organization_id:        { type: 'string', maxLength: 100 },
+    employee_id:            { type: 'string', maxLength: 100 },
     client_id:              { type: ['string', 'null'] },
     subtotal:               { type: 'number' },
     discount_total:         { type: 'number' },
@@ -31,8 +31,8 @@ export const salesSchema = {
     voided_at:              { type: ['string', 'null'] },
     voided_by:              { type: ['string', 'null'] },
     void_reason:            { type: ['string', 'null'] },
-    created_at:             { type: 'string' },
-    updated_at:             { type: 'string' },
+    created_at:             { type: 'string', maxLength: 50 },
+    updated_at:             { type: 'string', maxLength: 50 },
     deleted_at:             { type: ['string', 'null'] },
   },
   required: [
@@ -54,7 +54,7 @@ export const saleItemsSchema = {
   type: 'object' as const,
   properties: {
     id:                  { type: 'string', maxLength: 100 },
-    sale_id:             { type: 'string' },
+    sale_id:             { type: 'string', maxLength: 100 },
     organization_id:     { type: 'string' },
     service_id:          { type: ['string', 'null'] },
     product_id:          { type: ['string', 'null'] },
@@ -63,7 +63,7 @@ export const saleItemsSchema = {
     discount_percentage: { type: 'number' },
     line_total:          { type: 'number' },
     created_at:          { type: 'string' },
-    updated_at:          { type: 'string' },
+    updated_at:          { type: 'string', maxLength: 50 },
   },
   required: [
     'id', 'sale_id', 'organization_id',
@@ -89,7 +89,7 @@ export const servicesSchema = {
     discount_starts_at:          { type: ['string', 'null'] },
     discount_ends_at:            { type: ['string', 'null'] },
     created_at:                  { type: 'string' },
-    updated_at:                  { type: 'string' },
+    updated_at:                  { type: 'string', maxLength: 50 },
     deleted_at:                  { type: ['string', 'null'] },
   },
   required: [
@@ -113,7 +113,7 @@ export const productsSchema = {
     current_stock:   { type: 'number' },
     min_stock_alert: { type: 'number' },
     created_at:      { type: 'string' },
-    updated_at:      { type: 'string' },
+    updated_at:      { type: 'string', maxLength: 50 },
     deleted_at:      { type: ['string', 'null'] },
   },
   required: [
@@ -131,12 +131,12 @@ export const clientsSchema = {
   properties: {
     id:               { type: 'string', maxLength: 100 },
     organization_id:  { type: 'string' },
-    full_name:        { type: 'string' },
+    full_name:        { type: 'string', maxLength: 200 },
     phone_whatsapp:   { type: ['string', 'null'] },
     birth_date:       { type: ['string', 'null'] },
     consent_given_at: { type: ['string', 'null'] },
     created_at:       { type: 'string' },
-    updated_at:       { type: 'string' },
+    updated_at:       { type: 'string', maxLength: 50 },
     deleted_at:       { type: ['string', 'null'] },
   },
   required: [
@@ -153,12 +153,12 @@ export const stockMovementsSchema = {
   properties: {
     id:              { type: 'string', maxLength: 100 },
     organization_id: { type: 'string' },
-    product_id:      { type: 'string' },
+    product_id:      { type: 'string', maxLength: 100 },
     delta:           { type: 'number' },   // +incoming, -outgoing
     reason:          { type: 'string' },   // SALE, VOID_REVERSAL, MANUAL_ADJUST, PURCHASE
     reference_id:    { type: ['string', 'null'] },
     created_at:      { type: 'string' },
-    updated_at:      { type: 'string' },
+    updated_at:      { type: 'string', maxLength: 50 },
   },
   required: [
     'id', 'organization_id', 'product_id',
@@ -181,7 +181,7 @@ export const fixedExpensesSchema = {
     expense_date:    { type: 'string' },     // YYYY-MM-DD
     registered_by:   { type: ['string', 'null'] },
     created_at:      { type: 'string' },
-    updated_at:      { type: 'string' },
+    updated_at:      { type: 'string', maxLength: 50 },
     deleted_at:      { type: ['string', 'null'] },
   },
   required: [
