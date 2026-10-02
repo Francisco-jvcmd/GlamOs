@@ -7,7 +7,7 @@
     "dev:api": "pnpm --filter @glamos/api dev",
     "dev:web": "pnpm --filter @glamos/web dev",
     "build": "pnpm --filter @glamos/shared build && pnpm --filter @glamos/web build",
-    "build:api": "pnpm --filter @glamos/api build",
+    "build:api": "pnpm --filter @glamos/shared build && pnpm --filter @glamos/api build",
     "build:web": "pnpm --filter @glamos/web build",
     "build:shared": "pnpm --filter @glamos/shared build",
     "lint": "pnpm -r lint",
