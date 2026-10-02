@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth-context';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
 import { Crown, Scissors, ArrowRight, Sparkles, Building2, KeyRound, Check, Copy } from 'lucide-react';
 
 export function OnboardingPage() {
-  const { user } = useAuth();
+  const { user, setOrganization, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<'SELECT' | 'CREATE_ADMIN' | 'JOIN_EMPLOYEE' | 'ADMIN_SUCCESS'>('SELECT');
@@ -15,6 +15,16 @@ export function OnboardingPage() {
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        navigate('/login', { replace: true });
+      } else if (user.org && mode !== 'ADMIN_SUCCESS') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, authLoading, navigate, mode]);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -116,23 +126,7 @@ export function OnboardingPage() {
   };
 
   const updateLocalUser = (role: 'OWNER_ADMIN' | 'EMPLOYEE', orgId: string) => {
-    const stored = localStorage.getItem('glamos_tokens');
-    if (stored) {
-      try {
-        const tokens = JSON.parse(stored);
-        const parts = tokens.access_token.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-          payload.role = role;
-          payload.org = orgId;
-          const updatedToken = `${parts[0]}.${btoa(JSON.stringify(payload)).replace(/=/g, '')}.${parts[2]}`;
-          tokens.access_token = updatedToken;
-          localStorage.setItem('glamos_tokens', JSON.stringify(tokens));
-        }
-      } catch (e) {
-        console.error('Error actualizando sesión:', e);
-      }
-    }
+    setOrganization(orgId, role);
   };
 
   const copyToClipboard = () => {

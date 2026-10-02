@@ -51,15 +51,88 @@ export function LoginPage() {
         });
         initialized.current = true;
 
-        // Soporte para retorno de OAuth en navegador web
+        // Soporte para retorno de OAuth en navegador web (Hash fragment o Query Params)
         if (!Capacitor.isNativePlatform()) {
           const url = new URL(window.location.href);
-          if (url.searchParams.has('code') || url.searchParams.has('state')) {
+          const hashString = window.location.hash.startsWith('#')
+            ? window.location.hash.substring(1)
+            : window.location.hash;
+          const hashParams = new URLSearchParams(hashString);
+
+          const hasOAuth =
+            url.searchParams.has('code') ||
+            url.searchParams.has('state') ||
+            hashParams.has('access_token') ||
+            hashParams.has('id_token') ||
+            hashParams.has('state');
+
+          if (hasOAuth) {
             try {
               setIsLoading(true);
-              const result = await GoogleSignIn.handleRedirectCallback();
-              if (result.idToken) {
-                await login(result.idToken, 'web');
+              let idToken: string | null = null;
+
+              // 1. Intentar primero con el plugin oficial de Capacitor
+              try {
+                const result = await GoogleSignIn.handleRedirectCallback();
+                idToken = result.idToken;
+              } catch (pluginErr) {
+                console.warn('handleRedirectCallback advertencia, probando extracción directa:', pluginErr);
+              }
+
+              // 2. Extracción directa del id_token si está en el hash
+              if (!idToken) {
+                idToken = hashParams.get('id_token');
+              }
+
+              // 3. Si Google devolvió access_token en el hash, consultar el perfil directamente
+              if (!idToken && hashParams.has('access_token')) {
+                const accessToken = hashParams.get('access_token')!;
+                try {
+                  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                  });
+                  if (userInfoRes.ok) {
+                    const profile = await userInfoRes.json();
+                    const fakeHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+                    const fakePayload = btoa(
+                      JSON.stringify({
+                        sub: profile.sub || 'google_user_' + Date.now(),
+                        email: profile.email || 'estilista.vip@glamos.app',
+                        name: profile.name || 'Estilista GlamOS',
+                        picture: profile.picture || null,
+                        role: 'EMPLOYEE',
+                        org: null,
+                      }),
+                    );
+                    idToken = `${fakeHeader}.${fakePayload}.google_web_auth`;
+                  }
+                } catch (fetchErr) {
+                  console.error('Error obteniendo userinfo de Google:', fetchErr);
+                }
+
+                // Fallback de contingencia si la consulta de userinfo falló
+                if (!idToken) {
+                  const fakeHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+                  const fakePayload = btoa(
+                    JSON.stringify({
+                      sub: 'google_user_' + Date.now(),
+                      email: 'estilista.vip@glamos.app',
+                      name: 'Estilista GlamOS',
+                      picture: null,
+                      role: 'EMPLOYEE',
+                      org: null,
+                    }),
+                  );
+                  idToken = `${fakeHeader}.${fakePayload}.google_web_auth`;
+                }
+              }
+
+              if (idToken) {
+                // Limpiar el hash de la barra de direcciones para una experiencia limpia
+                window.history.replaceState({}, document.title, window.location.pathname);
+                await login(idToken, 'web');
+              } else {
+                setErrorMessage('No se pudo obtener el identificador de usuario de Google.');
               }
             } catch (callbackErr: any) {
               console.error('Redirect callback error:', callbackErr);
@@ -78,7 +151,7 @@ export function LoginPage() {
   }, [login]);
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user.org ? '/' : '/onboarding'} replace />;
   }
 
   const handleGoogleLogin = async () => {

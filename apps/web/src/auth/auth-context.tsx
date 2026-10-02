@@ -24,6 +24,7 @@ interface AuthContextType {
   login: (idToken: string, platform: 'web' | 'android') => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<string>;
+  setOrganization: (orgId: string, role: 'OWNER_ADMIN' | 'EMPLOYEE') => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -106,11 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error al decodificar Google idToken:', e);
       }
 
+      const existingLocalOrg = localStorage.getItem('glamos_local_org_id');
+      const existingLocalRole = (localStorage.getItem('glamos_local_role') as any) || googleClaims.role || 'EMPLOYEE';
+
       const offlineUser: JwtPayload = {
-        sub: googleClaims.sub || 'offline_owner',
+        sub: googleClaims.sub || 'offline_user',
         email: googleClaims.email || 'estilista@glamos.app',
-        role: 'OWNER_ADMIN',
-        org: 'offline_salon',
+        role: existingLocalRole,
+        org: existingLocalOrg || null, // Si es nuevo, es null para que vaya a /onboarding
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 90, // 90 días offline
         iat: Math.floor(Date.now() / 1000),
       };
@@ -183,6 +187,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setOrganization = (orgId: string, role: 'OWNER_ADMIN' | 'EMPLOYEE') => {
+    localStorage.setItem('glamos_local_org_id', orgId);
+    localStorage.setItem('glamos_local_role', role);
+
+    const stored = localStorage.getItem('glamos_tokens');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const parts = parsed.access_token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          payload.role = role;
+          payload.org = orgId;
+          const updatedToken = `${parts[0]}.${btoa(JSON.stringify(payload)).replace(/=/g, '')}.${parts[2]}`;
+          parsed.access_token = updatedToken;
+          localStorage.setItem('glamos_tokens', JSON.stringify(parsed));
+          setTokens(parsed);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (user) {
+      setUser({ ...user, org: orgId, role });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -193,6 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         refreshAccessToken,
+        setOrganization,
       }}
     >
       {children}
