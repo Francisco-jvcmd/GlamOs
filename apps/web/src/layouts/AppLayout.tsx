@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, Package, Users, Settings, PlusCircle, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, Receipt, Package, Users, Settings, PlusCircle, MoreHorizontal, Scissors, TrendingUp } from 'lucide-react';
 import { useAuth } from '../auth/auth-context';
 import { cn } from '../lib/utils';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
@@ -13,6 +13,7 @@ export function AppLayout() {
     { to: '/', icon: LayoutDashboard, label: 'Inicio' },
     { to: '/sales', icon: Receipt, label: 'Ventas' },
     { to: '/sales/new', icon: PlusCircle, label: 'Nueva Venta', primary: true },
+    { to: '/services', icon: Scissors, label: 'Servicios' },
     ...(isAdmin ? [{ to: '/inventory', icon: Package, label: 'Inventario' }] : []),
     { to: '/clients', icon: Users, label: 'Clientes' },
   ];
@@ -54,16 +55,16 @@ export function AppLayout() {
               {item.label}
             </NavLink>
           ))}
-          {user?.role === 'OWNER_ADMIN' && (
+          {isAdmin && (
             <NavLink
               to="/finance"
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mt-1",
-                isActive ? "bg-rose-50 text-rose-600 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                isActive ? "bg-amber-50 text-amber-800 font-semibold border border-amber-200" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
-              <MoreHorizontal className="w-5 h-5" />
-              Finanzas
+              <TrendingUp className="w-5 h-5 text-amber-600" />
+              Finanzas & P&L
             </NavLink>
           )}
         </nav>
