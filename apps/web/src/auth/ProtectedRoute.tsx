@@ -10,6 +10,11 @@ export function ProtectedRoute({ requiredRole }: { requiredRole?: string }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Si está autenticado pero aún no pertenece a un salón, dirigir a selección de perfil / onboarding
+  if (!user?.org && window.location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   if (requiredRole && user?.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }

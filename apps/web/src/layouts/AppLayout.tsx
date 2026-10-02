@@ -7,11 +7,13 @@ import { GlamOSEmblem } from '../components/GlamOSLogo';
 export function AppLayout() {
   const { user } = useAuth();
 
+  const isAdmin = user?.role === 'OWNER_ADMIN';
+
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Inicio' },
     { to: '/sales', icon: Receipt, label: 'Ventas' },
     { to: '/sales/new', icon: PlusCircle, label: 'Nueva Venta', primary: true },
-    { to: '/inventory', icon: Package, label: 'Inventario' },
+    ...(isAdmin ? [{ to: '/inventory', icon: Package, label: 'Inventario' }] : []),
     { to: '/clients', icon: Users, label: 'Clientes' },
   ];
 
@@ -119,7 +121,9 @@ export function AppLayout() {
           { to: '/', icon: LayoutDashboard, label: 'Inicio' },
           { to: '/sales', icon: Receipt, label: 'Ventas' },
           { to: '/sales/new', icon: PlusCircle, label: 'Vender', primary: true },
-          { to: '/inventory', icon: Package, label: 'Stock' },
+          ...(isAdmin
+            ? [{ to: '/inventory', icon: Package, label: 'Stock' }]
+            : [{ to: '/clients', icon: Users, label: 'Clientes' }]),
           { to: '/settings', icon: Settings, label: 'Ajustes' },
         ].map((item) => (
           <NavLink
