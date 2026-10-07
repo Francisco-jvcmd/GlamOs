@@ -11,33 +11,76 @@ export function useCollection<K extends keyof DatabaseCollections>(
   }
 ) {
   const db = useDatabase();
-  const [docs, setDocs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [docs, setDocs] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem(`glamos_local_${collectionName}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!db) return;
+    // Escuchar eventos de actualización local inmediata
+    const handleStorageChange = () => {
+      try {
+        const cached = localStorage.getItem(`glamos_local_${collectionName}`);
+        if (cached) setDocs(JSON.parse(cached));
+      } catch {}
+    };
+    window.addEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+
+    if (!db) {
+      return () => {
+        window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+      };
+    }
     
-    const collection = db[collectionName];
-    let query = collection.find({
-      selector: {
-        deleted_at: { $eq: null },
-        ...queryOptions?.selector
+    try {
+      const collection = db[collectionName];
+      if (!collection) {
+        return () => {
+          window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+        };
       }
-    });
 
-    if (queryOptions?.sort) {
-      query = query.sort(queryOptions.sort);
+      let query = collection.find({
+        selector: queryOptions?.selector || {}
+      });
+
+      if (queryOptions?.sort) {
+        query = query.sort(queryOptions.sort);
+      }
+      if (queryOptions?.limit) {
+        query = query.limit(queryOptions.limit);
+      }
+
+      const sub = query.$.subscribe({
+        next: (results: any[]) => {
+          const validDocs = results
+            .map((d: any) => d.toJSON())
+            .filter((d: any) => !d.deleted_at);
+          setDocs(validDocs);
+          localStorage.setItem(`glamos_local_${collectionName}`, JSON.stringify(validDocs));
+          setLoading(false);
+        },
+        error: (err: any) => {
+          console.warn(`Query error on ${collectionName}:`, err);
+          setLoading(false);
+        }
+      });
+
+      return () => {
+        sub.unsubscribe();
+        window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+      };
+    } catch (e) {
+      console.warn('Error iniciando query:', e);
+      return () => {
+        window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+      };
     }
-    if (queryOptions?.limit) {
-      query = query.limit(queryOptions.limit);
-    }
-
-    const sub = query.$.subscribe((results: any[]) => {
-      setDocs(results.map((d: any) => d.toJSON()));
-      setLoading(false);
-    });
-
-    return () => sub.unsubscribe();
   }, [db, collectionName, JSON.stringify(queryOptions)]);
 
   return { docs, loading };

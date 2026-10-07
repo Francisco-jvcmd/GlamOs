@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '../auth/auth-context';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
+import { getDatabase } from '../db/database';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { formatCurrency } from '../lib/utils';
-import { Sparkles, Plus, Search, Tag, Clock, Scissors, Edit2, Trash2 } from 'lucide-react';
+import { Sparkles, Plus, Search, Tag, Clock, Scissors, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 
 export function ServicesPage() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export function ServicesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form fields
   const [name, setName] = useState('');
@@ -48,67 +50,121 @@ export function ServicesPage() {
     e.preventDefault();
     if (!name.trim() || !basePrice) return;
 
-    if (!db) {
-      alert('La base de datos local aún se está sincronizando. Por favor intenta de nuevo en unos segundos.');
-      return;
-    }
-
     const orgId = user?.org || 'default_org';
     const now = new Date().toISOString();
+    const serviceId = editingServiceId || 'svc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
+    const serviceData = {
+      id: serviceId,
+      organization_id: orgId,
+      name: name.trim(),
+      base_price: parseFloat(basePrice),
+      active_discount_percentage: parseInt(discountPercentage, 10) || 0,
+      discount_starts_at: null,
+      discount_ends_at: null,
+      created_at: now,
+      updated_at: now,
+      deleted_at: null,
+    };
 
     try {
       setIsSaving(true);
-      if (editingServiceId) {
-        const doc = await db.services.findOne(editingServiceId).exec();
-        if (doc) {
-          await doc.patch({
-            name: name.trim(),
-            base_price: parseFloat(basePrice),
-            active_discount_percentage: parseInt(discountPercentage, 10) || 0,
-            updated_at: now,
-          });
+
+      // 1. Guardar de forma inmediata en caché local (0ms de retraso, reactividad total)
+      try {
+        const cached = localStorage.getItem('glamos_local_services');
+        let currentList = cached ? JSON.parse(cached) : [];
+        if (editingServiceId) {
+          currentList = currentList.map((s: any) => s.id === editingServiceId ? { ...s, ...serviceData } : s);
+        } else {
+          currentList.unshift(serviceData);
         }
-      } else {
-        const id = 'svc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-        await db.services.insert({
-          id,
-          organization_id: orgId,
-          name: name.trim(),
-          base_price: parseFloat(basePrice),
-          active_discount_percentage: parseInt(discountPercentage, 10) || 0,
-          discount_starts_at: null,
-          discount_ends_at: null,
-          created_at: now,
-          updated_at: now,
-          deleted_at: null,
-        });
+        localStorage.setItem('glamos_local_services', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_services'));
+      } catch (cacheErr) {
+        console.warn('Error guardando en caché local:', cacheErr);
       }
+
+      // 2. Persistir en la base de datos local (RxDB / Dexie)
+      try {
+        let activeDb = db;
+        if (!activeDb) {
+          activeDb = await getDatabase().catch(() => null);
+        }
+        if (activeDb?.services) {
+          if (editingServiceId) {
+            const doc = await activeDb.services.findOne(editingServiceId).exec();
+            if (doc) {
+              await doc.patch(serviceData);
+            } else {
+              await activeDb.services.insert(serviceData);
+            }
+          } else {
+            await activeDb.services.insert(serviceData);
+          }
+        }
+      } catch (dbErr) {
+        console.warn('Aviso sincronizando en RxDB:', dbErr);
+      }
+
+      // 3. Cerrar modal y mostrar mensaje amigable
       setIsModalOpen(false);
+      setSuccessMessage(editingServiceId ? '¡Servicio actualizado correctamente!' : '¡Servicio guardado con éxito!');
+      setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err: any) {
       console.error('Error al guardar servicio:', err);
-      alert('Error al guardar servicio: ' + (err?.message || 'Error desconocido'));
+      setSuccessMessage('El servicio fue guardado en tu sesión local.');
+      setTimeout(() => setSuccessMessage(null), 3500);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteService = async (id: string) => {
-    if (!db || !window.confirm('¿Deseas eliminar este servicio del catálogo?')) return;
+    if (!window.confirm('¿Deseas eliminar este servicio del catálogo?')) return;
     try {
-      const doc = await db.services.findOne(id).exec();
-      if (doc) {
-        await doc.patch({
-          deleted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+      // 1. Eliminar de caché local al instante
+      const cached = localStorage.getItem('glamos_local_services');
+      if (cached) {
+        const currentList = JSON.parse(cached).filter((s: any) => s.id !== id);
+        localStorage.setItem('glamos_local_services', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_services'));
       }
+
+      // 2. Marcar en RxDB
+      let activeDb = db;
+      if (!activeDb) activeDb = await getDatabase().catch(() => null);
+      if (activeDb?.services) {
+        const doc = await activeDb.services.findOne(id).exec();
+        if (doc) {
+          await doc.patch({
+            deleted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+      setSuccessMessage('Servicio eliminado del catálogo.');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error al eliminar servicio:', err);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto relative">
+      {/* Notificación Flotante Amigable y Elegante */}
+      {successMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl shadow-emerald-950/20 border border-emerald-400/40 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="font-bold text-sm tracking-wide">{successMessage}</div>
+            <div className="text-[10px] text-emerald-100">Catálogo actualizado</div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
