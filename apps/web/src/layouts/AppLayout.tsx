@@ -87,7 +87,7 @@ export function AppLayout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 md:pb-0">
-        <header className="h-14 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
+        <header className="h-16 border-b border-amber-200/60 bg-white/90 backdrop-blur-md flex items-center justify-between px-4 md:px-6 shrink-0 shadow-xs">
           <div className="md:hidden flex items-center gap-2">
             <GlamOSEmblem size={32} />
             <span className="font-bold text-lg tracking-tight">
@@ -105,15 +105,29 @@ export function AppLayout() {
               </span>
             </span>
           </div>
+
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200/80">
+              {isAdmin ? '👑 Administración Salón' : '✂️ Terminal Estilista'}
+            </span>
+          </div>
+
           <div className="flex items-center gap-3 ml-auto">
-            <span className="text-sm font-medium hidden sm:block">{user?.email}</span>
-            <div className="w-8 h-8 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 font-bold text-sm">
-              {user?.email?.[0].toUpperCase()}
+            <div className="text-right hidden sm:block">
+              <span className="text-xs font-bold text-gray-800 block truncate max-w-[200px]">
+                {user?.email}
+              </span>
+              <span className="text-[10px] text-gray-400 font-medium">
+                {isAdmin ? 'Dueña / Administradora' : 'Estilista'}
+              </span>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-rose-500 text-white font-extrabold text-sm flex items-center justify-center shadow-sm">
+              {user?.email?.[0].toUpperCase() || 'G'}
             </div>
           </div>
         </header>
         
-        <div className="flex-1 overflow-auto p-4 md:p-6 bg-gray-50">
+        <div className="flex-1 overflow-auto p-4 md:p-6 bg-[#FAF7F2]">
           <Outlet />
         </div>
       </main>

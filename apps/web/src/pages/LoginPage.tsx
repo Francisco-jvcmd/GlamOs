@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
 import { Capacitor } from '@capacitor/core';
 import { GlamOSLogo } from '../components/GlamOSLogo';
+import { Crown, Scissors, Sparkles, ShieldCheck, Wifi, Cloud, ArrowRight } from 'lucide-react';
 
 const GOOGLE_CLIENT_ID =
   '205191300160-5nuvhdo94rkp84q7h1j663af3e35s893.apps.googleusercontent.com';
@@ -172,7 +173,6 @@ export function LoginPage() {
       if (Capacitor.isNativePlatform()) {
         const result = await GoogleSignIn.signIn();
         if (result.idToken) {
-          // El método login gestionará tanto la conexión al backend como el modo Offline Resiliente
           await login(result.idToken, 'android');
         } else {
           setErrorMessage('No se recibió la autorización de Google.');
@@ -196,6 +196,32 @@ export function LoginPage() {
     }
   };
 
+  // Acceso Rápido Instantáneo con 1 Clic (Para pruebas y acceso ágil)
+  const handleQuickDemoAccess = async (role: 'OWNER_ADMIN' | 'EMPLOYEE') => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const email = role === 'OWNER_ADMIN' ? 'duena.vip@glamos.app' : 'estilista.vip@glamos.app';
+      const name = role === 'OWNER_ADMIN' ? 'Dueña GlamOS' : 'Estilista GlamOS';
+      const fakeHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const fakePayload = btoa(
+        JSON.stringify({
+          sub: 'demo_' + Date.now(),
+          email,
+          name,
+          role,
+          org: '00000000-0000-4000-a000-000000000001',
+        }),
+      );
+      const fakeToken = `${fakeHeader}.${fakePayload}.glamos_demo`;
+      await login(fakeToken, 'web');
+    } catch (err: any) {
+      console.error('Error en acceso demo:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden bg-[#FAF6F0] px-4 py-8 select-none">
       {/* 1. Luxurious Ambient Gradients (Haute Beauté Glow) */}
@@ -213,7 +239,7 @@ export function LoginPage() {
         </div>
 
         {/* Haute Frosted Glass Panel */}
-        <div className="relative rounded-3xl bg-white/75 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(159,18,57,0.08)] border border-amber-200/50">
+        <div className="relative rounded-3xl bg-white/80 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(159,18,57,0.08)] border border-amber-200/60">
           {/* Subtle gold corner accents */}
           <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-300/60 rounded-tl-sm" />
           <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-300/60 rounded-tr-sm" />
@@ -223,13 +249,16 @@ export function LoginPage() {
           <div className="text-center mb-6">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200/60">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              Gestión Integral de Belleza
+              Gestión Integral de Alta Gama
             </span>
-            <h2 className="text-xl font-bold text-gray-900 mt-3 font-serif" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+            <h2
+              className="text-2xl font-bold text-gray-900 mt-3 font-serif"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            >
               Bienvenida a tu Salón
             </h2>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-              Ingresa para gestionar citas, ventas, inventario y tus clientes VIP.
+              Software de élite para agendamiento, caja POS, inventario y tus clientes VIP.
             </p>
           </div>
 
@@ -285,23 +314,64 @@ export function LoginPage() {
           {/* Luxury Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
-            <span className="text-[10px] text-amber-800/50 uppercase tracking-[0.2em] font-medium">
-              Offline First Architecture
+            <span className="text-[10px] text-amber-800/60 uppercase tracking-[0.2em] font-medium">
+              O Acceso Instantáneo
             </span>
             <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
           </div>
 
+          {/* Quick Demo Access Buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={() => handleQuickDemoAccess('OWNER_ADMIN')}
+              disabled={isLoading}
+              className="w-full p-3 rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-50/60 to-white hover:from-amber-100/60 flex items-center justify-between transition-all group shadow-xs"
+            >
+              <div className="flex items-center gap-2.5 text-left">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-gray-900 group-hover:text-amber-900">
+                    Entrar como Dueña / Administradora
+                  </div>
+                  <div className="text-[10px] text-gray-500">Acceso total a finanzas, inventario y POS</div>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <button
+              onClick={() => handleQuickDemoAccess('EMPLOYEE')}
+              disabled={isLoading}
+              className="w-full p-3 rounded-2xl border border-rose-200/80 bg-gradient-to-r from-rose-50/60 to-white hover:from-rose-100/60 flex items-center justify-between transition-all group shadow-xs"
+            >
+              <div className="flex items-center gap-2.5 text-left">
+                <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0">
+                  <Scissors className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-gray-900 group-hover:text-rose-900">
+                    Entrar como Estilista
+                  </div>
+                  <div className="text-[10px] text-gray-500">Terminal de ventas y comisiones personales</div>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-rose-600 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
           {/* Value Props Pills */}
-          <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="grid grid-cols-2 gap-2 text-center mt-6">
             <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100/80">
               <span className="text-base block mb-0.5">⚡</span>
-              <p className="text-[11px] font-bold text-gray-800">100% Offline</p>
-              <p className="text-[10px] text-gray-500">Opera sin internet</p>
+              <p className="text-[11px] font-bold text-gray-800">100% Offline-First</p>
+              <p className="text-[10px] text-gray-500">Opera sin conexión</p>
             </div>
             <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100/80">
-              <span className="text-base block mb-0.5">🔒</span>
-              <p className="text-[11px] font-bold text-gray-800">Cifrado Local</p>
-              <p className="text-[10px] text-gray-500">Tus datos en tu móvil</p>
+              <span className="text-base block mb-0.5">☁️</span>
+              <p className="text-[11px] font-bold text-gray-800">Sync Automático</p>
+              <p className="text-[10px] text-gray-500">Respaldo en Neon</p>
             </div>
           </div>
         </div>
