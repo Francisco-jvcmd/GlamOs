@@ -6,7 +6,7 @@ import { useAuth } from '../auth/auth-context';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, ensureUuid } from '../lib/utils';
 import { ArrowLeft, Plus, Minus, Search, Check } from 'lucide-react';
 
 interface CartItem {
@@ -99,9 +99,9 @@ export function NewSalePage() {
     // Insert sale
     await db.sales.insert({
       id: saleId,
-      organization_id: user.org || '',
-      employee_id: user.sub,
-      client_id: selectedClientId || null,
+      organization_id: ensureUuid(user.org),
+      employee_id: ensureUuid(user.sub),
+      client_id: selectedClientId ? ensureUuid(selectedClientId) : null,
       subtotal,
       discount_total: discountTotal,
       final_total: finalTotal,
@@ -125,7 +125,7 @@ export function NewSalePage() {
       await db.sale_items.insert({
         id: itemId,
         sale_id: saleId,
-        organization_id: user.org || '',
+        organization_id: ensureUuid(user.org),
         service_id: item.service_id || null,
         product_id: item.product_id || null,
         quantity: item.quantity,

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { getDatabase } from '../db/database';
-import { setupSync, startSync, cancelSync } from '../db/sync';
+import { setupSync, startSync, cancelSync, triggerSync } from '../db/sync';
+import { ensureUuid } from '../lib/utils';
 
 export interface JwtPayload {
   sub: string;
@@ -25,6 +26,7 @@ interface AuthContextType {
   logout: () => void;
   refreshAccessToken: () => Promise<string>;
   setOrganization: (orgId: string, role: 'OWNER_ADMIN' | 'EMPLOYEE') => void;
+  syncOfflineSessionWithCloud: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -48,16 +50,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<JwtPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const syncOfflineSessionWithCloud = async (): Promise<boolean> => {
+    try {
+      const storedTokens = localStorage.getItem('glamos_tokens');
+      const localOrg = localStorage.getItem('glamos_local_org_id') || user?.org;
+      const localOrgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón';
+      const localRole = (localStorage.getItem('glamos_local_role') as any) || user?.role || 'OWNER_ADMIN';
+
+      let email = user?.email || 'estilista@glamos.app';
+      let sub = user?.sub;
+
+      if (!sub && storedTokens) {
+        try {
+          const parsed = JSON.parse(storedTokens);
+          const decoded = decodeJwt(parsed.access_token);
+          email = decoded.email || email;
+          sub = decoded.sub;
+        } catch {}
+      }
+
+      const res = await fetch(`${API_URL}/auth/sync-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          full_name: email.split('@')[0],
+          google_sub: sub,
+          organization_id: localOrg ? ensureUuid(localOrg) : undefined,
+          business_name: localOrgName,
+          role: localRole,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const validTokens = {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        };
+        localStorage.setItem('glamos_tokens', JSON.stringify(validTokens));
+        localStorage.removeItem('glamos_offline_mode');
+        setTokens(validTokens);
+
+        const decoded = decodeJwt(data.access_token);
+        setUser(decoded);
+
+        window.dispatchEvent(new Event('glamos_auth_changed'));
+
+        // Iniciar replicación en vivo RxDB <-> Neon
+        try {
+          const db = await getDatabase();
+          await setupSync(db);
+          startSync();
+          triggerSync();
+        } catch (dbSyncErr) {
+          console.warn('Replicación de BD en proceso:', dbSyncErr);
+        }
+
+        console.log('✨ ¡Sesión offline vinculada exitosamente con Neon en la nube!');
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.warn('Servidor en espera o sin conexión:', err);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const storedTokens = localStorage.getItem('glamos_tokens');
+    const isOffline = localStorage.getItem('glamos_offline_mode') === 'true';
+
     if (storedTokens) {
       try {
         const parsed = JSON.parse(storedTokens);
         setTokens(parsed);
         const decoded = decodeJwt(parsed.access_token);
         setUser(decoded);
-        // Init sync if user has an organization
-        if (decoded.org) {
+
+        // Si estaba en modo offline, intentar enlazar silenciosamente con Neon
+        if (isOffline) {
+          syncOfflineSessionWithCloud().catch(() => {});
+        } else if (decoded.org) {
           getDatabase().then((db) => {
             setupSync(db).then(() => startSync());
           }).catch(console.error);
@@ -67,6 +141,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setIsLoading(false);
+
+    // Auto-sincronizar cuando el navegador detecta que volvió internet
+    const handleOnline = () => {
+      syncOfflineSessionWithCloud().catch(() => {});
+      triggerSync();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   const login = async (idToken: string, platform: 'web' | 'android') => {
@@ -226,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshAccessToken,
         setOrganization,
+        syncOfflineSessionWithCloud,
       }}
     >
       {children}

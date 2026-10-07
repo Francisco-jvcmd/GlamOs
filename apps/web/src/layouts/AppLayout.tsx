@@ -3,6 +3,7 @@ import { LayoutDashboard, Receipt, Package, Users, Settings, PlusCircle, MoreHor
 import { useAuth } from '../auth/auth-context';
 import { cn } from '../lib/utils';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
+import { SyncBanner } from '../components/SyncBanner';
 
 export function AppLayout() {
   const { user } = useAuth();
@@ -19,7 +20,8 @@ export function AppLayout() {
   ];
 
   return (
-    <div className="flex h-screen bg-[#FAF7F2] text-gray-900">
+    <div className="flex h-screen bg-[#FAF7F2] text-gray-900 relative">
+      <SyncBanner />
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 border-r border-amber-100 bg-white/80 backdrop-blur-md p-4">
         <div className="flex items-center gap-3 mb-8 px-2">

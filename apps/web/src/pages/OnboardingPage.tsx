@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth-context';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
+import { generateUuid } from '../lib/utils';
 import { Crown, Scissors, ArrowRight, Sparkles, Building2, KeyRound, Check, Copy } from 'lucide-react';
 
 export function OnboardingPage() {
@@ -65,7 +66,7 @@ export function OnboardingPage() {
       const randomCode = Math.floor(1000 + Math.random() * 9000);
       const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
       const localJoinCode = `GLAM-${randomCode}-${letter}`;
-      const localOrgId = 'org_' + Date.now();
+      const localOrgId = generateUuid();
 
       localStorage.setItem('glamos_local_org_name', salonName.trim());
       localStorage.setItem('glamos_local_join_code', localJoinCode);

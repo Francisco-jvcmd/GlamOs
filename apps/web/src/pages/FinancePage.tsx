@@ -6,7 +6,7 @@ import { useAuth } from '../auth/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, generateUuid, ensureUuid } from '../lib/utils';
 import {
   DollarSign,
   TrendingUp,
@@ -105,10 +105,10 @@ export function FinancePage() {
     e.preventDefault();
     if (!amount) return;
 
-    const orgId = user?.org || 'default_org';
+    const orgId = ensureUuid(user?.org);
     const now = new Date().toISOString();
     const expenseData = {
-      id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      id: generateUuid(),
       organization_id: orgId,
       category,
       description: description.trim() || null,

@@ -62,6 +62,20 @@ const ALLOWED_COLLECTIONS = Object.keys(COLLECTION_SCHEMA);
 // Collections that are insert-only (no upsert)
 const INSERT_ONLY_COLLECTIONS = new Set(['stock_movements']);
 
+function toUuid(val: any): string {
+  if (typeof val !== 'string' || !val) return '00000000-0000-4000-a000-000000000000';
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
+    return val.toLowerCase();
+  }
+  let hex = '';
+  for (let i = 0; i < val.length; i++) {
+    hex += (val.charCodeAt(i) % 16).toString(16);
+  }
+  while (hex.length < 32) hex += '0';
+  hex = hex.substring(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
 @Injectable()
 export class SyncService {
   constructor(private db: DatabaseService) {}
@@ -82,7 +96,8 @@ export class SyncService {
       throw new BadRequestException(`Invalid collection: ${collection}`);
     }
 
-    return this.db.withTenant(organizationId, async (client: PoolClient) => {
+    const validOrgId = toUuid(organizationId);
+    return this.db.withTenant(validOrgId, async (client: PoolClient) => {
       const params: unknown[] = [];
       let whereClause = '';
 
@@ -143,15 +158,25 @@ export class SyncService {
     }
 
     const allowedColumns = COLLECTION_SCHEMA[collection];
+    const validOrgId = toUuid(organizationId);
 
-    return this.db.withTenant(organizationId, async (client: PoolClient) => {
+    return this.db.withTenant(validOrgId, async (client: PoolClient) => {
       const accepted: string[] = [];
       const rejected: Array<{ id: string; reason: string }> = [];
 
       for (const write of writes) {
         try {
-          // Force organization_id to the authenticated tenant
-          const doc: Record<string, unknown> = { ...write, organization_id: organizationId };
+          // Force organization_id to the authenticated tenant and sanitize all UUID fields
+          const doc: Record<string, unknown> = {
+            ...write,
+            id: toUuid(write.id),
+            organization_id: validOrgId,
+          };
+          if (doc.employee_id) doc.employee_id = toUuid(doc.employee_id);
+          if (doc.client_id) doc.client_id = toUuid(doc.client_id);
+          if (doc.service_id) doc.service_id = toUuid(doc.service_id);
+          if (doc.product_id) doc.product_id = toUuid(doc.product_id);
+          if (doc.sale_id) doc.sale_id = toUuid(doc.sale_id);
 
           // Filter to only allowed columns that exist in the document
           const columns = Object.keys(doc).filter((k) =>

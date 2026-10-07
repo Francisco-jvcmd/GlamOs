@@ -11,6 +11,8 @@ import { ClientsModule } from './clients/clients.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
+import { AppController } from './app.controller';
+
 @Module({
   imports: [
     DatabaseModule,
@@ -22,6 +24,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     FinanceModule,
     ClientsModule,
   ],
+  controllers: [AppController],
   providers: [
     // Global guards — every route requires auth unless @Public()
     { provide: APP_GUARD, useClass: JwtAuthGuard },

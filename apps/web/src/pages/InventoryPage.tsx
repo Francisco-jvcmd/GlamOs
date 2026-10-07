@@ -7,7 +7,7 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, generateUuid, ensureUuid } from '../lib/utils';
 import { Package, Search, Plus, PlusCircle, MinusCircle, AlertTriangle, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 
 export function InventoryPage() {
@@ -59,9 +59,9 @@ export function InventoryPage() {
     e.preventDefault();
     if (!name.trim() || !unitPrice) return;
 
-    const orgId = user?.org || 'default_org';
+    const orgId = ensureUuid(user?.org);
     const now = new Date().toISOString();
-    const productId = editingProductId || 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const productId = editingProductId ? ensureUuid(editingProductId) : generateUuid();
 
     const productData = {
       id: productId,
@@ -110,7 +110,7 @@ export function InventoryPage() {
             // Registrar movimiento de stock inicial
             if (activeDb.stock_movements) {
               await activeDb.stock_movements.insert({
-                id: 'sm_' + Date.now(),
+                id: generateUuid(),
                 organization_id: orgId,
                 product_id: productId,
                 delta: parseInt(currentStock, 10) || 0,
@@ -161,8 +161,8 @@ export function InventoryPage() {
           await doc.patch({ current_stock: newStock, updated_at: now });
           if (activeDb.stock_movements) {
             await activeDb.stock_movements.insert({
-              id: 'sm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
-              organization_id: user?.org || 'default_org',
+              id: generateUuid(),
+              organization_id: ensureUuid(user?.org),
               product_id: product.id,
               delta,
               reason: 'MANUAL_ADJUST',

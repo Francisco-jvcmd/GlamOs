@@ -6,7 +6,7 @@ import { getDatabase } from '../db/database';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, generateUuid, ensureUuid } from '../lib/utils';
 import { Plus, Search, Tag, Scissors, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 
 export function ServicesPage() {
@@ -50,9 +50,9 @@ export function ServicesPage() {
     e.preventDefault();
     if (!name.trim() || !basePrice) return;
 
-    const orgId = user?.org || 'default_org';
+    const orgId = ensureUuid(user?.org);
     const now = new Date().toISOString();
-    const serviceId = editingServiceId || 'svc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const serviceId = editingServiceId ? ensureUuid(editingServiceId) : generateUuid();
 
     const serviceData = {
       id: serviceId,

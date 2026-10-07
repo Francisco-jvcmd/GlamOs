@@ -21,4 +21,21 @@ export class AuthController {
     if (!body.refresh_token) throw new UnauthorizedException('Missing refresh_token');
     return this.authService.refreshTokens(body.refresh_token);
   }
+
+  @Public()
+  @Post('sync-session')
+  @HttpCode(HttpStatus.OK)
+  async syncSession(
+    @Body()
+    body: {
+      email?: string;
+      full_name?: string;
+      google_sub?: string;
+      organization_id?: string;
+      business_name?: string;
+      role?: 'OWNER_ADMIN' | 'EMPLOYEE';
+    },
+  ) {
+    return this.authService.syncOfflineSession(body);
+  }
 }
