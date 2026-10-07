@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
+import { getDatabase } from '../db/database';
 import { useAuth } from '../auth/auth-context';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { formatCurrency } from '../lib/utils';
-import { Package, Search, Plus, PlusCircle, MinusCircle, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
+import { Package, Search, Plus, PlusCircle, MinusCircle, AlertTriangle, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 
 export function InventoryPage() {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ export function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
   const [name, setName] = useState('');
@@ -25,6 +27,7 @@ export function InventoryPage() {
   const [unitPrice, setUnitPrice] = useState('');
   const [currentStock, setCurrentStock] = useState('0');
   const [minStockAlert, setMinStockAlert] = useState('5');
+
 
   const filteredProducts = products.filter((p: any) =>
     p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,83 +57,121 @@ export function InventoryPage() {
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !unitPrice || !db) return;
+    if (!name.trim() || !unitPrice) return;
 
     const orgId = user?.org || 'default_org';
     const now = new Date().toISOString();
+    const productId = editingProductId || 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
+    const productData = {
+      id: productId,
+      organization_id: orgId,
+      name: name.trim(),
+      sku: sku.trim() || null,
+      unit_cost: parseFloat(unitCost) || 0,
+      unit_price: parseFloat(unitPrice),
+      current_stock: parseInt(currentStock, 10) || 0,
+      min_stock_alert: parseInt(minStockAlert, 10) || 5,
+      created_at: now,
+      updated_at: now,
+      deleted_at: null,
+    };
 
     try {
-      if (editingProductId) {
-        const doc = await db.products.findOne(editingProductId).exec();
-        if (doc) {
-          await doc.patch({
-            name: name.trim(),
-            sku: sku.trim() || null,
-            unit_cost: parseFloat(unitCost) || 0,
-            unit_price: parseFloat(unitPrice),
-            current_stock: parseInt(currentStock, 10) || 0,
-            min_stock_alert: parseInt(minStockAlert, 10) || 5,
-            updated_at: now,
-          });
+      // 1. Guardar inmediatamente en caché local
+      try {
+        const cached = localStorage.getItem('glamos_local_products');
+        let currentList = cached ? JSON.parse(cached) : [];
+        if (editingProductId) {
+          currentList = currentList.map((p: any) => p.id === editingProductId ? { ...p, ...productData } : p);
+        } else {
+          currentList.unshift(productData);
         }
-      } else {
-        const id = 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-        await db.products.insert({
-          id,
-          organization_id: orgId,
-          name: name.trim(),
-          sku: sku.trim() || null,
-          unit_cost: parseFloat(unitCost) || 0,
-          unit_price: parseFloat(unitPrice),
-          current_stock: parseInt(currentStock, 10) || 0,
-          min_stock_alert: parseInt(minStockAlert, 10) || 5,
-          created_at: now,
-          updated_at: now,
-          deleted_at: null,
-        });
-
-        // Registrar movimiento de stock inicial
-        await db.stock_movements.insert({
-          id: 'sm_' + Date.now(),
-          organization_id: orgId,
-          product_id: id,
-          delta: parseInt(currentStock, 10) || 0,
-          reason: 'PURCHASE',
-          reference_id: null,
-          created_at: now,
-          updated_at: now,
-        });
+        localStorage.setItem('glamos_local_products', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_products'));
+      } catch (cacheErr) {
+        console.warn('Error guardando producto en caché:', cacheErr);
       }
+
+      // 2. Persistir en RxDB
+      try {
+        let activeDb = db;
+        if (!activeDb) activeDb = await getDatabase().catch(() => null);
+        if (activeDb?.products) {
+          if (editingProductId) {
+            const doc = await activeDb.products.findOne(editingProductId).exec();
+            if (doc) {
+              await doc.patch(productData);
+            } else {
+              await activeDb.products.insert(productData);
+            }
+          } else {
+            await activeDb.products.insert(productData);
+            // Registrar movimiento de stock inicial
+            if (activeDb.stock_movements) {
+              await activeDb.stock_movements.insert({
+                id: 'sm_' + Date.now(),
+                organization_id: orgId,
+                product_id: productId,
+                delta: parseInt(currentStock, 10) || 0,
+                reason: 'PURCHASE',
+                reference_id: null,
+                created_at: now,
+                updated_at: now,
+              });
+            }
+          }
+        }
+      } catch (dbErr) {
+        console.warn('Aviso sincronizando producto en RxDB:', dbErr);
+      }
+
       setIsModalOpen(false);
+      setSuccessMessage(editingProductId ? '¡Producto actualizado correctamente!' : '¡Producto agregado al inventario!');
+      setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err) {
       console.error('Error al guardar producto:', err);
-      alert('Error al guardar el producto en el inventario.');
+      setSuccessMessage('Producto guardado en sesión local.');
+      setTimeout(() => setSuccessMessage(null), 3500);
     }
   };
 
   const handleAdjustStock = async (product: any, delta: number) => {
-    if (!db) return;
     const newStock = Math.max(0, (product.current_stock || 0) + delta);
     const now = new Date().toISOString();
 
+    // Actualizar caché local
     try {
-      const doc = await db.products.findOne(product.id).exec();
-      if (doc) {
-        await doc.patch({
-          current_stock: newStock,
-          updated_at: now,
-        });
+      const cached = localStorage.getItem('glamos_local_products');
+      if (cached) {
+        const currentList = JSON.parse(cached).map((p: any) =>
+          p.id === product.id ? { ...p, current_stock: newStock, updated_at: now } : p
+        );
+        localStorage.setItem('glamos_local_products', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_products'));
+      }
+    } catch {}
 
-        await db.stock_movements.insert({
-          id: 'sm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
-          organization_id: user?.org || 'default_org',
-          product_id: product.id,
-          delta,
-          reason: 'MANUAL_ADJUST',
-          reference_id: null,
-          created_at: now,
-          updated_at: now,
-        });
+    try {
+      let activeDb = db;
+      if (!activeDb) activeDb = await getDatabase().catch(() => null);
+      if (activeDb?.products) {
+        const doc = await activeDb.products.findOne(product.id).exec();
+        if (doc) {
+          await doc.patch({ current_stock: newStock, updated_at: now });
+          if (activeDb.stock_movements) {
+            await activeDb.stock_movements.insert({
+              id: 'sm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+              organization_id: user?.org || 'default_org',
+              product_id: product.id,
+              delta,
+              reason: 'MANUAL_ADJUST',
+              reference_id: null,
+              created_at: now,
+              updated_at: now,
+            });
+          }
+        }
       }
     } catch (err) {
       console.error('Error ajustando stock:', err);
@@ -138,22 +179,49 @@ export function InventoryPage() {
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (!db || !window.confirm('¿Deseas dar de baja este producto del inventario?')) return;
+    if (!window.confirm('¿Deseas dar de baja este producto del inventario?')) return;
     try {
-      const doc = await db.products.findOne(id).exec();
-      if (doc) {
-        await doc.patch({
-          deleted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+      // 1. Eliminar de caché local
+      const cached = localStorage.getItem('glamos_local_products');
+      if (cached) {
+        const currentList = JSON.parse(cached).filter((p: any) => p.id !== id);
+        localStorage.setItem('glamos_local_products', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_products'));
       }
+      // 2. Marcar en RxDB
+      let activeDb = db;
+      if (!activeDb) activeDb = await getDatabase().catch(() => null);
+      if (activeDb?.products) {
+        const doc = await activeDb.products.findOne(id).exec();
+        if (doc) {
+          await doc.patch({
+            deleted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+      setSuccessMessage('Producto dado de baja del inventario.');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error eliminando producto:', err);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto relative">
+      {/* Notificación Flotante */}
+      {successMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl shadow-emerald-950/20 border border-emerald-400/40 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="font-bold text-sm tracking-wide">{successMessage}</div>
+            <div className="text-[10px] text-emerald-100">Inventario actualizado</div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

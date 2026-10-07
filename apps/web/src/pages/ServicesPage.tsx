@@ -7,7 +7,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { formatCurrency } from '../lib/utils';
-import { Sparkles, Plus, Search, Tag, Clock, Scissors, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Tag, Scissors, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 
 export function ServicesPage() {
   const { user } = useAuth();

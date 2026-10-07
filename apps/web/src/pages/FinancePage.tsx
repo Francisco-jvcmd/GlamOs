@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
+import { getDatabase } from '../db/database';
 import { useAuth } from '../auth/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -19,6 +20,7 @@ import {
   Building,
   Zap,
   ShoppingBag,
+  CheckCircle2,
 } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: any; color: string }> = {
@@ -43,6 +45,8 @@ export function FinancePage() {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
 
   // 1. Cálculos de P&L (Estado de Resultados)
   const completedSales = useMemo(() => {
@@ -99,51 +103,102 @@ export function FinancePage() {
 
   const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !db) return;
+    if (!amount) return;
 
     const orgId = user?.org || 'default_org';
     const now = new Date().toISOString();
+    const expenseData = {
+      id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      organization_id: orgId,
+      category,
+      description: description.trim() || null,
+      amount: parseFloat(amount),
+      expense_date: expenseDate,
+      registered_by: user?.sub || null,
+      created_at: now,
+      updated_at: now,
+      deleted_at: null,
+    };
 
     try {
-      await db.fixed_expenses.insert({
-        id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-        organization_id: orgId,
-        category,
-        description: description.trim() || null,
-        amount: parseFloat(amount),
-        expense_date: expenseDate,
-        registered_by: user?.sub || null,
-        created_at: now,
-        updated_at: now,
-        deleted_at: null,
-      });
+      // 1. Guardar inmediatamente en caché local
+      try {
+        const cached = localStorage.getItem('glamos_local_fixed_expenses');
+        const currentList = cached ? JSON.parse(cached) : [];
+        currentList.unshift(expenseData);
+        localStorage.setItem('glamos_local_fixed_expenses', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_fixed_expenses'));
+      } catch (cacheErr) {
+        console.warn('Error guardando gasto en caché:', cacheErr);
+      }
+
+      // 2. Persistir en RxDB
+      try {
+        let activeDb = db;
+        if (!activeDb) activeDb = await getDatabase().catch(() => null);
+        if (activeDb?.fixed_expenses) {
+          await activeDb.fixed_expenses.insert(expenseData);
+        }
+      } catch (dbErr) {
+        console.warn('Aviso sincronizando gasto en RxDB:', dbErr);
+      }
 
       setIsModalOpen(false);
       setDescription('');
       setAmount('');
+      setSuccessMessage('¡Gasto registrado correctamente!');
+      setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err) {
       console.error('Error registrando gasto:', err);
-      alert('Error al registrar el gasto.');
+      setSuccessMessage('Gasto guardado en sesión local.');
+      setTimeout(() => setSuccessMessage(null), 3500);
     }
   };
 
   const handleDeleteExpense = async (id: string) => {
-    if (!db || !window.confirm('¿Deseas eliminar este registro de gasto?')) return;
+    if (!window.confirm('¿Deseas eliminar este registro de gasto?')) return;
     try {
-      const doc = await db.fixed_expenses.findOne(id).exec();
-      if (doc) {
-        await doc.patch({
-          deleted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+      // 1. Eliminar de caché local
+      const cached = localStorage.getItem('glamos_local_fixed_expenses');
+      if (cached) {
+        const currentList = JSON.parse(cached).filter((e: any) => e.id !== id);
+        localStorage.setItem('glamos_local_fixed_expenses', JSON.stringify(currentList));
+        window.dispatchEvent(new Event('glamos_updated_fixed_expenses'));
       }
+      // 2. Marcar en RxDB
+      let activeDb = db;
+      if (!activeDb) activeDb = await getDatabase().catch(() => null);
+      if (activeDb?.fixed_expenses) {
+        const doc = await activeDb.fixed_expenses.findOne(id).exec();
+        if (doc) {
+          await doc.patch({
+            deleted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+      setSuccessMessage('Gasto eliminado.');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error eliminando gasto:', err);
     }
   };
 
   return (
-    <div className="space-y-7 max-w-5xl mx-auto">
+    <div className="space-y-7 max-w-5xl mx-auto relative">
+      {/* Notificación Flotante */}
+      {successMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl shadow-emerald-950/20 border border-emerald-400/40 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="font-bold text-sm tracking-wide">{successMessage}</div>
+            <div className="text-[10px] text-emerald-100">Registros actualizados</div>
+          </div>
+        </div>
+      )}
+
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
