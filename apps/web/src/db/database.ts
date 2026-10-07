@@ -33,9 +33,9 @@ export async function getDatabase(): Promise<GlamDatabase> {
       }
     } catch {}
 
-    try {
+    const initInstance = async (dbName: string) => {
       const db = await createRxDatabase<DatabaseCollections>({
-        name: 'glamosdb',
+        name: dbName,
         storage: getRxStorageDexie(),
         multiInstance: true,
         eventReduce: true,
@@ -53,10 +53,19 @@ export async function getDatabase(): Promise<GlamDatabase> {
       });
 
       return db;
-    } catch (err) {
-      console.error('Error inicializando base de datos RxDB:', err);
-      dbPromise = null;
-      throw err;
+    };
+
+    try {
+      return await initInstance('glamos_app_v2');
+    } catch (firstErr) {
+      console.warn('Primer intento falló por caché IndexedDB previa, auto-recuperando:', firstErr);
+      try {
+        if (typeof indexedDB !== 'undefined') {
+          indexedDB.deleteDatabase('glamosdb');
+          indexedDB.deleteDatabase('glamos_app_v2');
+        }
+      } catch {}
+      return await initInstance('glamos_app_v3');
     }
   })();
 
