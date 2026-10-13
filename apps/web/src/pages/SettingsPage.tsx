@@ -40,18 +40,18 @@ export function SettingsPage() {
             <p className="text-xs text-gray-600 leading-relaxed">
               Tus estilistas y empleados deben ingresar este código al iniciar sesión en su teléfono para vincularse a tu salón:
             </p>
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-amber-200 shadow-inner">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-amber-200 shadow-inner">
               <div>
                 <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider block">
                   Código de Conexión
                 </span>
-                <span className="font-mono text-2xl font-black text-gray-900 tracking-widest">
+                <span className="font-mono text-xl sm:text-2xl font-black text-gray-900 tracking-widest break-all">
                   {localJoinCode}
                 </span>
               </div>
               <button
                 onClick={copyCode}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#F6D365] to-[#D97706] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm hover:shadow transition-all"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#F6D365] to-[#D97706] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all shrink-0"
               >
                 {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
                 {copied ? '¡Copiado!' : 'Copiar Código'}

@@ -292,7 +292,7 @@ export function ClientsPage() {
           />
         </div>
 
-        <div className="flex rounded-xl bg-white border border-amber-200/80 p-1 shrink-0">
+        <div className="flex rounded-xl bg-white border border-amber-200/80 p-1 shrink-0 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setFilterType('ALL')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -433,7 +433,7 @@ export function ClientsPage() {
       {/* ── MODAL: REGISTRAR / EDITAR CLIENTE VIP ──────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full border border-amber-200 shadow-2xl space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full border border-amber-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-600" />

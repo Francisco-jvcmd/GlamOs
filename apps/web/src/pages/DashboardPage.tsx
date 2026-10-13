@@ -80,9 +80,9 @@ export function DashboardPage() {
     hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header Greeting */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span
@@ -287,7 +287,7 @@ export function DashboardPage() {
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
               Módulos de Gestión
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <button
                 onClick={() => navigate('/sales/new')}
                 className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white shadow-lg shadow-rose-200/30 hover:shadow-xl transition-all duration-200 active:scale-[0.98]"

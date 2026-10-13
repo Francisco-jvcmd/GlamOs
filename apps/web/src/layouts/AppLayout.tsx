@@ -154,7 +154,7 @@ export function AppLayout() {
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="relative w-72 max-w-[85vw] bg-[#FAF7F2] h-full p-5 border-r border-amber-200 shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-300">
+          <div className="relative w-72 max-w-[85vw] bg-[#FAF7F2] h-full p-5 border-r border-amber-200 shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-300 overflow-y-auto">
             <button
               onClick={() => setMobileMenuOpen(false)}
               className="absolute top-4 right-4 p-2 rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-gray-900"
@@ -167,7 +167,7 @@ export function AppLayout() {
       )}
 
       {/* ── MAIN CONTENT AREA ────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 lg:pb-0">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         {/* Top Executive Header */}
         <header className="h-16 border-b border-amber-200/60 bg-white/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 shrink-0 shadow-xs z-10">
           <div className="flex items-center gap-3">
@@ -231,7 +231,7 @@ export function AppLayout() {
       </main>
 
       {/* ── MOBILE BOTTOM NAVIGATION BAR ─────────────────────────────────── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-lg border-t border-amber-200/80 flex items-center justify-around px-2 z-40 safe-area-bottom shadow-lg">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-white/95 backdrop-blur-lg border-t border-amber-200/80 flex items-center justify-around px-2 z-40 shadow-lg">
         {[
           { to: '/', icon: LayoutDashboard, label: 'Inicio' },
           { to: '/sales', icon: Receipt, label: 'Ventas' },

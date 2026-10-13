@@ -92,45 +92,45 @@ export function SalesPage() {
 
       {/* ── METRICS SUMMARY CARDS ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1 min-w-0">
           <div className="flex items-center justify-between text-gray-500 text-xs font-semibold">
-            <span>Total Recaudado</span>
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <span className="truncate pr-1">Total Recaudado</span>
+            <TrendingUp className="w-4 h-4 text-emerald-600 shrink-0" />
           </div>
-          <div className="text-xl font-extrabold text-gray-900 font-serif">
+          <div className="text-lg sm:text-xl font-extrabold text-gray-900 font-serif truncate">
             {formatCurrency(stats.total)}
           </div>
           <p className="text-[10px] text-gray-400">{sales.length} transacciones</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1 min-w-0">
           <div className="flex items-center justify-between text-gray-500 text-xs font-semibold">
-            <span>En Efectivo</span>
-            <Wallet className="w-4 h-4 text-amber-600" />
+            <span className="truncate pr-1">En Efectivo</span>
+            <Wallet className="w-4 h-4 text-amber-600 shrink-0" />
           </div>
-          <div className="text-xl font-extrabold text-gray-900 font-serif">
+          <div className="text-lg sm:text-xl font-extrabold text-gray-900 font-serif truncate">
             {formatCurrency(stats.cash)}
           </div>
           <p className="text-[10px] text-gray-400">En caja física</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1 min-w-0">
           <div className="flex items-center justify-between text-gray-500 text-xs font-semibold">
-            <span>Transferencias</span>
-            <CreditCard className="w-4 h-4 text-blue-600" />
+            <span className="truncate pr-1">Transferencias</span>
+            <CreditCard className="w-4 h-4 text-blue-600 shrink-0" />
           </div>
-          <div className="text-xl font-extrabold text-gray-900 font-serif">
+          <div className="text-lg sm:text-xl font-extrabold text-gray-900 font-serif truncate">
             {formatCurrency(stats.transfer)}
           </div>
           <p className="text-[10px] text-gray-400">Banco / Digital</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-1 min-w-0">
           <div className="flex items-center justify-between text-gray-500 text-xs font-semibold">
-            <span>Propinas Equipo</span>
-            <Sparkles className="w-4 h-4 text-rose-500" />
+            <span className="truncate pr-1">Propinas Equipo</span>
+            <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
           </div>
-          <div className="text-xl font-extrabold text-rose-600 font-serif">
+          <div className="text-lg sm:text-xl font-extrabold text-rose-600 font-serif truncate">
             {formatCurrency(stats.tips)}
           </div>
           <p className="text-[10px] text-gray-400">Fondo voluntario</p>
@@ -150,7 +150,7 @@ export function SalesPage() {
           />
         </div>
 
-        <div className="flex rounded-xl bg-white border border-amber-200/80 p-1 shrink-0">
+        <div className="flex rounded-xl bg-white border border-amber-200/80 p-1 shrink-0 overflow-x-auto no-scrollbar">
           {(['ALL', 'CASH', 'TRANSFER', 'MIXED'] as const).map((method) => (
             <button
               key={method}
@@ -248,7 +248,7 @@ export function SalesPage() {
       {/* ── MODAL: DETALLE DEL COMPROBANTE ──────────────────────────────────── */}
       {selectedSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-200 space-y-5">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-200 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-amber-600" />

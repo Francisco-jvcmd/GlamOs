@@ -451,7 +451,8 @@ export function NewSalePage() {
 
       {/* ── PASO 1: SELECCIÓN DE SERVICIOS Y PRODUCTOS ──────────────────────── */}
       {step === 1 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Columna Izquierda: Catálogo */}
           <div className="lg:col-span-2 space-y-4">
             {/* Buscador y Filtros */}
@@ -727,6 +728,34 @@ export function NewSalePage() {
             </div>
           </div>
         </div>
+
+        {/* ── BOTÓN FLOTANTE MÓVIL / TABLET: ACCESO DIRECTO AL CARRITO ────────── */}
+        {cart.length > 0 && (
+          <div className="lg:hidden fixed bottom-20 left-4 right-4 z-30 animate-in slide-in-from-bottom duration-200">
+            <button
+              onClick={() => setStep(2)}
+              className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold text-sm shadow-xl shadow-rose-950/25 flex items-center justify-between active:scale-[0.99] transition-all"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-6 h-6 rounded-lg bg-white/25 flex items-center justify-center text-xs font-black">
+                  {cart.length}
+                </span>
+                <span className="text-xs font-bold tracking-wide">
+                  {cart.length === 1 ? 'ítem agregado' : 'ítems en el carrito'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-base font-serif">
+                  {formatCurrency(netTotal)}
+                </span>
+                <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-lg font-bold">
+                  Continuar →
+                </span>
+              </div>
+            </button>
+          </div>
+        )}
+        </>
       )}
 
       {/* ── PASO 2: ASIGNACIÓN DE CLIENTE VIP ──────────────────────────────── */}
@@ -1134,7 +1163,7 @@ export function NewSalePage() {
       {/* ── MODAL: COMPROBANTE / RECIBO DE VENTA EXITOSA ─────────────────────── */}
       {completedSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-200/80 space-y-5 text-center">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-200/80 space-y-5 text-center max-h-[90vh] overflow-y-auto">
             {/* Medallón de Éxito */}
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
               <Check className="w-8 h-8 stroke-[3]" />
@@ -1231,7 +1260,7 @@ export function NewSalePage() {
       {/* ── MODAL: REGISTRAR NUEVO CLIENTE VIP INLINE ───────────────────────── */}
       {isNewClientModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full border border-amber-200 shadow-2xl space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full border border-amber-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100">
               <h3 className="font-bold text-base text-gray-900">Nuevo Cliente VIP</h3>
               <button

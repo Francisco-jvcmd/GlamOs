@@ -233,7 +233,7 @@ export function FinancePage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold font-mono text-gray-900">
+            <div className="text-2xl font-bold font-mono text-gray-900 truncate">
               {salesLoading ? '...' : formatCurrency(totalRevenue)}
             </div>
             <span className="text-[11px] text-emerald-600 font-medium">{completedSales.length} ventas</span>
@@ -249,7 +249,7 @@ export function FinancePage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold font-mono text-gray-900">
+            <div className="text-2xl font-bold font-mono text-gray-900 truncate">
               {formatCurrency(totalCOGS)}
             </div>
             <span className="text-[11px] text-gray-400">Insumos y reventa</span>
@@ -265,7 +265,7 @@ export function FinancePage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold font-mono text-rose-600">
+            <div className="text-2xl font-bold font-mono text-rose-600 truncate">
               {expensesLoading ? '...' : formatCurrency(totalExpenses)}
             </div>
             <span className="text-[11px] text-gray-400">{expenses.length} conceptos registrados</span>
@@ -408,7 +408,7 @@ export function FinancePage() {
       {/* Modal Registrar Gasto */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-amber-200/60 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-amber-200/60 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h2
                 className="text-xl font-bold font-serif text-gray-900"
