@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useAuth } from '../auth/auth-context';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { LogOut, Store, KeyRound, Copy, Check, Users, Crown, Scissors } from 'lucide-react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Badge } from '../components/ui/Badge';
+import { LogOut, Store, KeyRound, Copy, Check, Users, Crown, Scissors, ShieldCheck } from 'lucide-react';
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
@@ -19,105 +21,126 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 font-serif" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
-          Configuración del Salón
-        </h1>
-        <p className="text-xs text-gray-500 mt-0.5">Gestión de cuenta, roles y accesos.</p>
-      </div>
+    <div className="space-y-6 max-w-2xl mx-auto select-none pb-24">
+      <PageHeader
+        title="Configuración del Salón"
+        subtitle="Gestión de cuenta, credenciales, equipo y accesos al sistema."
+        badge="Preferencias & Seguridad"
+        badgeVariant="gold"
+      />
 
       {/* Tarjeta de Código de Invitación para Empleados (SOLO ADMIN) */}
       {isAdmin && (
-        <Card className="border-2 border-amber-300/80 bg-gradient-to-br from-amber-50/60 to-white shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-amber-900 text-base">
-              <KeyRound className="w-5 h-5 text-amber-600" />
-              Código de Invitación para Empleados
-            </CardTitle>
+        <Card variant="glass" className="border-amber-300/80 bg-gradient-to-br from-amber-50/70 via-white to-amber-100/40 shadow-sm">
+          <CardHeader className="pb-3 border-b border-amber-100/80">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Código de Conexión del Equipo</CardTitle>
+                  <p className="text-xs text-gray-500 mt-0.5">Acceso exclusivo para tus estilistas</p>
+                </div>
+              </div>
+              <Badge variant="gold" dot>Activo</Badge>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-xs text-gray-600 leading-relaxed">
-              Tus estilistas y empleados deben ingresar este código al iniciar sesión en su teléfono para vincularse a tu salón:
+          <CardContent className="space-y-4 pt-4">
+            <p className="text-xs text-gray-600 leading-relaxed font-sans">
+              Tus estilistas y empleados deben ingresar este código al iniciar sesión en su dispositivo para vincularse de forma segura a tu salón:
             </p>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-amber-200 shadow-inner">
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/95 border border-amber-200/90 shadow-2xs">
               <div>
                 <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider block">
-                  Código de Conexión
+                  Código de Enlace VIP
                 </span>
-                <span className="font-mono text-xl sm:text-2xl font-black text-gray-900 tracking-widest break-all">
+                <span className="font-mono text-2xl font-black text-gray-950 tracking-widest break-all">
                   {localJoinCode}
                 </span>
               </div>
-              <button
+              <Button
                 onClick={copyCode}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#F6D365] to-[#D97706] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all shrink-0"
+                variant="gold"
+                size="sm"
+                className="shrink-0"
               >
-                {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 mr-1.5" /> : <Copy className="w-4 h-4 mr-1.5" />}
                 {copied ? '¡Copiado!' : 'Copiar Código'}
-              </button>
+              </Button>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-amber-800/70 pt-1">
-              <Users className="w-4 h-4" />
-              <span>Los empleados con este código solo podrán facturar y ver sus propias métricas.</span>
+
+            <div className="flex items-center gap-2 text-[11px] text-amber-900/80 font-medium">
+              <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Los empleados con este enlace solo pueden facturar y ver sus métricas propias.</span>
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Información de la Cuenta */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Store className="w-5 h-5 text-gray-500" />
-            Perfil & Organización
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Salón / Negocio</div>
-              <div className="font-bold text-gray-800 text-sm mt-0.5">{salonName}</div>
+      <Card variant="glass">
+        <CardHeader className="pb-3 border-b border-amber-100/70">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-50/80 text-amber-700 flex items-center justify-center border border-amber-200/60">
+              <Store className="w-5 h-5" />
             </div>
-            <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-              {isAdmin ? '👑 Dueño / Admin' : '✂️ Empleado'}
-            </span>
+            <div>
+              <CardTitle className="text-xl">Perfil & Organización</CardTitle>
+              <p className="text-xs text-gray-500 mt-0.5">Ficha de salón y permisos vigentes</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5 pt-4">
+          <div className="flex items-center justify-between pb-3.5 border-b border-amber-100/70">
+            <div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Salón / Negocio</div>
+              <div className="font-editorial text-xl font-bold text-gray-950 mt-0.5">{salonName}</div>
+            </div>
+            <Badge variant={isAdmin ? 'gold' : 'glam'} dot>
+              {isAdmin ? 'Dueña / Admin' : 'Estilista'}
+            </Badge>
           </div>
 
-          <div>
-            <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Correo Electrónico</div>
-            <div className="font-medium text-gray-800 text-sm mt-0.5">{user?.email}</div>
+          <div className="pb-3.5 border-b border-amber-100/70">
+            <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Correo Electrónico</div>
+            <div className="font-semibold text-gray-900 text-sm mt-0.5">{user?.email}</div>
           </div>
 
-          <div>
-            <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Rol Asignado</div>
-            <div className="flex items-center gap-2 mt-1">
+          <div className="pb-3.5 border-b border-amber-100/70">
+            <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Rol Asignado en GlamOS</div>
+            <div className="mt-1.5">
               {isAdmin ? (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                  <Crown className="w-3.5 h-3.5 text-amber-600" />
-                  Administrador General (Acceso Total: Finanzas, Inventario, Reportes)
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-950 border border-amber-300/80">
+                  <Crown className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Administrador General (Acceso Total: Finanzas, Inventario, Reportes)</span>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
-                  <Scissors className="w-3.5 h-3.5 text-rose-600" />
-                  Estilista / Empleado (Terminal POS & Métricas Propias)
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-950 border border-rose-300/80">
+                  <Scissors className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Estilista / Colaborador (Terminal POS & Métricas Propias)</span>
                 </div>
               )}
             </div>
           </div>
 
           <div>
-            <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">ID de Conexión del Salón</div>
-            <div className="font-mono text-xs break-all bg-gray-50 p-2.5 rounded-lg mt-1 border border-gray-200 text-gray-600">
-              {user?.org || 'Modo Local / Autónomo'}
+            <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">ID de Conexión del Salón</div>
+            <div className="font-mono text-xs break-all bg-white p-3 rounded-2xl mt-1.5 border border-amber-200/80 text-gray-700 shadow-2xs">
+              {user?.org || 'Modo Local / Autónomo (Offline-First)'}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Button variant="destructive" className="w-full sm:w-auto flex gap-2" onClick={logout}>
-        <LogOut className="w-4 h-4" />
-        Cerrar Sesión
+      <Button
+        variant="destructive"
+        className="w-full sm:w-auto"
+        onClick={logout}
+      >
+        <LogOut className="w-4 h-4 mr-2" />
+        Cerrar Sesión Segura
       </Button>
     </div>
   );

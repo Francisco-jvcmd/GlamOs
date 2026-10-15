@@ -147,32 +147,29 @@ export function OnboardingPage() {
       <div className="relative z-10 w-full max-w-lg">
         {/* Encabezado con emblema */}
         <div className="text-center mb-8">
-          <GlamOSEmblem size={80} className="mx-auto mb-4" />
-          <h1
-            className="text-3xl font-bold font-serif bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] bg-clip-text text-transparent"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-          >
+          <GlamOSEmblem size={84} className="mx-auto mb-4" />
+          <h1 className="text-3xl sm:text-4xl font-bold font-editorial text-gradient-glam tracking-tight">
             Bienvenida a GlamOS
           </h1>
-          <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-semibold">
+          <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-semibold font-interface">
             {user?.email}
           </p>
         </div>
 
         {/* CONTENEDOR PRINCIPAL */}
-        <div className="rounded-3xl bg-white/85 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(159,18,57,0.08)] border border-amber-200/50">
+        <div className="rounded-3xl bg-white/85 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(159,18,57,0.08)] border border-amber-200/60">
           {/* PASO 1: SELECCIONAR MODO */}
           {mode === 'SELECT' && (
             <div className="space-y-5">
               <div className="text-center mb-6">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200/60">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                   Configura tu perfil de trabajo
                 </span>
-                <h2 className="text-xl font-bold text-gray-900 mt-2">
+                <h2 className="text-2xl font-bold font-editorial text-gray-950 mt-3 tracking-tight">
                   ¿Cómo deseas operar en GlamOS?
                 </h2>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                   Selecciona tu rol para personalizar tus herramientas de gestión y seguridad.
                 </p>
               </div>
@@ -180,21 +177,21 @@ export function OnboardingPage() {
               {/* Opción A: Soy Dueño / Administrador */}
               <button
                 onClick={() => setMode('CREATE_ADMIN')}
-                className="w-full text-left p-5 rounded-2xl border-2 border-amber-300/80 bg-gradient-to-br from-amber-50/50 to-white hover:from-amber-100/50 transition-all duration-200 shadow-sm hover:shadow-md group flex items-start gap-4"
+                className="w-full text-left p-5 rounded-3xl border-2 border-amber-300/80 bg-gradient-to-br from-amber-50/60 to-white hover:from-amber-100/60 transition-all duration-200 shadow-2xs hover:shadow-md group flex items-start gap-4 active:scale-[0.99] cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F6D365] to-[#D97706] text-white flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F6D365] to-[#D97706] text-white flex items-center justify-center shrink-0 shadow-md">
                   <Crown className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900 text-base">Soy Dueño / Administrador</h3>
+                    <h3 className="font-bold text-gray-950 text-base">Soy Dueña / Administradora</h3>
                     <ArrowRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
                   </div>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                    Registra tu salón, define servicios, productos, controla el inventario, gastos, estado de resultados y genera códigos para tus estilistas.
+                    Registra tu salón, define catálogo, inventario, gastos, estado de resultados P&L y genera códigos para tus estilistas.
                   </p>
-                  <span className="inline-block mt-2 text-[10px] font-bold text-amber-800 uppercase tracking-wider bg-amber-100/60 px-2 py-0.5 rounded-md">
-                    Acceso Total al Negocio
+                  <span className="inline-block mt-2 text-[10px] font-bold text-amber-900 uppercase tracking-wider bg-amber-100/70 border border-amber-300/70 px-2.5 py-0.5 rounded-full">
+                    👑 Acceso Total al Negocio
                   </span>
                 </div>
               </button>
@@ -202,21 +199,21 @@ export function OnboardingPage() {
               {/* Opción B: Empleado / Ya tengo empresa */}
               <button
                 onClick={() => setMode('JOIN_EMPLOYEE')}
-                className="w-full text-left p-5 rounded-2xl border-2 border-rose-200 bg-gradient-to-br from-rose-50/40 to-white hover:from-rose-100/40 transition-all duration-200 shadow-sm hover:shadow-md group flex items-start gap-4"
+                className="w-full text-left p-5 rounded-3xl border-2 border-rose-200/90 bg-gradient-to-br from-rose-50/50 to-white hover:from-rose-100/50 transition-all duration-200 shadow-2xs hover:shadow-md group flex items-start gap-4 active:scale-[0.99] cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FDA085] to-[#E11D48] text-white flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FDA085] to-[#E11D48] text-white flex items-center justify-center shrink-0 shadow-md">
                   <Scissors className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900 text-base">Ya tengo empresa / Soy Empleado</h3>
+                    <h3 className="font-bold text-gray-950 text-base">Soy Estilista / Colaborador</h3>
                     <ArrowRight className="w-4 h-4 text-rose-600 group-hover:translate-x-1 transition-transform" />
                   </div>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                    Ingresa con el código de invitación que te dio tu administrador para registrar tus ventas diarias y consultar tus comisiones personales.
+                    Ingresa con el código de invitación que te proporcionó tu administradora para registrar tus servicios diarios y comisiones.
                   </p>
-                  <span className="inline-block mt-2 text-[10px] font-bold text-rose-800 uppercase tracking-wider bg-rose-100/60 px-2 py-0.5 rounded-md">
-                    Terminal POS & Mis Métricas
+                  <span className="inline-block mt-2 text-[10px] font-bold text-rose-900 uppercase tracking-wider bg-rose-100/70 border border-rose-300/70 px-2.5 py-0.5 rounded-full">
+                    ✂️ Terminal POS & Mis Métricas
                   </span>
                 </div>
               </button>

@@ -8,14 +8,19 @@ import {
   Users,
   Receipt,
   Scissors,
-  DollarSign,
   Crown,
   Sparkles,
   ArrowRight,
+  ArrowUpRight,
+  Calendar,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCollection } from '../hooks/useCollection';
 import { formatCurrency } from '../lib/utils';
+import { MetricCard } from '../components/ui/MetricCard';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -80,265 +85,321 @@ export function DashboardPage() {
     hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header Greeting */}
-      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                isAdmin
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-rose-100 text-rose-900 border border-rose-300'
-              }`}
-            >
-              {isAdmin ? <Crown className="w-3 h-3" /> : <Scissors className="w-3 h-3" />}
-              {isAdmin ? 'Dueño / Administrador' : 'Estilista / Colaborador'}
+    <div className="space-y-7 max-w-6xl mx-auto select-none">
+      {/* ── EDITORIAL GREETING & AMBIENT PROFILE ─────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-amber-200/50">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Badge variant={isAdmin ? 'gold' : 'glam'} dot>
+              {isAdmin ? <Crown className="w-3.5 h-3.5" /> : <Scissors className="w-3.5 h-3.5" />}
+              {isAdmin ? 'Dueña / Administradora General' : 'Estilista Profesional'}
+            </Badge>
+            <span className="text-gray-400 text-xs hidden sm:inline">·</span>
+            <span className="text-[11px] font-semibold text-gray-500 hidden sm:inline uppercase tracking-wider">
+              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+
+          <h1 className="text-3xl sm:text-4xl font-bold font-editorial text-gray-900 tracking-tight leading-tight">
             {greeting},{' '}
-            <span
-              className="font-serif italic font-bold bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] bg-clip-text text-transparent"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-            >
+            <span className="text-gradient-glam italic">
               {firstName}
             </span>
           </h1>
-          <p className="text-gray-400 text-xs mt-0.5">
-            {isAdmin ? 'Control general y finanzas de tu salón' : 'Panel de facturación rápida y tus métricas'}
+
+          <p className="text-xs sm:text-sm text-gray-500 font-normal">
+            {isAdmin
+              ? 'Resumen ejecutivo de recaudación, flujo de caja y cartera VIP.'
+              : 'Terminal de cobro inmediato, tus comisiones y métricas de la jornada.'}
           </p>
         </div>
 
-        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#F6D365] via-[#FDA085] to-[#E11D48] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-rose-200/50">
-          {firstName[0]?.toUpperCase()}
+        {/* Quick Action Button in Header */}
+        <div className="shrink-0">
+          <Button
+            onClick={() => navigate('/sales/new')}
+            variant="glam"
+            size="default"
+            className="w-full sm:w-auto shadow-md"
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            <span>Cobrar Servicio / Venta</span>
+          </Button>
         </div>
       </div>
 
-      {/* DASHBOARD PARA ESTILISTA / EMPLEADO */}
+      {/* ── DASHBOARD PARA ESTILISTA / EMPLEADO ──────────────────────────── */}
       {!isAdmin ? (
         <div className="space-y-6">
-          {/* Métricas del Estilista */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-gradient-to-br from-[#FDA085] to-[#E11D48] rounded-2xl p-5 text-white shadow-lg shadow-rose-200/40">
-              <span className="text-xs uppercase font-bold tracking-wider opacity-85 block mb-1">
-                Mis Ventas de Hoy
-              </span>
-              <div className="text-3xl font-black font-mono">
-                {salesLoading ? '...' : formatCurrency(myTodayTotal)}
-              </div>
-              <span className="text-[11px] opacity-80 mt-1 block">
-                {myTodaySales.length} servicios facturados hoy
-              </span>
-            </div>
+          {/* Métricas del Estilista (Hero Card + Glass Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <MetricCard
+              label="Mis Ventas de Hoy"
+              value={salesLoading ? '...' : formatCurrency(myTodayTotal)}
+              subtitle={`${myTodaySales.length} servicios facturados hoy`}
+              icon={<TrendingUp className="w-4 h-4" />}
+              variant="hero"
+            />
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between">
-              <div>
-                <span className="text-xs text-gray-400 uppercase font-semibold block mb-1">
-                  Servicios Realizados
-                </span>
-                <div className="text-2xl font-bold text-gray-900 font-mono">
-                  {myTodaySales.length}
-                </div>
-              </div>
-              <span className="text-[11px] text-emerald-600 font-medium">Jornada activa</span>
-            </div>
+            <MetricCard
+              label="Servicios Realizados"
+              value={myTodaySales.length}
+              subtitle="Jornada activa en salón"
+              icon={<Scissors className="w-4 h-4" />}
+              variant="glass"
+            />
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between">
-              <div>
-                <span className="text-xs text-gray-400 uppercase font-semibold block mb-1">
-                  Propinas de Hoy
-                </span>
-                <div className="text-2xl font-bold text-amber-600 font-mono">
-                  {formatCurrency(myTodayTips)}
-                </div>
-              </div>
-              <span className="text-[11px] text-gray-400">Total acumulado</span>
-            </div>
+            <MetricCard
+              label="Propinas de Hoy"
+              value={formatCurrency(myTodayTips)}
+              subtitle="Fondo voluntario acumulado"
+              icon={<Sparkles className="w-4 h-4" />}
+              variant="gold"
+            />
           </div>
 
-          {/* Botón Principal para Empleado: Facturar Servicio */}
-          <button
+          {/* Banner de Cobro Rápido con Alta Joyería */}
+          <div
             onClick={() => navigate('/sales/new')}
-            className="w-full p-5 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-between group active:scale-[0.99]"
+            className="p-6 rounded-3xl bg-gradient-to-r from-[#2D0A22] via-[#1E0517] to-[#0F020B] text-white border border-amber-400/30 shadow-xl shadow-black/20 hover:border-amber-400/60 transition-all duration-300 cursor-pointer flex items-center justify-between group active:scale-[0.99]"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white">
-                <PlusCircle className="w-7 h-7" />
+              <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-[#F6D365] to-[#E11D48] text-white flex items-center justify-center shrink-0 shadow-lg shadow-rose-900/30 group-hover:scale-105 transition-transform">
+                <PlusCircle className="w-7 h-7 stroke-[2.2]" />
               </div>
-              <div className="text-left">
-                <span className="font-bold text-lg block">Nueva Venta / Cobro de Servicio</span>
-                <p className="text-xs opacity-90">Selecciona cliente, servicio o producto y emite el recibo</p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-editorial text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors">
+                    Terminal de Nueva Venta & Cobro
+                  </span>
+                  <Badge variant="gold" className="hidden sm:inline-flex">0ms Latencia</Badge>
+                </div>
+                <p className="text-xs text-amber-200/70 mt-0.5">
+                  Selecciona cliente VIP, añade servicios de corte o balayage, productos y emite el recibo.
+                </p>
               </div>
             </div>
-            <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform mr-2" />
-          </button>
-
-          {/* Mis ventas recientes */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-900 text-sm mb-3">Mis Servicios Recientes</h3>
-            {mySales.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-6">
-                Aún no has registrado ventas. Toca en "Nueva Venta" para comenzar.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {mySales.slice(0, 5).map((sale) => (
-                  <div
-                    key={sale.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-gray-50/70 border border-gray-100 text-xs"
-                  >
-                    <div>
-                      <span className="font-bold text-gray-800">Venta #{sale.id.slice(0, 8)}</span>
-                      <span className="text-[11px] text-gray-400 block">{sale.created_at?.slice(0, 10)}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono font-bold text-gray-900 block">
-                        {formatCurrency(sale.final_total)}
-                      </span>
-                      <span className="text-[10px] text-rose-600 font-semibold uppercase">{sale.payment_method}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-amber-200 group-hover:translate-x-1 group-hover:bg-white/20 transition-all shrink-0 ml-3">
+              <ArrowRight className="w-5 h-5" />
+            </div>
           </div>
+
+          {/* Mis Servicios Recientes */}
+          <Card variant="glass">
+            <CardHeader className="pb-3 border-b border-amber-100/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Mis Servicios Recientes</CardTitle>
+                  <p className="text-xs text-gray-400 mt-0.5">Últimos cobros registrados por tu usuario</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/sales')}
+                >
+                  Ver Todo
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {mySales.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 space-y-2">
+                  <Scissors className="w-8 h-8 mx-auto text-amber-300 stroke-1" />
+                  <p className="text-xs font-semibold text-gray-600">Aún no has registrado servicios hoy</p>
+                  <p className="text-[11px] text-gray-400">Pulsa en "Cobrar Servicio" para registrar tu primera venta.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {mySales.slice(0, 5).map((sale) => (
+                    <div
+                      key={sale.id}
+                      onClick={() => navigate('/sales')}
+                      className="flex items-center justify-between p-3.5 rounded-2xl bg-white/70 border border-amber-200/50 hover:border-amber-300 hover:bg-white transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
+                          #{sale.id.slice(0, 4)}
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-gray-900 group-hover:text-amber-900">
+                            Ticket #{sale.id.slice(0, 8).toUpperCase()}
+                          </div>
+                          <span className="text-[10px] text-gray-400 block mt-0.5">
+                            {sale.created_at?.slice(0, 10)} · {sale.payment_method}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-editorial text-base font-extrabold text-gray-900 block">
+                          {formatCurrency(sale.final_total)}
+                        </span>
+                        <span className="text-[10px] font-bold text-rose-600 uppercase">
+                          {sale.payment_method}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       ) : (
-        /* DASHBOARD PARA ADMINISTRADOR / DUEÑO */
+        /* ── DASHBOARD PARA ADMINISTRADOR / DUEÑA ─────────────────────────── */
         <div className="space-y-6">
-          {/* Stats Cards Admin */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {/* Total Sales */}
-            <div className="bg-gradient-to-br from-[#1E3A8A] via-[#1E40AF] to-[#047857] rounded-2xl p-4 text-white shadow-lg col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 opacity-80" />
-                <span className="text-xs font-bold opacity-90 uppercase tracking-wider">
-                  Ventas del Salón
-                </span>
-              </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono">
-                {salesLoading ? '...' : formatCurrency(totalSales)}
-              </div>
-              <span className="text-[11px] opacity-80 mt-1 block">
-                {sales.length} ventas consolidadas
+          {/* Métricas Principales Admin */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <MetricCard
+              label="Ventas del Salón"
+              value={salesLoading ? '...' : formatCurrency(totalSales)}
+              subtitle={`${sales.length} ventas consolidadas en caja`}
+              icon={<TrendingUp className="w-4 h-4" />}
+              variant="noir"
+            />
+
+            <MetricCard
+              label="Tickets Emitidos"
+              value={salesLoading ? '...' : sales.length}
+              subtitle="Transacciones completadas"
+              icon={<Receipt className="w-4 h-4" />}
+              variant="hero"
+            />
+
+            <MetricCard
+              label="Clientes VIP en Cartera"
+              value={clientsLoading ? '...' : clients.length}
+              subtitle="Fichas activas registradas"
+              icon={<Users className="w-4 h-4" />}
+              variant="gold"
+            />
+          </div>
+
+          {/* Alerta de Cumpleaños VIP de Alta Joyería */}
+          {!clientsLoading && upcomingBirthdays.length > 0 && (
+            <Card variant="glass" className="border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-amber-50/60 shadow-sm">
+              <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-400 to-amber-400 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-900/15">
+                    <Cake className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-editorial text-lg font-bold text-gray-950">
+                        Cumpleaños VIP (Próximos 3 días)
+                      </h3>
+                      <Badge variant="glam">{upcomingBirthdays.length}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Felicita a tus clientas por WhatsApp y ofréceles una cortesía especial.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {upcomingBirthdays.slice(0, 3).map((c: any) => (
+                    <div
+                      key={c.id}
+                      onClick={() => navigate('/clients')}
+                      className="px-3 py-1.5 rounded-xl bg-white/90 border border-rose-200/80 shadow-2xs text-xs flex items-center gap-2 cursor-pointer hover:border-rose-300 transition-colors"
+                    >
+                      <span className="font-bold text-gray-800">{c.full_name}</span>
+                      <span className="text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">
+                        🎂 {c.birth_date}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Módulos de Gestión de Alta Gama (4 Cards Interactivas) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-interface">
+                Módulos de Gestión & Operaciones
+              </h2>
+              <span className="text-[10px] text-amber-800/80 font-bold uppercase tracking-wider">
+                Acceso Total
               </span>
             </div>
 
-            {/* Sales Count */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center">
-                  <Receipt className="w-4 h-4 text-rose-500" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 font-mono">
-                {salesLoading ? '...' : sales.length}
-              </div>
-              <span className="text-xs text-gray-400">Tickets registrados</span>
-            </div>
-
-            {/* Clients */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-amber-500" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 font-mono">
-                {clientsLoading ? '...' : clients.length}
-              </div>
-              <span className="text-xs text-gray-400">Clientes en cartera</span>
-            </div>
-          </div>
-
-          {/* Cumpleaños próximos */}
-          {!clientsLoading && upcomingBirthdays.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-xl bg-pink-50 flex items-center justify-center">
-                  <Cake className="w-4 h-4 text-pink-500" />
-                </div>
-                <h3 className="font-semibold text-gray-800 text-sm">
-                  Cumpleaños de Clientes (Próximos 3 días)
-                </h3>
-                <span className="ml-auto text-xs bg-pink-50 text-pink-600 px-2 py-0.5 rounded-full font-medium">
-                  {upcomingBirthdays.length}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {upcomingBirthdays.slice(0, 3).map((c: any) => (
-                  <div
-                    key={c.id}
-                    className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0"
-                  >
-                    <span className="text-sm font-medium text-gray-700">{c.full_name}</span>
-                    <span className="text-xs bg-rose-50 text-rose-500 px-2 py-1 rounded-lg font-medium">
-                      🎂 {c.birth_date}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Acciones Rápidas Admin */}
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              Módulos de Gestión
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <button
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: POS Terminal */}
+              <div
                 onClick={() => navigate('/sales/new')}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white shadow-lg shadow-rose-200/30 hover:shadow-xl transition-all duration-200 active:scale-[0.98]"
+                className="p-5 rounded-3xl bg-gradient-to-br from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white shadow-lg shadow-rose-900/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
               >
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <PlusCircle className="w-5 h-5" />
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
+                    <PlusCircle className="w-5 h-5 stroke-[2.5]" />
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 opacity-75 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
-                <div className="text-left">
-                  <span className="font-semibold text-sm">Nueva Venta</span>
-                  <p className="text-xs opacity-80">Terminal POS</p>
+                <div className="mt-6">
+                  <h3 className="font-editorial text-xl font-bold text-white tracking-tight">
+                    Nueva Venta
+                  </h3>
+                  <p className="text-xs text-white/80 mt-0.5">Terminal POS y cobro rápido</p>
                 </div>
-              </button>
+              </div>
 
-              <button
+              {/* Card 2: Finanzas */}
+              <div
                 onClick={() => navigate('/finance')}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-amber-200/70 text-gray-700 shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                className="p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-amber-200/80 shadow-xs hover:border-amber-400 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
               >
-                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-amber-600" />
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/80">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-amber-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
-                <div className="text-left">
-                  <span className="font-semibold text-sm">Finanzas & P&L</span>
-                  <p className="text-xs text-gray-400">Gastos y ganancias</p>
+                <div className="mt-6">
+                  <h3 className="font-editorial text-xl font-bold text-gray-950 tracking-tight group-hover:text-amber-950 transition-colors">
+                    Finanzas & P&L
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Gastos fijos, margen y utilidad</p>
                 </div>
-              </button>
+              </div>
 
-              <button
+              {/* Card 3: Servicios */}
+              <div
                 onClick={() => navigate('/services')}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-gray-100 text-gray-700 shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                className="p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-amber-200/80 shadow-xs hover:border-amber-400 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
               >
-                <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
-                  <Scissors className="w-4 h-4 text-rose-500" />
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-200/80">
+                    <Scissors className="w-5 h-5" />
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-rose-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
-                <div className="text-left">
-                  <span className="font-semibold text-sm">Servicios</span>
-                  <p className="text-xs text-gray-400">Catálogo y precios</p>
+                <div className="mt-6">
+                  <h3 className="font-editorial text-xl font-bold text-gray-950 tracking-tight group-hover:text-rose-950 transition-colors">
+                    Servicios
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Menú de cortes, tintes y spa</p>
                 </div>
-              </button>
+              </div>
 
-              <button
+              {/* Card 4: Inventario */}
+              <div
                 onClick={() => navigate('/inventory')}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-gray-100 text-gray-700 shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                className="p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-amber-200/80 shadow-xs hover:border-amber-400 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
               >
-                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-orange-500" />
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center border border-amber-200/80">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-amber-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
-                <div className="text-left">
-                  <span className="font-semibold text-sm">Inventario</span>
-                  <p className="text-xs text-gray-400">Stock y costos</p>
+                <div className="mt-6">
+                  <h3 className="font-editorial text-xl font-bold text-gray-950 tracking-tight group-hover:text-amber-950 transition-colors">
+                    Inventario & Stock
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Cosméticos y control de insumos</p>
                 </div>
-              </button>
+              </div>
             </div>
           </div>
         </div>

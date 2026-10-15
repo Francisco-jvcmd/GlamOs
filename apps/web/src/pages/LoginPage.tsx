@@ -247,18 +247,15 @@ export function LoginPage() {
           <div className="absolute bottom-3 right-3 w-3 h-3 border-b-2 border-r-2 border-amber-300/60 rounded-br-sm" />
 
           <div className="text-center mb-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200/60">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs font-interface">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
               Gestión Integral de Alta Gama
             </span>
-            <h2
-              className="text-2xl font-bold text-gray-900 mt-3 font-serif"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-            >
+            <h2 className="text-3xl font-bold text-gray-950 mt-3 font-editorial tracking-tight">
               Bienvenida a tu Salón
             </h2>
-            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-              Software de élite para agendamiento, caja POS, inventario y tus clientes VIP.
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed font-interface">
+              Software de élite para caja POS de alta velocidad, inventario y tus clientes VIP.
             </p>
           </div>
 

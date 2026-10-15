@@ -6,6 +6,7 @@ import { useAuth } from '../auth/auth-context';
 import { getDatabase } from '../db/database';
 import { triggerSync } from '../db/sync';
 import { formatCurrency, formatDate, ensureUuid, generateUuid } from '../lib/utils';
+import { Badge } from '../components/ui/Badge';
 import {
   ArrowLeft,
   Plus,
@@ -393,24 +394,22 @@ export function NewSalePage() {
     <div className="space-y-6 max-w-4xl mx-auto pb-28 select-none">
       {/* ── TOP NAV / STEPPER ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/60">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5">
           <button
             onClick={() => {
               if (step > 1) setStep((s) => (s - 1) as any);
               else navigate('/sales');
             }}
-            className="w-10 h-10 rounded-xl bg-white border border-amber-200/80 flex items-center justify-center text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition-colors shadow-sm"
+            className="w-11 h-11 rounded-2xl bg-white/90 border border-amber-200/80 flex items-center justify-center text-gray-700 hover:bg-amber-50 hover:text-amber-900 transition-all shadow-2xs active:scale-95"
+            title="Volver"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1
-              className="text-2xl font-bold font-serif text-gray-900"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-            >
+            <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-gray-950 tracking-tight">
               Terminal de Nueva Venta
             </h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 font-normal">
               {step === 1 && 'Selecciona los servicios y productos del salón'}
               {step === 2 && 'Asigna un cliente VIP o continúa como cliente ocasional'}
               {step === 3 && 'Selecciona el método de cobro y confirma el pago'}
@@ -432,15 +431,15 @@ export function NewSalePage() {
                 if (s.num === 2 && cart.length > 0) setStep(2);
                 if (s.num === 3 && cart.length > 0) setStep(3);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 step === s.num
-                  ? 'bg-gradient-to-r from-[#F6D365] to-[#E11D48] text-white shadow-md shadow-rose-900/10'
+                  ? 'bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white shadow-md shadow-rose-900/15 font-black scale-105'
                   : step > s.num
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-white text-gray-400 border border-gray-200'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
+                    : 'bg-white/70 text-gray-400 border border-amber-200/60'
               }`}
             >
-              <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/10">
+              <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/10 font-bold">
                 {step > s.num ? '✓' : s.num}
               </span>
               <span>{s.label}</span>
@@ -456,7 +455,7 @@ export function NewSalePage() {
           {/* Columna Izquierda: Catálogo */}
           <div className="lg:col-span-2 space-y-4">
             {/* Buscador y Filtros */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -464,15 +463,15 @@ export function NewSalePage() {
                   placeholder="Buscar corte, manicura, tinte, shampoo..."
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-amber-200/80 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
+                  className="w-full h-11 pl-10 pr-4 rounded-2xl border border-amber-200/80 bg-white/90 text-xs sm:text-sm text-gray-900 focus:outline-none focus:border-amber-400 focus:ring-3 focus:ring-amber-400/20 shadow-2xs backdrop-blur-sm"
                 />
               </div>
-              <div className="flex rounded-xl bg-white border border-amber-200/80 p-1 shrink-0">
+              <div className="flex rounded-2xl bg-white/80 backdrop-blur-md border border-amber-200/80 p-1 shrink-0">
                 <button
                   onClick={() => setActiveCatalogTab('ALL')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     activeCatalogTab === 'ALL'
-                      ? 'bg-amber-100 text-amber-900'
+                      ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
                       : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
@@ -480,9 +479,9 @@ export function NewSalePage() {
                 </button>
                 <button
                   onClick={() => setActiveCatalogTab('SERVICES')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     activeCatalogTab === 'SERVICES'
-                      ? 'bg-amber-100 text-amber-900'
+                      ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
                       : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
@@ -490,9 +489,9 @@ export function NewSalePage() {
                 </button>
                 <button
                   onClick={() => setActiveCatalogTab('PRODUCTS')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     activeCatalogTab === 'PRODUCTS'
-                      ? 'bg-amber-100 text-amber-900'
+                      ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
                       : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
@@ -631,42 +630,42 @@ export function NewSalePage() {
 
           {/* Columna Derecha: Carrito en Vivo */}
           <div className="space-y-4">
-            <div className="bg-white rounded-3xl p-5 border border-amber-200/80 shadow-[0_10px_30px_rgba(217,119,6,0.06)] sticky top-6">
-              <div className="flex items-center justify-between pb-3 border-b border-amber-100">
-                <div className="flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-amber-600" />
-                  <h3 className="font-bold text-gray-900 text-sm">Carrito Actual</h3>
+            <div className="bg-white/90 backdrop-blur-2xl rounded-3xl p-6 border border-amber-200/80 shadow-[0_15px_35px_rgba(217,119,6,0.06)] sticky top-6">
+              <div className="flex items-center justify-between pb-3.5 border-b border-amber-100">
+                <div className="flex items-center gap-2.5">
+                  <Receipt className="w-4 h-4 text-amber-700" />
+                  <h3 className="font-editorial text-lg font-bold text-gray-950">Carrito Actual</h3>
                 </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                <Badge variant="gold">
                   {cart.length} {cart.length === 1 ? 'ítem' : 'ítems'}
-                </span>
+                </Badge>
               </div>
 
               {cart.length === 0 ? (
                 <div className="py-12 text-center text-gray-400 space-y-2">
                   <Sparkles className="w-8 h-8 mx-auto text-amber-300 stroke-1" />
-                  <p className="text-xs font-medium">El carrito está vacío</p>
+                  <p className="text-xs font-semibold text-gray-700">El carrito está vacío</p>
                   <p className="text-[11px] text-gray-400">
-                    Toca cualquier servicio o producto para agregarlo.
+                    Toca cualquier servicio o producto del catálogo para agregarlo.
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100 my-3 max-h-64 overflow-y-auto pr-1">
+                <div className="divide-y divide-gray-100 my-3 max-h-64 overflow-y-auto pr-1 no-scrollbar">
                   {cart.map((item, idx) => (
-                    <div key={idx} className="py-2.5 flex items-center justify-between gap-2">
+                    <div key={idx} className="py-3 flex items-center justify-between gap-2.5">
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-gray-900 truncate">
                           {item.name}
                         </p>
-                        <p className="text-[11px] text-gray-500">
+                        <p className="text-[11px] text-gray-400 font-mono">
                           {formatCurrency(item.unit_price)} c/u
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
+                      <div className="flex items-center gap-1.5 shrink-0 bg-amber-50/60 border border-amber-200/80 rounded-xl p-0.5">
                         <button
                           onClick={() => updateQuantity(idx, -1)}
-                          className="w-6 h-6 rounded flex items-center justify-center text-gray-600 hover:bg-white transition-colors"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white transition-colors"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -675,13 +674,13 @@ export function NewSalePage() {
                         </span>
                         <button
                           onClick={() => updateQuantity(idx, 1)}
-                          className="w-6 h-6 rounded flex items-center justify-center text-gray-600 hover:bg-white transition-colors"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white transition-colors"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
 
-                      <div className="w-16 text-right font-bold text-xs text-gray-900">
+                      <div className="w-16 text-right font-editorial font-extrabold text-sm text-gray-950">
                         {formatCurrency(item.line_total)}
                       </div>
 
@@ -698,29 +697,29 @@ export function NewSalePage() {
 
               {/* Totales del Carrito */}
               {cart.length > 0 && (
-                <div className="pt-3 border-t border-amber-100 space-y-1.5">
+                <div className="pt-3.5 border-t border-amber-100 space-y-2">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Subtotal</span>
-                    <span>{formatCurrency(subtotal)}</span>
+                    <span className="font-editorial text-sm font-bold text-gray-700">{formatCurrency(subtotal)}</span>
                   </div>
                   {discountTotal > 0 && (
                     <div className="flex justify-between text-xs text-emerald-600 font-medium">
                       <span>Descuentos promocionales</span>
-                      <span>-{formatCurrency(discountTotal)}</span>
+                      <span className="font-editorial text-sm font-bold">-{formatCurrency(discountTotal)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-baseline pt-2 border-t border-dashed border-gray-200">
-                    <span className="text-sm font-bold text-gray-900">Total a Cobrar</span>
-                    <span className="text-xl font-extrabold text-rose-600 font-serif">
+                  <div className="flex justify-between items-baseline pt-2.5 border-t border-dashed border-amber-200">
+                    <span className="text-sm font-bold text-gray-900 font-interface">Total a Cobrar</span>
+                    <span className="text-2xl font-black text-rose-600 font-editorial">
                       {formatCurrency(netTotal)}
                     </span>
                   </div>
 
                   <button
                     onClick={() => setStep(2)}
-                    className="w-full mt-4 py-3 px-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
+                    className="w-full mt-4 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-extrabold text-xs shadow-md shadow-rose-900/15 hover:shadow-lg transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
                   >
-                    <span>Continuar con Cliente</span>
+                    <span>Continuar con Cliente VIP</span>
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </button>
                 </div>
@@ -1162,36 +1161,38 @@ export function NewSalePage() {
 
       {/* ── MODAL: COMPROBANTE / RECIBO DE VENTA EXITOSA ─────────────────────── */}
       {completedSale && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-200/80 space-y-5 text-center max-h-[90vh] overflow-y-auto">
-            {/* Medallón de Éxito */}
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(217,119,6,0.18)] border border-amber-200/90 space-y-5 text-center max-h-[90vh] overflow-y-auto no-scrollbar">
+            {/* Subtle gold corner accents */}
+            <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-300/60 rounded-tl-sm pointer-events-none" />
+            <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-300/60 rounded-tr-sm pointer-events-none" />
+
+            {/* Medallón de Éxito de Alta Joyería */}
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#F6D365] to-[#E11D48] text-white flex items-center justify-center mx-auto shadow-lg shadow-rose-900/25">
               <Check className="w-8 h-8 stroke-[3]" />
             </div>
 
             <div>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 uppercase tracking-widest">
-                Transacción Exitosa
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-50 px-3 py-1 rounded-full border border-amber-300/80 uppercase tracking-widest">
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                Transacción Exitosa · GlamOS
               </span>
-              <h3
-                className="text-2xl font-bold font-serif text-gray-900 mt-2"
-                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-              >
+              <h3 className="text-3xl font-bold font-editorial text-gray-950 mt-2 tracking-tight">
                 ¡Venta Registrada!
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400 mt-0.5">
                 Folio: #{completedSale.id.slice(0, 8).toUpperCase()} · {formatDate(completedSale.created_at)}
               </p>
             </div>
 
-            {/* Ticket Desglosado */}
-            <div className="bg-[#FAF7F2] rounded-2xl p-4 border border-amber-200/60 text-left space-y-3 font-mono text-xs">
+            {/* Ticket Desglosado con Acabado de Seda */}
+            <div className="bg-[#FAF7F2] rounded-2xl p-4 sm:p-5 border border-amber-200/60 text-left space-y-3 font-mono text-xs">
               <div className="flex justify-between pb-2 border-b border-gray-200 text-gray-600 font-sans">
-                <span className="font-bold">Cliente:</span>
-                <span>{completedSale.client_name}</span>
+                <span className="font-bold text-gray-700">Cliente VIP:</span>
+                <span className="font-semibold text-gray-900">{completedSale.client_name}</span>
               </div>
 
-              <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 no-scrollbar">
                 {completedSale.items.map((item: any, i: number) => (
                   <div key={i} className="flex justify-between text-gray-800">
                     <span className="truncate pr-2">
@@ -1202,26 +1203,26 @@ export function NewSalePage() {
                 ))}
               </div>
 
-              <div className="pt-2 border-t border-gray-200 space-y-1 text-gray-600 font-sans">
+              <div className="pt-2 border-t border-gray-200 space-y-1.5 text-gray-600 font-sans">
                 {completedSale.tip_amount > 0 && (
-                  <div className="flex justify-between text-xs">
+                  <div className="flex justify-between text-xs text-amber-900 font-medium">
                     <span>Propina incluida:</span>
-                    <span>{formatCurrency(completedSale.tip_amount)}</span>
+                    <span>+{formatCurrency(completedSale.tip_amount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-xs">
                   <span>Método de cobro:</span>
-                  <span className="font-bold">
+                  <span className="font-bold text-gray-900">
                     {completedSale.payment_method === 'CASH'
-                      ? 'Efectivo'
+                      ? 'Efectivo en caja'
                       : completedSale.payment_method === 'TRANSFER'
-                        ? 'Transferencia'
+                        ? 'Transferencia bancaria'
                         : `Mixto (Efec: $${completedSale.cash_amount} / Transf: $${completedSale.transfer_amount})`}
                   </span>
                 </div>
-                <div className="flex justify-between text-base font-extrabold text-gray-900 pt-1 border-t border-gray-200">
-                  <span>TOTAL COBRADO:</span>
-                  <span className="text-rose-600 font-serif">
+                <div className="flex justify-between text-base font-extrabold text-gray-950 pt-2 border-t border-gray-200">
+                  <span className="font-sans text-xs uppercase tracking-wider text-gray-500 self-center">TOTAL COBRADO:</span>
+                  <span className="text-2xl text-rose-600 font-editorial font-black">
                     {formatCurrency(completedSale.final_total)}
                   </span>
                 </div>
@@ -1229,27 +1230,27 @@ export function NewSalePage() {
             </div>
 
             {/* Acciones del Comprobante */}
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2.5 pt-1">
               <button
                 onClick={() => window.print()}
-                className="w-full py-2.5 px-4 rounded-xl border border-amber-300 text-amber-900 font-bold text-xs hover:bg-amber-50 flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-3 px-4 rounded-2xl border border-amber-300 bg-amber-50/50 text-amber-950 font-bold text-xs hover:bg-amber-100/70 flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <Printer className="w-4 h-4 text-amber-700" />
-                <span>Imprimir Comprobante de Venta</span>
+                <span>Imprimir Ticket de Venta</span>
               </button>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 <button
                   onClick={() => navigate('/sales')}
-                  className="flex-1 py-3 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-100 transition-colors"
+                  className="flex-1 py-3 px-4 rounded-2xl border border-gray-200 bg-white text-gray-700 font-bold text-xs hover:bg-gray-50 transition-colors"
                 >
-                  Ver Historial
+                  Ver Libro Diario
                 </button>
                 <button
                   onClick={handleStartNewSale}
-                  className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold text-xs shadow-md hover:shadow-lg transition-all"
+                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-extrabold text-xs shadow-md shadow-rose-900/15 hover:shadow-lg transition-all"
                 >
-                  Nueva Venta +
+                  + Nueva Venta
                 </button>
               </div>
             </div>
