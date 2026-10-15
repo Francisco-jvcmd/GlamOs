@@ -13,24 +13,24 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       className={cn(
         "rounded-3xl transition-all duration-300 relative overflow-hidden",
         {
-          // Frosted Glass (Apple Vision fluidity)
-          'bg-white/85 backdrop-blur-xl border border-amber-200/70 shadow-[0_10px_30px_rgba(217,119,6,0.04)]':
+          // Smoked Frosted Glass (Apple Vision fluidity)
+          'bg-neutral-900/60 backdrop-blur-xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.6)] text-white':
             variant === 'glass',
 
-          // Deep Velvet Noir (Spotify contrast × Chanel elegance)
-          'bg-gradient-to-br from-[#1E0517] via-[#14020F] to-[#0A0108] text-white border border-amber-400/20 shadow-[0_20px_50px_rgba(0,0,0,0.4)]':
+          // Deep Obsidian Noir (Spotify contrast × Chanel elegance)
+          'bg-black/80 backdrop-blur-2xl text-white border border-white/[0.08] shadow-[0_25px_60px_rgba(0,0,0,0.8)]':
             variant === 'noir',
 
-          // Hero Ambient Card
-          'bg-gradient-to-br from-[#FDA085] via-[#FB7185] to-[#E11D48] text-white shadow-xl shadow-rose-900/20 border border-white/20':
+          // Featured Hero Card with Champagne Gold Specular Halo
+          'bg-gradient-to-br from-amber-950/25 via-neutral-900/80 to-black/90 text-white border border-amber-400/35 shadow-[0_20px_50px_rgba(212,175,55,0.08)]':
             variant === 'hero',
 
-          // Silk Pearl
-          'bg-[#FCFAF7] border border-amber-100 shadow-xs':
+          // Solid Obsidian Surface
+          'bg-neutral-900/80 border border-white/[0.06] text-white shadow-lg':
             variant === 'pearl' || variant === 'default',
 
           // Interactive Hover Lift
-          'hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-900/5 cursor-pointer':
+          'hover:-translate-y-1 hover:border-amber-400/40 hover:shadow-[0_20px_50px_rgba(212,175,55,0.1)] cursor-pointer':
             interactive,
         },
         className
@@ -52,7 +52,7 @@ export const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadi
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-xl sm:text-2xl font-bold tracking-tight font-editorial text-gray-950", className)}
+      className={cn("text-xl sm:text-2xl font-bold tracking-tight font-editorial text-white", className)}
       {...props}
     />
   )
@@ -61,7 +61,7 @@ CardTitle.displayName = "CardTitle";
 
 export const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-xs text-gray-500 leading-relaxed", className)} {...props} />
+    <p ref={ref} className={cn("text-xs text-neutral-400 leading-relaxed", className)} {...props} />
   )
 );
 CardDescription.displayName = "CardDescription";

@@ -393,23 +393,23 @@ export function NewSalePage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-28 select-none">
       {/* ── TOP NAV / STEPPER ────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div className="flex items-center gap-3.5">
           <button
             onClick={() => {
               if (step > 1) setStep((s) => (s - 1) as any);
               else navigate('/sales');
             }}
-            className="w-11 h-11 rounded-2xl bg-white/90 border border-amber-200/80 flex items-center justify-center text-gray-700 hover:bg-amber-50 hover:text-amber-900 transition-all shadow-2xs active:scale-95"
+            className="w-11 h-11 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-neutral-300 hover:bg-white/[0.1] hover:text-white transition-all shadow-2xs active:scale-95"
             title="Volver"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-gray-950 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-white tracking-tight">
               Terminal de Nueva Venta
             </h1>
-            <p className="text-xs text-gray-500 font-normal">
+            <p className="text-xs text-neutral-400 font-normal">
               {step === 1 && 'Selecciona los servicios y productos del salón'}
               {step === 2 && 'Asigna un cliente VIP o continúa como cliente ocasional'}
               {step === 3 && 'Selecciona el método de cobro y confirma el pago'}
@@ -433,10 +433,10 @@ export function NewSalePage() {
               }}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 step === s.num
-                  ? 'bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white shadow-md shadow-rose-900/15 font-black scale-105'
+                  ? 'bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 shadow-[0_4px_16px_rgba(212,175,55,0.3)] font-black scale-105'
                   : step > s.num
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
-                    : 'bg-white/70 text-gray-400 border border-amber-200/60'
+                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30'
+                    : 'bg-white/[0.04] text-neutral-500 border border-white/10'
               }`}
             >
               <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/10 font-bold">
@@ -457,42 +457,42 @@ export function NewSalePage() {
             {/* Buscador y Filtros */}
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
                 <input
                   type="text"
                   placeholder="Buscar corte, manicura, tinte, shampoo..."
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
-                  className="w-full h-11 pl-10 pr-4 rounded-2xl border border-amber-200/80 bg-white/90 text-xs sm:text-sm text-gray-900 focus:outline-none focus:border-amber-400 focus:ring-3 focus:ring-amber-400/20 shadow-2xs backdrop-blur-sm"
+                  className="w-full h-11 pl-10 pr-4 rounded-2xl border border-white/10 bg-neutral-900/80 text-xs sm:text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20 shadow-2xs backdrop-blur-sm"
                 />
               </div>
-              <div className="flex rounded-2xl bg-white/80 backdrop-blur-md border border-amber-200/80 p-1 shrink-0">
+              <div className="flex rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 p-1 shrink-0">
                 <button
                   onClick={() => setActiveCatalogTab('ALL')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     activeCatalogTab === 'ALL'
-                      ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'bg-white/[0.1] text-amber-300 shadow-2xs font-bold'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   Todos
                 </button>
                 <button
                   onClick={() => setActiveCatalogTab('SERVICES')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     activeCatalogTab === 'SERVICES'
-                      ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'bg-white/[0.1] text-amber-300 shadow-2xs font-bold'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   Servicios
                 </button>
                 <button
                   onClick={() => setActiveCatalogTab('PRODUCTS')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     activeCatalogTab === 'PRODUCTS'
-                      ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'bg-white/[0.1] text-amber-300 shadow-2xs font-bold'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   Productos
@@ -503,12 +503,12 @@ export function NewSalePage() {
             {/* Grid de Servicios */}
             {(activeCatalogTab === 'ALL' || activeCatalogTab === 'SERVICES') && (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                  <Scissors className="w-3.5 h-3.5 text-amber-600" />
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider">
+                  <Scissors className="w-3.5 h-3.5 text-amber-400" />
                   <span>Servicios del Salón ({filteredServices.length})</span>
                 </div>
                 {filteredServices.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-gray-400 bg-white rounded-2xl border border-dashed border-amber-200">
+                  <div className="p-6 text-center text-xs text-neutral-400 bg-neutral-900/50 rounded-2xl border border-dashed border-white/10">
                     No se encontraron servicios disponibles.
                   </div>
                 ) : (
@@ -527,22 +527,22 @@ export function NewSalePage() {
                               discount_percentage: discountPct,
                             })
                           }
-                          className={`group p-3.5 rounded-2xl border bg-white cursor-pointer transition-all hover:shadow-md flex items-center justify-between gap-3 ${
+                          className={`group p-3.5 rounded-2xl border bg-neutral-900/60 cursor-pointer transition-all hover:shadow-lg flex items-center justify-between gap-3 ${
                             inCart
-                              ? 'border-amber-400 bg-amber-50/40 shadow-sm ring-1 ring-amber-400/50'
-                              : 'border-amber-200/60 hover:border-amber-300'
+                              ? 'border-amber-400/80 bg-amber-400/10 shadow-sm ring-1 ring-amber-400/30'
+                              : 'border-white/[0.08] hover:border-amber-400/40 hover:bg-neutral-900/80'
                           }`}
                         >
                           <div className="min-w-0">
-                            <h4 className="font-bold text-sm text-gray-900 truncate group-hover:text-amber-800">
+                            <h4 className="font-bold text-sm text-white truncate group-hover:text-amber-200">
                               {svc.name}
                             </h4>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="font-extrabold text-sm text-gray-900 font-serif">
+                              <span className="font-bold text-sm text-white font-serif">
                                 {formatCurrency(svc.base_price)}
                               </span>
                               {discountPct > 0 && (
-                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
                                   -{discountPct}%
                                 </span>
                               )}
@@ -551,8 +551,8 @@ export function NewSalePage() {
                           <div
                             className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
                               inCart
-                                ? 'bg-amber-500 text-white font-bold text-xs'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-gradient-to-r from-[#F5E5C4] to-[#D4AF37] text-neutral-950 font-bold text-xs'
+                                : 'bg-white/[0.06] text-amber-300 border border-white/10'
                             }`}
                           >
                             {inCart ? inCart.quantity : <Plus className="w-4 h-4" />}
@@ -568,12 +568,12 @@ export function NewSalePage() {
             {/* Grid de Productos */}
             {(activeCatalogTab === 'ALL' || activeCatalogTab === 'PRODUCTS') && (
               <div className="space-y-2 pt-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                  <Package className="w-3.5 h-3.5 text-rose-600" />
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider">
+                  <Package className="w-3.5 h-3.5 text-amber-400" />
                   <span>Productos en Stock ({filteredProducts.length})</span>
                 </div>
                 {filteredProducts.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-gray-400 bg-white rounded-2xl border border-dashed border-rose-200">
+                  <div className="p-6 text-center text-xs text-neutral-400 bg-neutral-900/50 rounded-2xl border border-dashed border-white/10">
                     No hay productos en inventario con stock disponible.
                   </div>
                 ) : (
@@ -591,21 +591,21 @@ export function NewSalePage() {
                               discount_percentage: 0,
                             })
                           }
-                          className={`group p-3.5 rounded-2xl border bg-white cursor-pointer transition-all hover:shadow-md flex items-center justify-between gap-3 ${
+                          className={`group p-3.5 rounded-2xl border bg-neutral-900/60 cursor-pointer transition-all hover:shadow-lg flex items-center justify-between gap-3 ${
                             inCart
-                              ? 'border-rose-400 bg-rose-50/40 shadow-sm ring-1 ring-rose-400/50'
-                              : 'border-amber-200/60 hover:border-rose-300'
+                              ? 'border-amber-400/80 bg-amber-400/10 shadow-sm ring-1 ring-amber-400/30'
+                              : 'border-white/[0.08] hover:border-amber-400/40 hover:bg-neutral-900/80'
                           }`}
                         >
                           <div className="min-w-0">
-                            <h4 className="font-bold text-sm text-gray-900 truncate group-hover:text-rose-800">
+                            <h4 className="font-bold text-sm text-white truncate group-hover:text-amber-200">
                               {prod.name}
                             </h4>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="font-extrabold text-sm text-gray-900 font-serif">
+                              <span className="font-bold text-sm text-white font-serif">
                                 {formatCurrency(prod.unit_price)}
                               </span>
-                              <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] text-neutral-400 bg-white/[0.05] border border-white/[0.06] px-1.5 py-0.5 rounded">
                                 Stock: {prod.current_stock}
                               </span>
                             </div>
@@ -613,8 +613,8 @@ export function NewSalePage() {
                           <div
                             className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
                               inCart
-                                ? 'bg-rose-500 text-white font-bold text-xs'
-                                : 'bg-rose-100 text-rose-800'
+                                ? 'bg-gradient-to-r from-[#F5E5C4] to-[#D4AF37] text-neutral-950 font-bold text-xs'
+                                : 'bg-white/[0.06] text-amber-300 border border-white/10'
                             }`}
                           >
                             {inCart ? inCart.quantity : <Plus className="w-4 h-4" />}
@@ -630,11 +630,11 @@ export function NewSalePage() {
 
           {/* Columna Derecha: Carrito en Vivo */}
           <div className="space-y-4">
-            <div className="bg-white/90 backdrop-blur-2xl rounded-3xl p-6 border border-amber-200/80 shadow-[0_15px_35px_rgba(217,119,6,0.06)] sticky top-6">
-              <div className="flex items-center justify-between pb-3.5 border-b border-amber-100">
+            <div className="bg-neutral-900/80 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-2xl sticky top-6">
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.08]">
                 <div className="flex items-center gap-2.5">
-                  <Receipt className="w-4 h-4 text-amber-700" />
-                  <h3 className="font-editorial text-lg font-bold text-gray-950">Carrito Actual</h3>
+                  <Receipt className="w-4 h-4 text-amber-400" />
+                  <h3 className="font-editorial text-lg font-bold text-white">Carrito Actual</h3>
                 </div>
                 <Badge variant="gold">
                   {cart.length} {cart.length === 1 ? 'ítem' : 'ítems'}
@@ -642,51 +642,51 @@ export function NewSalePage() {
               </div>
 
               {cart.length === 0 ? (
-                <div className="py-12 text-center text-gray-400 space-y-2">
-                  <Sparkles className="w-8 h-8 mx-auto text-amber-300 stroke-1" />
-                  <p className="text-xs font-semibold text-gray-700">El carrito está vacío</p>
-                  <p className="text-[11px] text-gray-400">
+                <div className="py-12 text-center text-neutral-500 space-y-2">
+                  <Sparkles className="w-8 h-8 mx-auto text-amber-400/50 stroke-1" />
+                  <p className="text-xs font-semibold text-neutral-300">El carrito está vacío</p>
+                  <p className="text-[11px] text-neutral-500">
                     Toca cualquier servicio o producto del catálogo para agregarlo.
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100 my-3 max-h-64 overflow-y-auto pr-1 no-scrollbar">
+                <div className="divide-y divide-white/[0.06] my-3 max-h-64 overflow-y-auto pr-1 no-scrollbar">
                   {cart.map((item, idx) => (
                     <div key={idx} className="py-3 flex items-center justify-between gap-2.5">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-gray-900 truncate">
+                        <p className="text-xs font-bold text-white truncate">
                           {item.name}
                         </p>
-                        <p className="text-[11px] text-gray-400 font-mono">
+                        <p className="text-[11px] text-neutral-400 font-mono">
                           {formatCurrency(item.unit_price)} c/u
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0 bg-amber-50/60 border border-amber-200/80 rounded-xl p-0.5">
+                      <div className="flex items-center gap-1.5 shrink-0 bg-white/[0.06] border border-white/10 rounded-xl p-0.5">
                         <button
                           onClick={() => updateQuantity(idx, -1)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white transition-colors"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-neutral-300 hover:bg-white/[0.1] transition-colors"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-5 text-center text-xs font-bold text-gray-900">
+                        <span className="w-5 text-center text-xs font-bold text-white">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(idx, 1)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white transition-colors"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-neutral-300 hover:bg-white/[0.1] transition-colors"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
 
-                      <div className="w-16 text-right font-editorial font-extrabold text-sm text-gray-950">
+                      <div className="w-16 text-right font-editorial font-bold text-sm text-white">
                         {formatCurrency(item.line_total)}
                       </div>
 
                       <button
                         onClick={() => removeFromCart(idx)}
-                        className="text-gray-300 hover:text-rose-500 transition-colors p-1"
+                        className="text-neutral-500 hover:text-rose-400 transition-colors p-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -697,27 +697,27 @@ export function NewSalePage() {
 
               {/* Totales del Carrito */}
               {cart.length > 0 && (
-                <div className="pt-3.5 border-t border-amber-100 space-y-2">
-                  <div className="flex justify-between text-xs text-gray-500">
+                <div className="pt-3.5 border-t border-white/[0.08] space-y-2">
+                  <div className="flex justify-between text-xs text-neutral-400">
                     <span>Subtotal</span>
-                    <span className="font-editorial text-sm font-bold text-gray-700">{formatCurrency(subtotal)}</span>
+                    <span className="font-editorial text-sm font-bold text-neutral-200">{formatCurrency(subtotal)}</span>
                   </div>
                   {discountTotal > 0 && (
-                    <div className="flex justify-between text-xs text-emerald-600 font-medium">
+                    <div className="flex justify-between text-xs text-emerald-400 font-medium">
                       <span>Descuentos promocionales</span>
                       <span className="font-editorial text-sm font-bold">-{formatCurrency(discountTotal)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-baseline pt-2.5 border-t border-dashed border-amber-200">
-                    <span className="text-sm font-bold text-gray-900 font-interface">Total a Cobrar</span>
-                    <span className="text-2xl font-black text-rose-600 font-editorial">
+                  <div className="flex justify-between items-baseline pt-2.5 border-t border-dashed border-white/15">
+                    <span className="text-sm font-semibold text-neutral-300 font-interface">Total a Cobrar</span>
+                    <span className="text-2xl font-bold text-white font-editorial">
                       {formatCurrency(netTotal)}
                     </span>
                   </div>
 
                   <button
                     onClick={() => setStep(2)}
-                    className="w-full mt-4 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-extrabold text-xs shadow-md shadow-rose-900/15 hover:shadow-lg transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
+                    className="w-full mt-4 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold text-xs shadow-[0_4px_20px_rgba(212,175,55,0.3)] hover:shadow-[0_4px_28px_rgba(212,175,55,0.5)] transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
                   >
                     <span>Continuar con Cliente VIP</span>
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -733,10 +733,10 @@ export function NewSalePage() {
           <div className="lg:hidden fixed bottom-20 left-4 right-4 z-30 animate-in slide-in-from-bottom duration-200">
             <button
               onClick={() => setStep(2)}
-              className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold text-sm shadow-xl shadow-rose-950/25 flex items-center justify-between active:scale-[0.99] transition-all"
+              className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold text-sm shadow-[0_4px_20px_rgba(212,175,55,0.3)] flex items-center justify-between active:scale-[0.99] transition-all"
             >
               <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-lg bg-white/25 flex items-center justify-center text-xs font-black">
+                <span className="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center text-xs font-black">
                   {cart.length}
                 </span>
                 <span className="text-xs font-bold tracking-wide">
@@ -747,7 +747,7 @@ export function NewSalePage() {
                 <span className="font-extrabold text-base font-serif">
                   {formatCurrency(netTotal)}
                 </span>
-                <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-lg font-bold">
+                <span className="text-[11px] bg-black/15 px-2 py-0.5 rounded-lg font-bold">
                   Continuar →
                 </span>
               </div>
@@ -760,57 +760,57 @@ export function NewSalePage() {
       {/* ── PASO 2: ASIGNACIÓN DE CLIENTE VIP ──────────────────────────────── */}
       {step === 2 && (
         <div className="max-w-xl mx-auto space-y-5">
-          <div className="bg-white rounded-3xl p-6 border border-amber-200/80 shadow-md space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-amber-100">
+          <div className="bg-neutral-900/80 rounded-3xl p-6 border border-white/10 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div>
-                <h3 className="font-bold text-base text-gray-900">Seleccionar Cliente</h3>
-                <p className="text-xs text-gray-500">
+                <h3 className="font-editorial text-lg font-bold text-white">Seleccionar Cliente</h3>
+                <p className="text-xs text-neutral-400">
                   Asocia la venta a un cliente para historial, fidelización y recordatorios.
                 </p>
               </div>
               <button
                 onClick={() => setIsNewClientModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold hover:bg-amber-100 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] text-amber-300 border border-white/10 text-xs font-semibold hover:bg-white/[0.1] transition-colors"
               >
-                <UserPlus className="w-3.5 h-3.5 text-amber-600" />
+                <UserPlus className="w-3.5 h-3.5 text-amber-400" />
                 <span>Nuevo Cliente</span>
               </button>
             </div>
 
             {/* Buscador de cliente */}
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
               <input
                 type="text"
                 placeholder="Buscar por nombre o teléfono de WhatsApp..."
                 value={clientSearch}
                 onChange={(e) => setClientSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-amber-200/80 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/10 bg-neutral-950/80 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
               />
             </div>
 
             {/* Lista de Clientes */}
-            <div className="max-h-60 overflow-y-auto space-y-1.5 divide-y divide-gray-50 pr-1">
+            <div className="max-h-60 overflow-y-auto space-y-1.5 divide-y divide-white/[0.05] pr-1">
               <button
                 type="button"
                 onClick={() => setSelectedClientId(null)}
                 className={`w-full p-3 rounded-2xl text-left flex items-center justify-between transition-all ${
                   !selectedClientId
-                    ? 'bg-amber-500 text-white font-bold shadow-sm'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                    ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
+                    : 'bg-white/[0.03] hover:bg-white/[0.06] text-neutral-300 border border-white/[0.05]'
                 }`}
               >
                 <div>
                   <div className="text-xs font-bold">Cliente Ocasional / Anónimo</div>
                   <div
                     className={`text-[10px] ${
-                      !selectedClientId ? 'text-amber-100' : 'text-gray-400'
+                      !selectedClientId ? 'text-neutral-900 font-medium' : 'text-neutral-500'
                     }`}
                   >
                     No registrar datos personales en esta venta
                   </div>
                 </div>
-                {!selectedClientId && <Check className="w-4 h-4 text-white" />}
+                {!selectedClientId && <Check className="w-4 h-4 text-neutral-950 stroke-[3]" />}
               </button>
 
               {filteredClients.map((client: any) => {
@@ -822,22 +822,22 @@ export function NewSalePage() {
                     onClick={() => setSelectedClientId(client.id)}
                     className={`w-full p-3 rounded-2xl text-left flex items-center justify-between transition-all ${
                       isSelected
-                        ? 'bg-gradient-to-r from-[#F6D365] to-[#E11D48] text-white font-bold shadow-md'
-                        : 'bg-white hover:bg-amber-50/50 border border-amber-100/60 text-gray-800'
+                        ? 'bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold shadow-md'
+                        : 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-white'
                     }`}
                   >
                     <div>
                       <div className="text-xs font-bold">{client.full_name}</div>
                       <div
                         className={`text-[11px] ${
-                          isSelected ? 'text-amber-100' : 'text-gray-500'
+                          isSelected ? 'text-neutral-900' : 'text-neutral-400'
                         }`}
                       >
                         {client.phone_whatsapp || 'Sin WhatsApp'}
                         {client.birth_date && ` · Cumple: ${client.birth_date}`}
                       </div>
                     </div>
-                    {isSelected && <Check className="w-4 h-4 text-white" />}
+                    {isSelected && <Check className="w-4 h-4 text-neutral-950 stroke-[3]" />}
                   </button>
                 );
               })}
@@ -847,13 +847,13 @@ export function NewSalePage() {
           <div className="flex gap-3">
             <button
               onClick={() => setStep(1)}
-              className="px-5 py-3 rounded-2xl border border-gray-300 bg-white text-gray-700 font-bold text-xs hover:bg-gray-50"
+              className="px-5 py-3 rounded-2xl border border-white/15 bg-white/[0.04] text-neutral-300 font-bold text-xs hover:bg-white/[0.08] hover:text-white"
             >
               ← Volver al Catálogo
             </button>
             <button
               onClick={() => setStep(3)}
-              className="flex-1 py-3 px-6 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all"
+              className="flex-1 py-3 px-6 rounded-2xl bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold text-sm shadow-[0_4px_20px_rgba(212,175,55,0.3)] hover:brightness-105 transition-all"
             >
               Continuar al Cobro →
             </button>
@@ -865,18 +865,17 @@ export function NewSalePage() {
       {step === 3 && (
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Card Principal de Pago */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-[0_20px_50px_rgba(217,119,6,0.08)] space-y-6">
+          <div className="bg-neutral-900/80 rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl space-y-6">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/30">
                 Paso 3 de 3 · Liquidación
               </span>
               <h2
-                className="text-2xl font-bold font-serif text-gray-900 mt-2"
-                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                className="text-2xl font-bold font-editorial text-white mt-2"
               >
                 Método de Pago
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-neutral-400 mt-0.5">
                 Selecciona la vía de pago para asentar la venta en caja y generar el comprobante.
               </p>
             </div>
@@ -899,24 +898,24 @@ export function NewSalePage() {
                         handleSetMixedSplit5050();
                       }
                     }}
-                    className={`p-4 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-2 ${
+                    className={`p-4 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-2 cursor-pointer ${
                       isSelected
-                        ? 'border-amber-400 bg-gradient-to-b from-amber-50 to-white ring-2 ring-amber-400 shadow-md'
-                        : 'border-amber-200/60 bg-white hover:bg-amber-50/30'
+                        ? 'border-amber-400 bg-amber-400/10 ring-1 ring-amber-400/40 shadow-lg text-white'
+                        : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-neutral-300'
                     }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                         isSelected
-                          ? 'bg-gradient-to-tr from-[#F6D365] to-[#E11D48] text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-gradient-to-tr from-[#F5E5C4] to-[#D4AF37] text-neutral-950 shadow-sm'
+                          : 'bg-white/[0.06] text-neutral-400'
                       }`}
                     >
                       <m.icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-bold text-xs text-gray-900">{m.label}</div>
-                      <div className="text-[10px] text-gray-400 hidden sm:block">{m.desc}</div>
+                      <div className="font-bold text-xs text-white">{m.label}</div>
+                      <div className="text-[10px] text-neutral-400 hidden sm:block">{m.desc}</div>
                     </div>
                   </button>
                 );
@@ -925,11 +924,11 @@ export function NewSalePage() {
 
             {/* SECCIÓN ESPECIAL: PAGO MIXTO (EFECTIVO + TRANSFERENCIA) */}
             {paymentMethod === 'MIXED' && (
-              <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-4 animate-in fade-in duration-300">
+              <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <ArrowRightLeft className="w-4 h-4 text-amber-700" />
-                    <span className="font-bold text-xs text-amber-950 uppercase tracking-wide">
+                    <ArrowRightLeft className="w-4 h-4 text-amber-400" />
+                    <span className="font-bold text-xs text-amber-200 uppercase tracking-wide">
                       Desglose de Pago Mixto
                     </span>
                   </div>
@@ -938,21 +937,21 @@ export function NewSalePage() {
                     <button
                       type="button"
                       onClick={handleSetMixedSplit5050}
-                      className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-[11px] font-bold text-amber-800 hover:bg-amber-100 transition-colors shadow-xs"
+                      className="px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-[11px] font-bold text-amber-300 hover:bg-white/[0.1] transition-colors shadow-xs"
                     >
                       50% / 50%
                     </button>
                     <button
                       type="button"
                       onClick={handleSetMixedAllCash}
-                      className="px-2 py-1 rounded-lg bg-white border border-amber-200 text-[10px] text-gray-600 hover:bg-gray-100"
+                      className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-[10px] text-neutral-400 hover:text-white"
                     >
                       Todo Efectivo
                     </button>
                     <button
                       type="button"
                       onClick={handleSetMixedAllTransfer}
-                      className="px-2 py-1 rounded-lg bg-white border border-amber-200 text-[10px] text-gray-600 hover:bg-gray-100"
+                      className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-[10px] text-neutral-400 hover:text-white"
                     >
                       Todo Transf.
                     </button>
@@ -962,11 +961,11 @@ export function NewSalePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Monto en Efectivo */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label className="block text-xs font-semibold text-neutral-300 mb-1">
                       💵 Recibido en Efectivo ($)
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">
                         $
                       </span>
                       <input
@@ -976,18 +975,18 @@ export function NewSalePage() {
                         value={cashAmountInput}
                         onChange={(e) => setCashAmountInput(e.target.value)}
                         placeholder="0.00"
-                        className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-amber-200 bg-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-white/10 bg-neutral-950/80 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                       />
                     </div>
                   </div>
 
                   {/* Monto en Transferencia */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label className="block text-xs font-semibold text-neutral-300 mb-1">
                       💳 Recibido en Transferencia ($)
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">
                         $
                       </span>
                       <input
@@ -997,7 +996,7 @@ export function NewSalePage() {
                         value={transferAmountInput}
                         onChange={(e) => setTransferAmountInput(e.target.value)}
                         placeholder="0.00"
-                        className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-amber-200 bg-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-white/10 bg-neutral-950/80 text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                       />
                     </div>
                   </div>
@@ -1007,15 +1006,15 @@ export function NewSalePage() {
                 <div
                   className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
                     mixedDifference >= 0
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : 'bg-rose-50 border-rose-200 text-rose-800'
+                      ? 'bg-emerald-950/60 border-emerald-500/30 text-emerald-300'
+                      : 'bg-rose-950/60 border-rose-500/30 text-rose-300'
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     {mixedDifference >= 0 ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     ) : (
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                     )}
                     <span>
                       {mixedDifference >= 0
@@ -1037,18 +1036,18 @@ export function NewSalePage() {
             )}
 
             {/* SECCIÓN DE PROPINA OPCIONAL CON CHIPS RÁPIDOS */}
-            <div className="pt-2 border-t border-amber-100 space-y-3">
+            <div className="pt-2 border-t border-white/[0.08] space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-800">
+                  <span className="text-xs font-semibold text-neutral-200">
                     Propina para el Personal
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  <span className="text-[10px] uppercase font-bold text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
                     Opcional
                   </span>
                 </div>
                 {tipAmount > 0 && (
-                  <span className="text-xs font-bold text-emerald-600 font-serif">
+                  <span className="text-xs font-bold text-emerald-400 font-serif">
                     +{formatCurrency(tipAmount)}
                   </span>
                 )}
@@ -1067,10 +1066,10 @@ export function NewSalePage() {
                     key={chip.id}
                     type="button"
                     onClick={() => setTipSelection(chip.id as any)}
-                    className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition-all border ${
+                    className={`py-2 px-1 text-center rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                       tipSelection === chip.id
-                        ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-xs'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        ? 'bg-amber-400/20 border-amber-400 text-amber-300 font-bold shadow-xs'
+                        : 'bg-white/[0.03] border-white/10 text-neutral-400 hover:bg-white/[0.06] hover:text-white'
                     }`}
                   >
                     {chip.label}
@@ -1080,7 +1079,7 @@ export function NewSalePage() {
 
               {tipSelection === 'custom' && (
                 <div className="relative pt-1 animate-in fade-in duration-200">
-                  <span className="absolute left-3.5 top-3.5 text-gray-400 font-bold text-sm">
+                  <span className="absolute left-3.5 top-3.5 text-neutral-500 font-bold text-sm">
                     $
                   </span>
                   <input
@@ -1090,34 +1089,34 @@ export function NewSalePage() {
                     placeholder="Monto voluntario en dólares..."
                     value={customTip}
                     onChange={(e) => setCustomTip(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2 rounded-xl border border-amber-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    className="w-full pl-8 pr-4 py-2 rounded-xl border border-white/10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 bg-neutral-950/80"
                   />
                 </div>
               )}
             </div>
 
             {/* RESUMEN FINAL EJECUTIVO */}
-            <div className="pt-4 border-t-2 border-dashed border-amber-200/80 space-y-2">
-              <div className="flex justify-between text-xs text-gray-500">
+            <div className="pt-4 border-t-2 border-dashed border-white/10 space-y-2">
+              <div className="flex justify-between text-xs text-neutral-400">
                 <span>Subtotal bruto ({cart.length} ítems)</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               {discountTotal > 0 && (
-                <div className="flex justify-between text-xs text-emerald-600 font-medium">
+                <div className="flex justify-between text-xs text-emerald-400 font-medium">
                   <span>Descuentos aplicados</span>
                   <span>-{formatCurrency(discountTotal)}</span>
                 </div>
               )}
               {tipAmount > 0 && (
-                <div className="flex justify-between text-xs text-amber-800">
+                <div className="flex justify-between text-xs text-amber-300">
                   <span>Propina voluntaria</span>
                   <span>+{formatCurrency(tipAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between items-baseline pt-3 border-t border-amber-200">
+              <div className="flex justify-between items-baseline pt-3 border-t border-white/10">
                 <div>
-                  <span className="text-base font-bold text-gray-900">Total a Liquidar</span>
-                  <span className="block text-[10px] text-gray-400">
+                  <span className="text-base font-bold text-white">Total a Liquidar</span>
+                  <span className="block text-[10px] text-neutral-400">
                     Método:{' '}
                     {paymentMethod === 'CASH'
                       ? 'Efectivo'
@@ -1126,7 +1125,7 @@ export function NewSalePage() {
                         : 'Mixto'}
                   </span>
                 </div>
-                <span className="text-3xl font-extrabold text-rose-600 font-serif">
+                <span className="text-3xl font-bold text-white font-editorial">
                   {formatCurrency(finalTotal)}
                 </span>
               </div>
@@ -1137,7 +1136,7 @@ export function NewSalePage() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="px-5 py-3.5 rounded-2xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition-colors"
+                className="px-5 py-3.5 rounded-2xl border border-white/15 bg-white/[0.04] text-neutral-300 font-bold text-xs hover:bg-white/[0.08] hover:text-white transition-colors cursor-pointer"
               >
                 ← Volver
               </button>
@@ -1149,7 +1148,7 @@ export function NewSalePage() {
                   cart.length === 0 ||
                   (paymentMethod === 'MIXED' && totalPaidInMixed < finalTotal - 0.01)
                 }
-                className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-extrabold text-base shadow-lg shadow-rose-950/20 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold text-base shadow-[0_6px_25px_rgba(212,175,55,0.35)] hover:brightness-105 active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 <span>{isSubmitting ? 'Registrando en caja...' : 'Confirmar y Cobrar Venta'}</span>
@@ -1161,58 +1160,58 @@ export function NewSalePage() {
 
       {/* ── MODAL: COMPROBANTE / RECIBO DE VENTA EXITOSA ─────────────────────── */}
       {completedSale && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(217,119,6,0.18)] border border-amber-200/90 space-y-5 text-center max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-[#0F0E14]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.9)] border border-white/10 space-y-5 text-center max-h-[90vh] overflow-y-auto no-scrollbar">
             {/* Subtle gold corner accents */}
-            <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-300/60 rounded-tl-sm pointer-events-none" />
-            <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-300/60 rounded-tr-sm pointer-events-none" />
+            <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-400/40 rounded-tl-sm pointer-events-none" />
+            <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-400/40 rounded-tr-sm pointer-events-none" />
 
             {/* Medallón de Éxito de Alta Joyería */}
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#F6D365] to-[#E11D48] text-white flex items-center justify-center mx-auto shadow-lg shadow-rose-900/25">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(212,175,55,0.3)]">
               <Check className="w-8 h-8 stroke-[3]" />
             </div>
 
             <div>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-50 px-3 py-1 rounded-full border border-amber-300/80 uppercase tracking-widest">
-                <Sparkles className="w-3 h-3 text-amber-600" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/30 uppercase tracking-widest">
+                <Sparkles className="w-3 h-3 text-amber-400" />
                 Transacción Exitosa · GlamOS
               </span>
-              <h3 className="text-3xl font-bold font-editorial text-gray-950 mt-2 tracking-tight">
+              <h3 className="text-3xl font-bold font-editorial text-white mt-2 tracking-tight">
                 ¡Venta Registrada!
               </h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-neutral-400 mt-0.5">
                 Folio: #{completedSale.id.slice(0, 8).toUpperCase()} · {formatDate(completedSale.created_at)}
               </p>
             </div>
 
             {/* Ticket Desglosado con Acabado de Seda */}
-            <div className="bg-[#FAF7F2] rounded-2xl p-4 sm:p-5 border border-amber-200/60 text-left space-y-3 font-mono text-xs">
-              <div className="flex justify-between pb-2 border-b border-gray-200 text-gray-600 font-sans">
-                <span className="font-bold text-gray-700">Cliente VIP:</span>
-                <span className="font-semibold text-gray-900">{completedSale.client_name}</span>
+            <div className="bg-black/60 rounded-2xl p-4 sm:p-5 border border-white/[0.08] text-left space-y-3 font-mono text-xs">
+              <div className="flex justify-between pb-2 border-b border-white/[0.08] text-neutral-400 font-sans">
+                <span className="font-semibold text-neutral-300">Cliente VIP:</span>
+                <span className="font-bold text-white">{completedSale.client_name}</span>
               </div>
 
               <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 no-scrollbar">
                 {completedSale.items.map((item: any, i: number) => (
-                  <div key={i} className="flex justify-between text-gray-800">
+                  <div key={i} className="flex justify-between text-neutral-200">
                     <span className="truncate pr-2">
                       {item.quantity}x {item.name}
                     </span>
-                    <span className="font-bold">{formatCurrency(item.line_total)}</span>
+                    <span className="font-bold text-white shrink-0">{formatCurrency(item.line_total)}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="pt-2 border-t border-gray-200 space-y-1.5 text-gray-600 font-sans">
+              <div className="pt-2 border-t border-white/[0.08] space-y-1.5 text-neutral-400 font-sans">
                 {completedSale.tip_amount > 0 && (
-                  <div className="flex justify-between text-xs text-amber-900 font-medium">
+                  <div className="flex justify-between text-xs text-amber-300 font-medium">
                     <span>Propina incluida:</span>
                     <span>+{formatCurrency(completedSale.tip_amount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-xs">
                   <span>Método de cobro:</span>
-                  <span className="font-bold text-gray-900">
+                  <span className="font-bold text-white">
                     {completedSale.payment_method === 'CASH'
                       ? 'Efectivo en caja'
                       : completedSale.payment_method === 'TRANSFER'
@@ -1220,9 +1219,9 @@ export function NewSalePage() {
                         : `Mixto (Efec: $${completedSale.cash_amount} / Transf: $${completedSale.transfer_amount})`}
                   </span>
                 </div>
-                <div className="flex justify-between text-base font-extrabold text-gray-950 pt-2 border-t border-gray-200">
-                  <span className="font-sans text-xs uppercase tracking-wider text-gray-500 self-center">TOTAL COBRADO:</span>
-                  <span className="text-2xl text-rose-600 font-editorial font-black">
+                <div className="flex justify-between text-base font-extrabold text-white pt-2 border-t border-white/[0.08]">
+                  <span className="font-sans text-xs uppercase tracking-wider text-neutral-400 self-center">TOTAL COBRADO:</span>
+                  <span className="text-2xl text-gradient-glam font-editorial font-bold">
                     {formatCurrency(completedSale.final_total)}
                   </span>
                 </div>
@@ -1233,22 +1232,22 @@ export function NewSalePage() {
             <div className="space-y-2.5 pt-1">
               <button
                 onClick={() => window.print()}
-                className="w-full py-3 px-4 rounded-2xl border border-amber-300 bg-amber-50/50 text-amber-950 font-bold text-xs hover:bg-amber-100/70 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                className="w-full py-3 px-4 rounded-2xl border border-white/15 bg-white/[0.04] text-neutral-200 font-bold text-xs hover:bg-white/[0.08] hover:text-white flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
-                <Printer className="w-4 h-4 text-amber-700" />
+                <Printer className="w-4 h-4 text-amber-400" />
                 <span>Imprimir Ticket de Venta</span>
               </button>
 
               <div className="flex gap-2.5">
                 <button
                   onClick={() => navigate('/sales')}
-                  className="flex-1 py-3 px-4 rounded-2xl border border-gray-200 bg-white text-gray-700 font-bold text-xs hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-3 px-4 rounded-2xl border border-white/15 bg-white/[0.04] text-neutral-300 font-bold text-xs hover:bg-white/[0.08] hover:text-white transition-colors"
                 >
                   Ver Libro Diario
                 </button>
                 <button
                   onClick={handleStartNewSale}
-                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-[#F6D365] via-[#FDA085] to-[#E11D48] text-white font-extrabold text-xs shadow-md shadow-rose-900/15 hover:shadow-lg transition-all"
+                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold text-xs shadow-[0_4px_20px_rgba(212,175,55,0.3)] hover:brightness-105 transition-all"
                 >
                   + Nueva Venta
                 </button>
@@ -1260,13 +1259,13 @@ export function NewSalePage() {
 
       {/* ── MODAL: REGISTRAR NUEVO CLIENTE VIP INLINE ───────────────────────── */}
       {isNewClientModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full border border-amber-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-              <h3 className="font-bold text-base text-gray-900">Nuevo Cliente VIP</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0F0E14]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-7 max-w-sm w-full border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.9)] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+              <h3 className="font-editorial text-lg font-bold text-white">Nuevo Cliente VIP</h3>
               <button
                 onClick={() => setIsNewClientModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-neutral-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1274,7 +1273,7 @@ export function NewSalePage() {
 
             <form onSubmit={handleSaveQuickClient} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
                   Nombre Completo *
                 </label>
                 <input
@@ -1283,12 +1282,12 @@ export function NewSalePage() {
                   placeholder="Ej. Carolina Herrera"
                   value={newClientName}
                   onChange={(e) => setNewClientName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-white/10 bg-neutral-950/80 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
                   WhatsApp / Celular
                 </label>
                 <input
@@ -1296,19 +1295,19 @@ export function NewSalePage() {
                   placeholder="+593 99 999 9999"
                   value={newClientPhone}
                   onChange={(e) => setNewClientPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-white/10 bg-neutral-950/80 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
                   Fecha de Cumpleaños
                 </label>
                 <input
                   type="date"
                   value={newClientBirth}
                   onChange={(e) => setNewClientBirth(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-white/10 bg-neutral-950/80 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                 />
               </div>
 
@@ -1316,13 +1315,13 @@ export function NewSalePage() {
                 <button
                   type="button"
                   onClick={() => setIsNewClientModalOpen(false)}
-                  className="flex-1 py-2 rounded-xl border text-xs font-bold text-gray-600 hover:bg-gray-50"
+                  className="flex-1 py-2 rounded-xl border border-white/15 bg-white/[0.04] text-xs font-bold text-neutral-300 hover:bg-white/[0.08] hover:text-white transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 shadow-sm"
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold text-xs shadow-[0_4px_16px_rgba(212,175,55,0.3)] hover:brightness-105"
                 >
                   Guardar y Asignar
                 </button>

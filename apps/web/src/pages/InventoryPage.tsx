@@ -255,12 +255,12 @@ export function InventoryPage() {
 
       {/* Listado de Productos */}
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm font-medium">Cargando inventario...</div>
+        <div className="text-center py-16 text-neutral-500 text-sm font-medium">Cargando inventario...</div>
       ) : filteredProducts.length === 0 ? (
-        <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-amber-200 p-8 space-y-3">
-          <Package className="w-12 h-12 text-amber-300 mx-auto" />
-          <h3 className="font-editorial text-2xl font-bold text-gray-900">No hay productos en inventario</h3>
-          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+        <div className="text-center py-16 bg-neutral-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-white/10 p-8 space-y-3">
+          <Package className="w-12 h-12 text-[#F5E5C4]/60 mx-auto" />
+          <h3 className="font-editorial text-2xl font-bold text-white">No hay productos en inventario</h3>
+          <p className="text-xs text-neutral-400 max-w-sm mx-auto">
             Registra los tintes, shampoos, aceites y tratamientos de tu salón para controlar stock y costos.
           </p>
           <Button
@@ -288,26 +288,26 @@ export function InventoryPage() {
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-amber-50/80 border border-amber-200/60 text-amber-700 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-neutral-800/80 border border-white/10 text-[#F5E5C4] flex items-center justify-center shrink-0">
                         <Package className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-950 text-base leading-snug">{product.name}</h3>
-                        <p className="text-[11px] text-gray-400 font-mono mt-0.5">SKU: {product.sku || 'N/A'}</p>
+                        <h3 className="font-bold text-white text-base leading-snug group-hover:text-[#F5E5C4] transition-colors">{product.name}</h3>
+                        <p className="text-[11px] text-neutral-500 font-mono mt-0.5">SKU: {product.sku || 'N/A'}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => handleOpenModal(product)}
-                        className="p-1.5 text-gray-400 hover:text-amber-700 rounded-xl hover:bg-amber-50/80 transition-colors"
+                        className="p-1.5 text-neutral-400 hover:text-[#F5E5C4] rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
                         title="Editar"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded-xl hover:bg-rose-50/80 transition-colors"
+                        className="p-1.5 text-neutral-400 hover:text-rose-400 rounded-xl hover:bg-rose-950/40 transition-colors cursor-pointer"
                         title="Eliminar"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -316,22 +316,22 @@ export function InventoryPage() {
                   </div>
 
                   {/* Precios & Costos */}
-                  <div className="grid grid-cols-2 gap-2 mt-4 p-3 rounded-2xl bg-amber-50/40 border border-amber-100/70 text-xs">
+                  <div className="grid grid-cols-2 gap-2 mt-4 p-3 rounded-2xl bg-neutral-900/60 border border-white/[0.06] text-xs">
                     <div>
-                      <span className="text-[10px] text-gray-400 uppercase font-bold block">Costo Compra</span>
-                      <span className="font-editorial text-sm font-extrabold text-gray-700">{formatCurrency(unitCostVal)}</span>
+                      <span className="text-[10px] text-neutral-500 uppercase font-semibold block">Costo Compra</span>
+                      <span className="font-editorial text-sm font-semibold text-neutral-300">{formatCurrency(unitCostVal)}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-emerald-700 uppercase font-bold block">Precio Venta</span>
-                      <span className="font-editorial text-sm font-black text-emerald-800">{formatCurrency(unitPriceVal)}</span>
+                      <span className="text-[10px] text-emerald-400 uppercase font-semibold block">Precio Venta</span>
+                      <span className="font-editorial text-sm font-bold text-emerald-300">{formatCurrency(unitPriceVal)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Stock Control */}
-                <div className="mt-5 pt-4 border-t border-amber-100/70 flex items-center justify-between">
+                <div className="mt-5 pt-4 border-t border-white/[0.08] flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-700">Stock:</span>
+                    <span className="text-xs font-semibold text-neutral-400">Stock:</span>
                     <Badge variant={isLowStock ? 'warning' : 'success'} dot={isLowStock}>
                       {isLowStock && <AlertTriangle className="w-3 h-3 mr-0.5 inline" />}
                       {product.current_stock} un.
@@ -342,14 +342,14 @@ export function InventoryPage() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleAdjustStock(product, -1)}
-                      className="p-1.5 rounded-xl hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors active:scale-95"
+                      className="p-1.5 rounded-xl hover:bg-white/[0.06] text-neutral-400 hover:text-rose-400 transition-colors active:scale-95 cursor-pointer"
                       title="Restar 1 unidad"
                     >
                       <MinusCircle className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleAdjustStock(product, 1)}
-                      className="p-1.5 rounded-xl hover:bg-emerald-50 text-gray-400 hover:text-emerald-600 transition-colors active:scale-95"
+                      className="p-1.5 rounded-xl hover:bg-white/[0.06] text-neutral-400 hover:text-emerald-400 transition-colors active:scale-95 cursor-pointer"
                       title="Sumar 1 unidad"
                     >
                       <PlusCircle className="w-5 h-5" />

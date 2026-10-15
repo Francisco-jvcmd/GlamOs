@@ -12,40 +12,40 @@ export function Badge({ className, variant = 'default', dot = false, children, .
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-[10px] font-bold tracking-wider uppercase transition-colors select-none",
         {
-          // Signature Sunset Rose
-          'bg-rose-50 text-rose-900 border border-rose-200/80':
+          // Signature Obsidian Minimal
+          'bg-white/[0.06] text-neutral-300 border border-white/10':
             variant === 'default',
 
-          // Vibrant Haute Glam
-          'bg-gradient-to-r from-[#F6D365]/20 via-[#FDA085]/20 to-[#E11D48]/20 text-rose-950 border border-rose-300/60 font-black':
+          // Vibrant Haute Champagne Glam
+          'bg-gradient-to-r from-amber-400/15 via-amber-500/10 to-transparent text-amber-200 border border-amber-400/30 shadow-[0_0_12px_rgba(212,175,55,0.15)]':
             variant === 'glam',
 
-          // Champagne Gold
-          'bg-amber-50 text-amber-950 border border-amber-300/80':
+          // Metallic Champagne Gold
+          'bg-amber-400/10 text-amber-300 border border-amber-400/30':
             variant === 'gold',
 
           // Deep Velvet Noir
-          'bg-[#1E0517] text-amber-200 border border-amber-400/40 shadow-xs':
+          'bg-neutral-950 text-amber-200 border border-amber-400/30 shadow-xs':
             variant === 'velvet',
 
           // Emerald Success
-          'bg-emerald-50 text-emerald-900 border border-emerald-200':
+          'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30':
             variant === 'success',
 
-          // Destructive / Alert
-          'bg-rose-100/80 text-rose-900 border border-rose-300':
+          // Destructive / Alert (Deep Crimson)
+          'bg-rose-950/60 text-rose-300 border border-rose-500/30':
             variant === 'destructive',
 
           // Amber Warning
-          'bg-amber-100 text-amber-950 border border-amber-300':
+          'bg-amber-950/60 text-amber-300 border border-amber-500/30':
             variant === 'warning',
 
-          // Frosted Glass
-          'bg-white/70 backdrop-blur-md text-gray-800 border border-gray-200/70 shadow-2xs':
+          // Smoked Glass
+          'bg-white/[0.05] backdrop-blur-md text-neutral-300 border border-white/10':
             variant === 'glass',
 
           // Minimal Outline
-          'border border-amber-200/80 text-gray-600':
+          'border border-white/15 text-neutral-400':
             variant === 'outline',
         },
         className
@@ -55,12 +55,10 @@ export function Badge({ className, variant = 'default', dot = false, children, .
       {dot && (
         <span
           className={cn("w-1.5 h-1.5 rounded-full shrink-0", {
-            'bg-rose-500 animate-pulse': variant === 'default' || variant === 'glam',
-            'bg-amber-500 animate-pulse': variant === 'gold' || variant === 'warning',
-            'bg-amber-300': variant === 'velvet',
-            'bg-emerald-500': variant === 'success',
-            'bg-rose-600': variant === 'destructive',
-            'bg-gray-400': variant === 'outline' || variant === 'glass',
+            'bg-amber-400 animate-pulse': variant === 'default' || variant === 'glam' || variant === 'gold' || variant === 'velvet' || variant === 'warning',
+            'bg-emerald-400 animate-pulse': variant === 'success',
+            'bg-rose-400 animate-pulse': variant === 'destructive',
+            'bg-neutral-400': variant === 'outline' || variant === 'glass',
           })}
         />
       )}

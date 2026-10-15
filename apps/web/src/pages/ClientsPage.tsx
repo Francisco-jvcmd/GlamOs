@@ -265,33 +265,33 @@ export function ClientsPage() {
           />
         </div>
 
-        <div className="flex rounded-2xl bg-white/80 backdrop-blur-md border border-amber-200/80 p-1 shrink-0 overflow-x-auto no-scrollbar">
+        <div className="flex rounded-2xl bg-neutral-900/60 backdrop-blur-md border border-white/[0.08] p-1 shrink-0 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setFilterType('ALL')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               filterType === 'ALL'
-                ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-[#F5E5C4] to-[#D4AF37] text-neutral-950 font-bold shadow-sm'
+                : 'text-neutral-400 hover:text-white'
             }`}
           >
             Todos ({stats.total})
           </button>
           <button
             onClick={() => setFilterType('WHATSAPP')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               filterType === 'WHATSAPP'
-                ? 'bg-emerald-100 text-emerald-950 shadow-2xs font-black'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-bold shadow-sm'
+                : 'text-neutral-400 hover:text-white'
             }`}
           >
             WhatsApp
           </button>
           <button
             onClick={() => setFilterType('BIRTHDAYS')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               filterType === 'BIRTHDAYS'
-                ? 'bg-rose-100 text-rose-950 shadow-2xs font-black'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-rose-950/60 border border-rose-500/40 text-rose-300 font-bold shadow-sm'
+                : 'text-neutral-400 hover:text-white'
             }`}
           >
             Cumpleaños
@@ -301,22 +301,22 @@ export function ClientsPage() {
 
       {/* ── LISTADO / EMPTY STATE DE ALTA JOYERÍA ─────────────────────────── */}
       {loading ? (
-        <div className="p-16 text-center text-gray-400 font-medium">
+        <div className="p-16 text-center text-neutral-500 font-medium">
           Cargando cartera exclusiva de clientes...
         </div>
       ) : filteredClients.length === 0 ? (
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 sm:p-12 border border-amber-200/70 shadow-sm text-center max-w-lg mx-auto space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#FDE68A] to-[#FB7185] p-0.5 mx-auto shadow-md">
-            <div className="w-full h-full bg-white rounded-[22px] flex items-center justify-center">
-              <Users className="w-8 h-8 text-amber-700 stroke-[1.5]" />
+        <div className="bg-neutral-900/40 backdrop-blur-xl rounded-3xl p-8 sm:p-12 border border-white/[0.08] text-center max-w-lg mx-auto space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-neutral-800 border border-white/10 p-0.5 mx-auto shadow-md">
+            <div className="w-full h-full bg-[#121118] rounded-[22px] flex items-center justify-center">
+              <Users className="w-8 h-8 text-[#F5E5C4] stroke-[1.5]" />
             </div>
           </div>
 
           <div>
-            <h3 className="text-2xl font-bold font-editorial text-gray-900">
+            <h3 className="text-2xl font-bold font-editorial text-white">
               Comienza tu Cartera VIP
             </h3>
-            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
               Registra a tus clientas frecuentes para mantener su ficha personal, recordar sus cumpleaños y enviar promociones exclusivas.
             </p>
           </div>
@@ -344,15 +344,15 @@ export function ClientsPage() {
                 <div className="space-y-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-200 to-rose-200 text-amber-950 font-black text-sm flex items-center justify-center shrink-0 shadow-2xs">
+                      <div className="w-11 h-11 rounded-2xl bg-neutral-800/90 border border-white/10 text-[#F5E5C4] font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
                         {cName[0]?.toUpperCase() || 'C'}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-bold text-gray-950 text-base truncate group-hover:text-amber-900 transition-colors">
+                        <h3 className="font-bold text-white text-base truncate group-hover:text-[#F5E5C4] transition-colors">
                           {cName}
                         </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5">
-                          <Phone className="w-3 h-3 text-amber-600 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-xs text-neutral-400 mt-0.5">
+                          <Phone className="w-3 h-3 text-amber-400/80 shrink-0" />
                           <span className="truncate">{cPhone || 'Sin teléfono'}</span>
                         </div>
                       </div>
@@ -361,14 +361,14 @@ export function ClientsPage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => handleOpenModal(client)}
-                        className="p-1.5 rounded-xl text-gray-400 hover:text-amber-700 hover:bg-amber-50/80 transition-colors"
+                        className="p-1.5 rounded-xl text-neutral-400 hover:text-[#F5E5C4] hover:bg-white/[0.06] transition-colors cursor-pointer"
                         title="Editar"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteClient(client.id)}
-                        className="p-1.5 rounded-xl text-gray-400 hover:text-rose-600 hover:bg-rose-50/80 transition-colors"
+                        className="p-1.5 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
                         title="Eliminar"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -377,14 +377,14 @@ export function ClientsPage() {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-amber-100/70 flex items-center justify-between text-[11px]">
+                <div className="mt-5 pt-3.5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
                   {client.birth_date ? (
                     <Badge variant="glam" dot>
                       <Cake className="w-3 h-3 mr-0.5" />
                       <span>{client.birth_date}</span>
                     </Badge>
                   ) : (
-                    <span className="text-gray-400 font-medium">Sin cumpleaños</span>
+                    <span className="text-neutral-500 font-medium">Sin cumpleaños</span>
                   )}
 
                   {cPhone && (
@@ -392,9 +392,9 @@ export function ClientsPage() {
                       href={`https://wa.me/${cPhone.replace(/\D/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-emerald-800 font-extrabold bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-all shadow-2xs active:scale-95"
+                      className="flex items-center gap-1.5 text-emerald-300 font-semibold bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl hover:bg-emerald-900/40 transition-all shadow-sm active:scale-95"
                     >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
                       <span>WhatsApp</span>
                     </a>
                   )}

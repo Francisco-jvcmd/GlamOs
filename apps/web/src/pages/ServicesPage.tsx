@@ -195,12 +195,12 @@ export function ServicesPage() {
 
       {/* Grid de Servicios */}
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm font-medium">Cargando catálogo...</div>
+        <div className="text-center py-16 text-neutral-500 text-sm font-medium">Cargando catálogo...</div>
       ) : filteredServices.length === 0 ? (
-        <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-amber-200 p-8 space-y-3">
-          <Scissors className="w-12 h-12 text-amber-300 mx-auto" />
-          <h3 className="font-editorial text-2xl font-bold text-gray-900">Aún no hay servicios registrados</h3>
-          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+        <div className="text-center py-16 bg-neutral-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-white/10 p-8 space-y-3">
+          <Scissors className="w-12 h-12 text-[#F5E5C4]/60 mx-auto" />
+          <h3 className="font-editorial text-2xl font-bold text-white">Aún no hay servicios registrados</h3>
+          <p className="text-xs text-neutral-400 max-w-sm mx-auto">
             {isAdmin
               ? 'Comienza agregando los servicios de tu salón para que tus estilistas puedan facturar rápidamente.'
               : 'El administrador aún no ha configurado los servicios del salón.'}
@@ -227,12 +227,12 @@ export function ServicesPage() {
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-50/80 border border-amber-200/60 text-amber-700 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-neutral-800/80 border border-white/10 text-[#F5E5C4] flex items-center justify-center shrink-0">
                       <Scissors className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-950 text-base leading-snug">{service.name}</h3>
-                      <span className="text-[10px] text-gray-400 font-mono">SER-#{service.id.slice(0, 6)}</span>
+                      <h3 className="font-bold text-white text-base leading-snug group-hover:text-[#F5E5C4] transition-colors">{service.name}</h3>
+                      <span className="text-[10px] text-neutral-500 font-mono">SER-#{service.id.slice(0, 6)}</span>
                     </div>
                   </div>
 
@@ -240,14 +240,14 @@ export function ServicesPage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => handleOpenModal(service)}
-                        className="p-1.5 text-gray-400 hover:text-amber-700 rounded-xl hover:bg-amber-50/80 transition-colors"
+                        className="p-1.5 text-neutral-400 hover:text-[#F5E5C4] rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
                         title="Editar"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteService(service.id)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded-xl hover:bg-rose-50/80 transition-colors"
+                        className="p-1.5 text-neutral-400 hover:text-rose-400 rounded-xl hover:bg-rose-950/40 transition-colors cursor-pointer"
                         title="Eliminar"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -266,22 +266,22 @@ export function ServicesPage() {
                 )}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-amber-100/70 flex items-center justify-between">
+              <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold block">
+                  <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-bold block">
                     Precio Base
                   </span>
-                  <div className="text-xl font-black text-gray-950 font-editorial">
+                  <div className="text-xl font-bold text-white font-editorial">
                     {formatCurrency(service.base_price)}
                   </div>
                 </div>
 
                 {service.active_discount_percentage > 0 && (
                   <div className="text-right">
-                    <span className="text-[10px] text-rose-600 uppercase tracking-wider font-bold block">
+                    <span className="text-[10px] text-rose-400 uppercase tracking-wider font-bold block">
                       Con Descuento
                     </span>
-                    <div className="text-lg font-black text-rose-600 font-editorial">
+                    <div className="text-lg font-bold text-rose-300 font-editorial">
                       {formatCurrency(
                         service.base_price * (1 - service.active_discount_percentage / 100),
                       )}

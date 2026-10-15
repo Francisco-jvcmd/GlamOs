@@ -94,7 +94,7 @@ export function SalesPage() {
           value={formatCurrency(stats.total)}
           subtitle={`${sales.length} transacciones`}
           icon={<TrendingUp className="w-4 h-4" />}
-          variant="noir"
+          variant="hero"
         />
 
         <MetricCard
@@ -102,7 +102,7 @@ export function SalesPage() {
           value={formatCurrency(stats.cash)}
           subtitle="En caja física"
           icon={<Wallet className="w-4 h-4" />}
-          variant="gold"
+          variant="glass"
         />
 
         <MetricCard
@@ -118,32 +118,32 @@ export function SalesPage() {
           value={formatCurrency(stats.tips)}
           subtitle="Fondo voluntario"
           icon={<Sparkles className="w-4 h-4" />}
-          variant="hero"
+          variant="gold"
         />
       </div>
 
       {/* ── SEARCH & FILTER TABS ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input
             type="text"
             placeholder="Buscar por folio, fecha o método de pago..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 rounded-2xl border border-amber-200/80 bg-white/90 text-xs sm:text-sm text-gray-900 focus:outline-none focus:border-amber-400 focus:ring-3 focus:ring-amber-400/20 shadow-2xs"
+            className="w-full h-11 pl-10 pr-4 rounded-2xl border border-white/10 bg-neutral-900/80 text-xs sm:text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20 shadow-2xs backdrop-blur-sm"
           />
         </div>
 
-        <div className="flex rounded-2xl bg-white/80 backdrop-blur-md border border-amber-200/80 p-1 shrink-0 overflow-x-auto no-scrollbar">
+        <div className="flex rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 p-1 shrink-0 overflow-x-auto no-scrollbar">
           {(['ALL', 'CASH', 'TRANSFER', 'MIXED'] as const).map((method) => (
             <button
               key={method}
               onClick={() => setFilterMethod(method)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 filterMethod === method
-                  ? 'bg-amber-100/90 text-amber-950 shadow-2xs font-black'
-                  : 'text-gray-500 hover:text-gray-900'
+                  ? 'bg-white/[0.1] text-amber-300 shadow-2xs font-bold'
+                  : 'text-neutral-400 hover:text-white'
               }`}
             >
               {method === 'ALL'
@@ -160,12 +160,12 @@ export function SalesPage() {
 
       {/* ── LISTA DE VENTAS ───────────────────────────────────────────────── */}
       {loading ? (
-        <div className="p-16 text-center text-gray-400 font-medium">Cargando libro de ventas...</div>
+        <div className="p-16 text-center text-neutral-400 font-medium">Cargando libro de ventas...</div>
       ) : filteredSales.length === 0 ? (
-        <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-amber-200 space-y-3 p-8">
-          <Receipt className="w-12 h-12 mx-auto text-amber-300 stroke-1" />
-          <div className="font-editorial text-2xl font-bold text-gray-900">No hay ventas registradas</div>
-          <p className="text-xs text-gray-400 max-w-sm mx-auto">
+        <div className="text-center py-16 bg-neutral-900/50 backdrop-blur-xl rounded-3xl border border-dashed border-white/10 space-y-3 p-8">
+          <Receipt className="w-12 h-12 mx-auto text-amber-400/50 stroke-1" />
+          <div className="font-editorial text-2xl font-bold text-white">No hay ventas registradas</div>
+          <p className="text-xs text-neutral-400 max-w-sm mx-auto">
             Registra tu primer cobro desde el botón "Nueva Venta" para comenzar a poblar el reporte.
           </p>
           <Button
@@ -184,21 +184,21 @@ export function SalesPage() {
               <div
                 key={sale.id}
                 onClick={() => setSelectedSale(sale)}
-                className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-amber-200/70 hover:border-amber-400 hover:shadow-md transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 group active:scale-[0.99]"
+                className="p-4 sm:p-5 rounded-3xl bg-neutral-900/60 backdrop-blur-xl border border-white/[0.08] hover:border-amber-400/40 hover:bg-neutral-900/80 transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 group active:scale-[0.99]"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-50/80 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-12 h-12 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     {sale.payment_method === 'CASH' ? (
-                      <Wallet className="w-5 h-5 text-amber-700" />
+                      <Wallet className="w-5 h-5 text-amber-400" />
                     ) : sale.payment_method === 'TRANSFER' ? (
-                      <CreditCard className="w-5 h-5 text-blue-700" />
+                      <CreditCard className="w-5 h-5 text-amber-300" />
                     ) : (
-                      <ArrowRightLeft className="w-5 h-5 text-purple-700" />
+                      <ArrowRightLeft className="w-5 h-5 text-amber-200" />
                     )}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-bold text-gray-600">
+                      <span className="font-mono text-xs font-bold text-neutral-400">
                         #{sale.id.slice(0, 8).toUpperCase()}
                       </span>
                       <Badge
@@ -217,7 +217,7 @@ export function SalesPage() {
                           : 'Cobro Mixto'}
                       </Badge>
                     </div>
-                    <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-1.5">
+                    <div className="text-[11px] text-neutral-500 mt-1 flex items-center gap-1.5">
                       <Calendar className="w-3 h-3" />
                       <span>{formatDate(sale.created_at)}</span>
                     </div>
@@ -225,11 +225,11 @@ export function SalesPage() {
                 </div>
 
                 <div className="flex flex-col items-end shrink-0">
-                  <span className="text-xl sm:text-2xl font-black text-gray-950 font-editorial tracking-tight">
+                  <span className="text-xl sm:text-2xl font-bold text-white font-editorial tracking-tight">
                     {formatCurrency(finalVal)}
                   </span>
                   {sale.tip_amount > 0 && (
-                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5 border border-emerald-200/60">
+                    <span className="text-[10px] text-amber-300 font-bold bg-amber-400/10 px-2 py-0.5 rounded-md mt-0.5 border border-amber-400/20">
                       +{formatCurrency(sale.tip_amount)} propina
                     </span>
                   )}
@@ -249,52 +249,52 @@ export function SalesPage() {
           subtitle={`Ticket fiscal #${selectedSale.id.slice(0, 10).toUpperCase()}`}
           icon={<Receipt className="w-5 h-5" />}
         >
-          <div className="bg-[#FAF7F2] rounded-2xl p-4 border border-amber-200/60 space-y-3 font-mono text-xs">
-            <div className="flex justify-between text-gray-600 font-sans">
-              <span className="font-bold">Folio:</span>
-              <span className="font-mono">#{selectedSale.id.slice(0, 10).toUpperCase()}</span>
+          <div className="bg-black/60 rounded-2xl p-4 border border-white/[0.08] space-y-3 font-mono text-xs text-neutral-300">
+            <div className="flex justify-between font-sans">
+              <span className="font-semibold text-neutral-400">Folio:</span>
+              <span className="font-mono text-white">#{selectedSale.id.slice(0, 10).toUpperCase()}</span>
             </div>
-            <div className="flex justify-between text-gray-600 font-sans">
-              <span className="font-bold">Fecha:</span>
-              <span>{formatDate(selectedSale.created_at)}</span>
+            <div className="flex justify-between font-sans">
+              <span className="font-semibold text-neutral-400">Fecha:</span>
+              <span className="text-white">{formatDate(selectedSale.created_at)}</span>
             </div>
 
-            <div className="pt-2 border-t border-gray-200 space-y-1 font-sans text-xs text-gray-600">
-              <div className="flex justify-between">
+            <div className="pt-2 border-t border-white/[0.08] space-y-1 font-sans text-xs">
+              <div className="flex justify-between text-neutral-400">
                 <span>Subtotal:</span>
-                <span>{formatCurrency(selectedSale.subtotal || selectedSale.final_total)}</span>
+                <span className="text-neutral-200">{formatCurrency(selectedSale.subtotal || selectedSale.final_total)}</span>
               </div>
               {selectedSale.discount_total > 0 && (
-                <div className="flex justify-between text-emerald-600">
+                <div className="flex justify-between text-emerald-400">
                   <span>Descuento:</span>
                   <span>-{formatCurrency(selectedSale.discount_total)}</span>
                 </div>
               )}
               {selectedSale.tip_amount > 0 && (
-                <div className="flex justify-between text-amber-800">
+                <div className="flex justify-between text-amber-300">
                   <span>Propina:</span>
                   <span>+{formatCurrency(selectedSale.tip_amount)}</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-200">
+              <div className="flex justify-between font-bold text-white pt-2 border-t border-white/[0.08]">
                 <span>Total Cobrado:</span>
-                <span className="font-editorial text-xl text-rose-600 font-black">
+                <span className="font-editorial text-xl text-gradient-glam font-bold">
                   {formatCurrency(selectedSale.final_total || selectedSale.total_amount)}
                 </span>
               </div>
             </div>
 
             {/* Desglose de forma de cobro */}
-            <div className="pt-2 border-t border-gray-200 font-sans text-xs">
-              <span className="font-bold text-gray-700 block mb-1">Método de Cobro:</span>
+            <div className="pt-2 border-t border-white/[0.08] font-sans text-xs">
+              <span className="font-semibold text-neutral-400 block mb-1">Método de Cobro:</span>
               {selectedSale.payment_method === 'CASH' && (
-                <div className="text-gray-600">💵 100% Efectivo en caja física</div>
+                <div className="text-white">💵 100% Efectivo en caja física</div>
               )}
               {selectedSale.payment_method === 'TRANSFER' && (
-                <div className="text-gray-600">💳 100% Transferencia Bancaria Directa</div>
+                <div className="text-white">💳 100% Transferencia Bancaria Directa</div>
               )}
               {selectedSale.payment_method === 'MIXED' && (
-                <div className="space-y-1 text-gray-600 bg-white p-2.5 rounded-xl border border-gray-200">
+                <div className="space-y-1 text-white bg-white/[0.04] p-2.5 rounded-xl border border-white/10">
                   <div>💵 Efectivo: {formatCurrency(selectedSale.cash_amount || 0)}</div>
                   <div>💳 Transferencia: {formatCurrency(selectedSale.transfer_amount || 0)}</div>
                 </div>
@@ -307,7 +307,7 @@ export function SalesPage() {
             variant="glass"
             className="w-full mt-2"
           >
-            <Printer className="w-4 h-4 mr-2 text-amber-700" />
+            <Printer className="w-4 h-4 mr-2 text-amber-400" />
             <span>Imprimir Ticket de Venta</span>
           </Button>
         </Modal>

@@ -18,14 +18,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-bold uppercase tracking-wider text-gray-700"
+            className="block text-xs font-semibold uppercase tracking-wider text-neutral-300"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute left-3.5 flex items-center pointer-events-none text-neutral-400">
               {leftIcon}
             </div>
           )}
@@ -34,10 +34,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             type={type}
             ref={ref}
             className={cn(
-              "w-full h-11 rounded-2xl border border-amber-200/80 bg-white/90 px-4 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 shadow-2xs backdrop-blur-sm transition-all duration-200 focus:outline-none focus:border-amber-400 focus:ring-3 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-50",
+              "w-full h-11 rounded-2xl border border-white/10 bg-neutral-900/80 px-4 text-xs sm:text-sm text-white placeholder:text-neutral-500 shadow-2xs backdrop-blur-sm transition-all duration-200 focus:outline-none focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-50",
               leftIcon && "pl-10",
               rightIcon && "pr-10",
-              error && "border-rose-400 focus:border-rose-500 focus:ring-rose-400/20",
+              error && "border-rose-500/60 focus:border-rose-500 focus:ring-rose-500/20",
               className
             )}
             {...props}

@@ -26,22 +26,22 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "rounded-3xl p-5 sm:p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between shadow-2xs group",
+        "rounded-3xl p-5 sm:p-6 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group",
         {
-          // Frosted Glass (Default)
-          'bg-white/85 backdrop-blur-xl border border-amber-200/70 hover:border-amber-300 hover:shadow-md':
+          // Smoked Frosted Glass (Default)
+          'bg-neutral-900/60 backdrop-blur-xl border border-white/[0.08] hover:border-amber-400/40 hover:bg-neutral-900/80 shadow-[0_15px_35px_rgba(0,0,0,0.5)]':
             variant === 'glass',
 
-          // Hero Sunset-Rose Gradient (Spotify contrast)
-          'bg-gradient-to-br from-[#FDA085] via-[#FB7185] to-[#E11D48] text-white shadow-lg shadow-rose-900/20 border border-white/20':
+          // Featured Hero Card with Champagne Gold Specular Halo (Spotify Focus)
+          'bg-gradient-to-br from-amber-950/25 via-neutral-900/80 to-black/90 border border-amber-400/35 shadow-[0_15px_35px_rgba(212,175,55,0.08)] hover:border-amber-400/60':
             variant === 'hero',
 
-          // Deep Velvet Noir
-          'bg-gradient-to-br from-[#1E0517] via-[#14020F] to-[#0A0108] text-white border border-amber-400/20 shadow-xl shadow-black/25':
+          // Deep Obsidian Lacquer (Chanel Noir)
+          'bg-black/75 backdrop-blur-xl border border-white/[0.07] hover:border-amber-400/30 shadow-[0_15px_35px_rgba(0,0,0,0.7)]':
             variant === 'noir',
 
-          // Champagne Gold
-          'bg-gradient-to-br from-amber-50/80 via-white to-amber-100/40 border border-amber-300/80 shadow-xs hover:border-amber-400':
+          // Champagne Gold Ambient Accent
+          'bg-gradient-to-br from-neutral-900/80 via-neutral-900/60 to-amber-950/20 border border-amber-400/25 hover:border-amber-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.5)]':
             variant === 'gold',
         },
         className
@@ -50,8 +50,8 @@ export function MetricCard({
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            "text-xs font-bold uppercase tracking-wider",
-            variant === 'hero' ? 'text-white/85' : variant === 'noir' ? 'text-amber-200/80' : 'text-gray-500'
+            "text-xs font-semibold uppercase tracking-widest transition-colors",
+            variant === 'hero' ? 'text-amber-200/90' : 'text-neutral-400 group-hover:text-neutral-200'
           )}
         >
           {label}
@@ -61,10 +61,8 @@ export function MetricCard({
             className={cn(
               "w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105",
               variant === 'hero'
-                ? 'bg-white/20 text-white'
-                : variant === 'noir'
-                ? 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
-                : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30 shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                : 'bg-white/[0.05] text-amber-300 border border-white/10 group-hover:border-amber-400/30'
             )}
           >
             {icon}
@@ -75,8 +73,8 @@ export function MetricCard({
       <div className="mt-4">
         <div
           className={cn(
-            "text-2xl sm:text-3xl font-extrabold font-editorial tracking-tight truncate",
-            variant === 'hero' ? 'text-white' : variant === 'noir' ? 'text-amber-100' : 'text-gray-950'
+            "text-2xl sm:text-3xl font-bold font-editorial tracking-tight truncate",
+            variant === 'hero' ? 'text-gradient-glam' : 'text-white'
           )}
         >
           {value}
@@ -87,7 +85,7 @@ export function MetricCard({
             <span
               className={cn(
                 "text-[11px] truncate",
-                variant === 'hero' ? 'text-white/80' : variant === 'noir' ? 'text-amber-200/60' : 'text-gray-400'
+                variant === 'hero' ? 'text-amber-200/60' : 'text-neutral-400'
               )}
             >
               {subtitle}

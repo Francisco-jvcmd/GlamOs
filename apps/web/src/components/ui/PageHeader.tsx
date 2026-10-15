@@ -20,21 +20,21 @@ export function PageHeader({
   icon,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-amber-200/50">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-white/[0.08]">
       <div className="space-y-1.5">
         {badge && (
           <div className="flex items-center gap-2">
             <Badge variant={badgeVariant} dot>
-              {icon || <Sparkles className="w-3 h-3 text-amber-600" />}
+              {icon || <Sparkles className="w-3 h-3 text-amber-400" />}
               {badge}
             </Badge>
           </div>
         )}
-        <h1 className="text-3xl sm:text-4xl font-bold font-editorial text-gray-900 tracking-tight leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold font-editorial text-white tracking-tight leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-xs sm:text-sm text-gray-500 max-w-xl font-normal leading-relaxed">
+          <p className="text-xs sm:text-sm text-neutral-400 max-w-xl font-normal leading-relaxed">
             {subtitle}
           </p>
         )}

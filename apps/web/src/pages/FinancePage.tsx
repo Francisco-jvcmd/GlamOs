@@ -27,12 +27,12 @@ import {
 } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: any; color: string }> = {
-  RENT: { label: 'Arriendo de Local', icon: Building, color: 'text-purple-600 bg-purple-50' },
-  UTILITIES: { label: 'Servicios Públicos (Luz/Agua)', icon: Zap, color: 'text-amber-600 bg-amber-50' },
-  SALARIES: { label: 'Nómina / Sueldos', icon: Users, color: 'text-blue-600 bg-blue-50' },
-  SUPPLIES: { label: 'Insumos de Trabajo', icon: ShoppingBag, color: 'text-rose-600 bg-rose-50' },
-  MARKETING: { label: 'Publicidad & Redes', icon: TrendingUp, color: 'text-emerald-600 bg-emerald-50' },
-  OTHER: { label: 'Otros Gastos', icon: Receipt, color: 'text-gray-600 bg-gray-50' },
+  RENT: { label: 'Arriendo de Local', icon: Building, color: 'text-purple-400 bg-purple-950/40 border border-purple-500/20' },
+  UTILITIES: { label: 'Servicios Públicos (Luz/Agua)', icon: Zap, color: 'text-amber-400 bg-amber-950/40 border border-amber-500/20' },
+  SALARIES: { label: 'Nómina / Sueldos', icon: Users, color: 'text-blue-400 bg-blue-950/40 border border-blue-500/20' },
+  SUPPLIES: { label: 'Insumos de Trabajo', icon: ShoppingBag, color: 'text-rose-400 bg-rose-950/40 border border-rose-500/20' },
+  MARKETING: { label: 'Publicidad & Redes', icon: TrendingUp, color: 'text-emerald-400 bg-emerald-950/40 border border-emerald-500/20' },
+  OTHER: { label: 'Otros Gastos', icon: Receipt, color: 'text-neutral-300 bg-neutral-800/80 border border-white/10' },
 };
 
 export function FinancePage() {
@@ -252,10 +252,10 @@ export function FinancePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tabla de Gastos Fijos y Variables */}
         <Card variant="glass" className="p-6">
-          <div className="flex items-center justify-between pb-4 border-b border-amber-100/70 mb-4">
+          <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-4">
             <div>
               <CardTitle className="text-xl">Gastos Registrados</CardTitle>
-              <p className="text-xs text-gray-400 mt-0.5">Arriendo, nómina, servicios e insumos</p>
+              <p className="text-xs text-neutral-400 mt-0.5">Arriendo, nómina, servicios e insumos</p>
             </div>
             <Button
               onClick={() => setIsModalOpen(true)}
@@ -267,7 +267,7 @@ export function FinancePage() {
           </div>
 
           {expenses.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 text-xs">
+            <div className="text-center py-12 text-neutral-500 text-xs">
               No has registrado gastos todavía. Registra arriendos o nómina para calcular tu utilidad neta real.
             </div>
           ) : (
@@ -279,25 +279,25 @@ export function FinancePage() {
                 return (
                   <div
                     key={expense.id}
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-white/70 border border-amber-100/70 hover:bg-white hover:border-amber-300 transition-all group"
+                    className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900/60 border border-white/[0.06] hover:border-amber-400/30 transition-all group"
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${config.color}`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-bold text-gray-900 text-xs">{config.label}</div>
-                        <div className="text-[11px] text-gray-400">{expense.description || expense.expense_date}</div>
+                        <div className="font-bold text-white text-xs">{config.label}</div>
+                        <div className="text-[11px] text-neutral-400">{expense.description || expense.expense_date}</div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <span className="font-editorial font-extrabold text-gray-950 text-base">
+                      <span className="font-editorial font-bold text-white text-base">
                         {formatCurrency(expense.amount)}
                       </span>
                       <button
                         onClick={() => handleDeleteExpense(expense.id)}
-                        className="text-gray-300 hover:text-rose-600 transition-colors p-1"
+                        className="text-neutral-500 hover:text-rose-400 transition-colors p-1 cursor-pointer"
                         title="Eliminar gasto"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -312,13 +312,13 @@ export function FinancePage() {
 
         {/* Rendimiento por Estilista */}
         <Card variant="glass" className="p-6">
-          <div className="pb-4 border-b border-amber-100/70 mb-4">
+          <div className="pb-4 border-b border-white/[0.08] mb-4">
             <CardTitle className="text-xl">Métricas por Estilista</CardTitle>
-            <p className="text-xs text-gray-400 mt-0.5">Ventas generadas y propinas por colaborador</p>
+            <p className="text-xs text-neutral-400 mt-0.5">Ventas generadas y propinas por colaborador</p>
           </div>
 
           {employeeMetrics.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 text-xs">
+            <div className="text-center py-12 text-neutral-500 text-xs">
               Aún no hay ventas registradas por colaboradores.
             </div>
           ) : (
@@ -326,27 +326,27 @@ export function FinancePage() {
               {employeeMetrics.map((emp, index) => (
                 <div
                   key={emp.employeeId}
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/50 via-white to-rose-50/40 border border-amber-100/80 shadow-2xs"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900/60 border border-white/[0.06] shadow-sm hover:border-white/10 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#F6D365] to-[#D97706] text-white font-black text-xs flex items-center justify-center shadow-xs">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#F5E5C4] to-[#D4AF37] text-neutral-950 font-black text-xs flex items-center justify-center shadow-xs">
                       #{index + 1}
                     </div>
                     <div>
-                      <div className="font-bold text-gray-950 text-xs">
+                      <div className="font-bold text-white text-xs">
                         Colaborador {emp.employeeId.slice(0, 8)}...
                       </div>
-                      <div className="text-[11px] text-gray-400">
+                      <div className="text-[11px] text-neutral-400">
                         {emp.count} tickets atendidos · Propinas: {formatCurrency(emp.tips)}
                       </div>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <span className="font-editorial font-black text-gray-950 text-base block">
+                    <span className="font-editorial font-bold text-[#F5E5C4] text-base block">
                       {formatCurrency(emp.total)}
                     </span>
-                    <span className="text-[10px] text-amber-800 font-bold uppercase tracking-wider">
+                    <span className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">
                       Facturado
                     </span>
                   </div>
@@ -363,17 +363,17 @@ export function FinancePage() {
         onClose={() => setIsModalOpen(false)}
         title="Registrar Gasto del Salón"
         subtitle="Ingresa arriendos, nómina, insumos o servicios."
-        icon={<TrendingDown className="w-5 h-5" />}
+        icon={<TrendingDown className="w-5 h-5 text-rose-400" />}
       >
         <form onSubmit={handleSaveExpense} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
               Categoría del Gasto *
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full h-11 px-4 rounded-2xl border border-amber-200/80 focus:outline-none focus:border-amber-400 focus:ring-3 focus:ring-amber-400/20 text-xs sm:text-sm bg-white text-gray-900 shadow-2xs"
+              className="w-full h-11 px-4 rounded-2xl border border-white/10 focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/10 text-xs sm:text-sm bg-neutral-900/90 text-white outline-none shadow-sm cursor-pointer"
             >
               <option value="RENT">🏢 Arriendo de Local</option>
               <option value="UTILITIES">⚡ Servicios Públicos (Agua, Luz, Teléfono)</option>

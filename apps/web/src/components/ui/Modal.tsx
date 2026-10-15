@@ -48,7 +48,7 @@ export function Modal({
       {/* Dialog Surface */}
       <div
         className={cn(
-          "relative w-full rounded-3xl bg-white/95 backdrop-blur-2xl p-6 sm:p-8 border border-amber-200/80 shadow-[0_25px_60px_rgba(217,119,6,0.15)] z-10 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar",
+          "relative w-full rounded-3xl bg-[#0F0E14]/95 backdrop-blur-2xl p-6 sm:p-8 border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar",
           {
             'max-w-sm': maxWidth === 'sm',
             'max-w-md': maxWidth === 'md',
@@ -58,23 +58,23 @@ export function Modal({
         )}
       >
         {/* Subtle Luxury Corner Accents */}
-        <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-300/60 rounded-tl-sm pointer-events-none" />
-        <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-300/60 rounded-tr-sm pointer-events-none" />
+        <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-400/40 rounded-tl-sm pointer-events-none" />
+        <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-400/40 rounded-tr-sm pointer-events-none" />
 
         {/* Modal Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-amber-100/80 mb-5">
+        <div className="flex items-start justify-between pb-4 border-b border-white/[0.08] mb-5">
           <div className="flex items-center gap-3">
             {icon && (
-              <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-white/[0.06] border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0">
                 {icon}
               </div>
             )}
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold font-editorial text-gray-950 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold font-editorial text-white tracking-tight">
                 {title}
               </h2>
               {subtitle && (
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed font-sans">
+                <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed font-sans">
                   {subtitle}
                 </p>
               )}
@@ -83,7 +83,7 @@ export function Modal({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-gray-400 hover:text-gray-900 hover:bg-amber-50/80 transition-colors"
+            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors"
             title="Cerrar"
           >
             <X className="w-4 h-4" />

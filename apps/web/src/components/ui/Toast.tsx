@@ -10,14 +10,14 @@ export interface ToastProps {
 
 export function Toast({ message, subtitle, type = 'success', onClose }: ToastProps) {
   return (
-    <div className="fixed top-6 right-6 z-50 flex items-center gap-3.5 px-5 py-3.5 rounded-3xl bg-white/95 backdrop-blur-2xl text-gray-900 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-amber-200/80 animate-in fade-in slide-in-from-top-4 duration-300 select-none">
+    <div className="fixed top-6 right-6 z-50 flex items-center gap-3.5 px-5 py-3.5 rounded-3xl bg-[#14121A]/95 backdrop-blur-2xl text-white shadow-[0_25px_60px_rgba(0,0,0,0.8)] border border-white/10 animate-in fade-in slide-in-from-top-4 duration-300 select-none">
       <div
         className={cn(
           "w-8 h-8 rounded-2xl flex items-center justify-center shrink-0 shadow-xs",
           {
-            'bg-emerald-50 text-emerald-600 border border-emerald-200': type === 'success',
-            'bg-rose-50 text-rose-600 border border-rose-200': type === 'error',
-            'bg-amber-50 text-amber-600 border border-amber-200': type === 'info',
+            'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40': type === 'success',
+            'bg-rose-950/80 text-rose-300 border border-rose-500/40': type === 'error',
+            'bg-amber-950/80 text-amber-300 border border-amber-500/40': type === 'info',
           }
         )}
       >
@@ -27,11 +27,11 @@ export function Toast({ message, subtitle, type = 'success', onClose }: ToastPro
       </div>
 
       <div className="min-w-0 pr-2">
-        <div className="font-bold text-xs sm:text-sm tracking-wide text-gray-900 truncate">
+        <div className="font-bold text-xs sm:text-sm tracking-wide text-white truncate">
           {message}
         </div>
         {subtitle && (
-          <div className="text-[10px] text-gray-400 font-medium truncate">
+          <div className="text-[10px] text-neutral-400 font-medium truncate">
             {subtitle}
           </div>
         )}
@@ -40,7 +40,7 @@ export function Toast({ message, subtitle, type = 'success', onClose }: ToastPro
       {onClose && (
         <button
           onClick={onClose}
-          className="p-1 rounded-lg text-gray-400 hover:text-gray-700 transition-colors"
+          className="p-1 rounded-lg text-neutral-400 hover:text-white transition-colors"
         >
           <X className="w-3.5 h-3.5" />
         </button>

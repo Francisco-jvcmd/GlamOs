@@ -223,63 +223,63 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden bg-[#FAF6F0] px-4 py-8 select-none">
-      {/* 1. Luxurious Ambient Gradients (Haute Beauté Glow) */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-gradient-to-br from-[#FDE68A]/40 to-[#FB7185]/30 blur-3xl" />
-        <div className="absolute top-1/2 -left-48 w-[28rem] h-[28rem] rounded-full bg-gradient-to-tr from-[#FDA4AF]/30 via-[#F6D365]/20 to-transparent blur-3xl" />
-        <div className="absolute -bottom-32 right-1/4 w-80 h-80 rounded-full bg-gradient-to-t from-[#E11D48]/15 via-[#FBBF24]/20 to-transparent blur-3xl" />
+    <div className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden bg-[#09090B] px-4 py-8 select-none">
+      {/* 1. Subtle Ambient Halo Glows */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-[30rem] h-[30rem] rounded-full bg-gradient-to-br from-amber-500/10 via-amber-400/05 to-transparent blur-3xl" />
+        <div className="absolute top-1/2 -left-48 w-[28rem] h-[28rem] rounded-full bg-gradient-to-tr from-amber-600/08 via-amber-300/04 to-transparent blur-3xl" />
+        <div className="absolute -bottom-40 right-1/4 w-96 h-96 rounded-full bg-gradient-to-t from-amber-500/08 via-amber-400/04 to-transparent blur-3xl" />
       </div>
 
       {/* 2. Main Luxury Card Container */}
       <div className="relative z-10 w-full max-w-sm sm:max-w-md">
         {/* Emblem & Branding */}
         <div className="mb-6">
-          <GlamOSLogo size={112} />
+          <GlamOSLogo size={108} />
         </div>
 
-        {/* Haute Frosted Glass Panel */}
-        <div className="relative rounded-3xl bg-white/80 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(159,18,57,0.08)] border border-amber-200/60">
+        {/* Haute Smoked Frosted Glass Panel */}
+        <div className="relative rounded-3xl bg-[#121118]/85 backdrop-blur-2xl p-7 sm:p-9 shadow-[0_25px_60px_rgba(0,0,0,0.8)] border border-white/[0.08]">
           {/* Subtle gold corner accents */}
-          <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-amber-300/60 rounded-tl-sm" />
-          <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-amber-300/60 rounded-tr-sm" />
-          <div className="absolute bottom-3 left-3 w-3 h-3 border-b-2 border-l-2 border-amber-300/60 rounded-bl-sm" />
-          <div className="absolute bottom-3 right-3 w-3 h-3 border-b-2 border-r-2 border-amber-300/60 rounded-br-sm" />
+          <div className="absolute top-3.5 left-3.5 w-3 h-3 border-t-2 border-l-2 border-amber-400/40 rounded-tl-sm" />
+          <div className="absolute top-3.5 right-3.5 w-3 h-3 border-t-2 border-r-2 border-amber-400/40 rounded-tr-sm" />
+          <div className="absolute bottom-3.5 left-3.5 w-3 h-3 border-b-2 border-l-2 border-amber-400/40 rounded-bl-sm" />
+          <div className="absolute bottom-3.5 right-3.5 w-3 h-3 border-b-2 border-r-2 border-amber-400/40 rounded-br-sm" />
 
           <div className="text-center mb-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs font-interface">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-amber-950/40 text-[#F5E5C4] border border-amber-400/30 shadow-2xs font-sans">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               Gestión Integral de Alta Gama
             </span>
-            <h2 className="text-3xl font-bold text-gray-950 mt-3 font-editorial tracking-tight">
+            <h2 className="text-3xl font-bold text-white mt-3 font-editorial tracking-tight">
               Bienvenida a tu Salón
             </h2>
-            <p className="text-xs text-gray-500 mt-1 leading-relaxed font-interface">
+            <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
               Software de élite para caja POS de alta velocidad, inventario y tus clientes VIP.
             </p>
           </div>
 
           {/* Error / Status Alert */}
           {errorMessage && (
-            <div className="mb-5 p-3 rounded-xl bg-rose-50/90 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+            <div className="mb-5 p-3 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
               <span className="text-base">⚠️</span>
               <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* Primary Action Button: Google Sign-In with Haute Metallic Trim */}
+          {/* Primary Action Button: Google Sign-In with Titanium/Gold Trim */}
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="group relative w-full h-14 flex items-center justify-center px-6 rounded-2xl bg-white hover:bg-amber-50/40 active:scale-[0.98] transition-all duration-200 shadow-[0_8px_20px_rgba(217,119,6,0.12)] hover:shadow-[0_12px_28px_rgba(217,119,6,0.2)] border-2 border-amber-300/70 disabled:opacity-60 disabled:pointer-events-none"
+            className="group relative w-full h-14 flex items-center justify-center px-6 rounded-2xl bg-neutral-900/90 hover:bg-neutral-800/90 active:scale-[0.98] transition-all duration-200 shadow-lg border border-white/10 hover:border-amber-400/40 disabled:opacity-60 disabled:pointer-events-none"
           >
             {/* Shimmer effect */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-amber-200/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-amber-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
             {isLoading ? (
-              <div className="flex items-center gap-3 text-amber-900 font-semibold text-sm">
+              <div className="flex items-center gap-3 text-[#F5E5C4] font-semibold text-sm">
                 <svg
-                  className="animate-spin h-5 w-5 text-amber-600"
+                  className="animate-spin h-5 w-5 text-amber-400"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -301,7 +301,7 @@ export function LoginPage() {
                 <span>Accediendo a tu espacio...</span>
               </div>
             ) : (
-              <div className="flex items-center font-semibold text-gray-800 text-sm tracking-wide">
+              <div className="flex items-center font-semibold text-white text-sm tracking-wide">
                 <GoogleIcon />
                 <span>Continuar con Google</span>
               </div>
@@ -310,71 +310,71 @@ export function LoginPage() {
 
           {/* Luxury Divider */}
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
-            <span className="text-[10px] text-amber-800/60 uppercase tracking-[0.2em] font-medium">
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <span className="text-[10px] text-neutral-400 uppercase tracking-[0.2em] font-medium">
               O Acceso Instantáneo
             </span>
-            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
 
           {/* Quick Demo Access Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <button
               onClick={() => handleQuickDemoAccess('OWNER_ADMIN')}
               disabled={isLoading}
-              className="w-full p-3 rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-50/60 to-white hover:from-amber-100/60 flex items-center justify-between transition-all group shadow-xs"
+              className="w-full p-3.5 rounded-2xl border border-white/[0.08] hover:border-amber-400/40 bg-neutral-900/60 hover:bg-neutral-800/60 flex items-center justify-between transition-all group shadow-sm active:scale-[0.99] cursor-pointer"
             >
-              <div className="flex items-center gap-2.5 text-left">
-                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#F5E5C4] to-[#D4AF37] text-neutral-950 flex items-center justify-center shrink-0 shadow-sm font-bold">
                   <Crown className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-gray-900 group-hover:text-amber-900">
+                  <div className="text-xs font-bold text-white group-hover:text-[#F5E5C4] transition-colors">
                     Entrar como Dueña / Administradora
                   </div>
-                  <div className="text-[10px] text-gray-500">Acceso total a finanzas, inventario y POS</div>
+                  <div className="text-[11px] text-neutral-400">Acceso total a finanzas, inventario y POS</div>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-amber-400/80 group-hover:text-amber-300 group-hover:translate-x-1 transition-all" />
             </button>
 
             <button
               onClick={() => handleQuickDemoAccess('EMPLOYEE')}
               disabled={isLoading}
-              className="w-full p-3 rounded-2xl border border-rose-200/80 bg-gradient-to-r from-rose-50/60 to-white hover:from-rose-100/60 flex items-center justify-between transition-all group shadow-xs"
+              className="w-full p-3.5 rounded-2xl border border-white/[0.08] hover:border-white/20 bg-neutral-900/60 hover:bg-neutral-800/60 flex items-center justify-between transition-all group shadow-sm active:scale-[0.99] cursor-pointer"
             >
-              <div className="flex items-center gap-2.5 text-left">
-                <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-8 h-8 rounded-xl bg-neutral-800 border border-white/10 text-neutral-200 flex items-center justify-center shrink-0 shadow-sm">
                   <Scissors className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-gray-900 group-hover:text-rose-900">
+                  <div className="text-xs font-bold text-white group-hover:text-neutral-200 transition-colors">
                     Entrar como Estilista
                   </div>
-                  <div className="text-[10px] text-gray-500">Terminal de ventas y comisiones personales</div>
+                  <div className="text-[11px] text-neutral-400">Terminal de ventas y comisiones personales</div>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-rose-600 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
             </button>
           </div>
 
           {/* Value Props Pills */}
           <div className="grid grid-cols-2 gap-2 text-center mt-6">
-            <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100/80">
+            <div className="p-2.5 rounded-2xl bg-neutral-900/60 border border-white/[0.06]">
               <span className="text-base block mb-0.5">⚡</span>
-              <p className="text-[11px] font-bold text-gray-800">100% Offline-First</p>
-              <p className="text-[10px] text-gray-500">Opera sin conexión</p>
+              <p className="text-[11px] font-bold text-white">100% Offline-First</p>
+              <p className="text-[10px] text-neutral-400">Opera sin conexión</p>
             </div>
-            <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100/80">
+            <div className="p-2.5 rounded-2xl bg-neutral-900/60 border border-white/[0.06]">
               <span className="text-base block mb-0.5">☁️</span>
-              <p className="text-[11px] font-bold text-gray-800">Sync Automático</p>
-              <p className="text-[10px] text-gray-500">Respaldo en Neon</p>
+              <p className="text-[11px] font-bold text-white">Sync Automático</p>
+              <p className="text-[10px] text-neutral-400">Respaldo en Neon</p>
             </div>
           </div>
         </div>
 
         {/* Luxury Footer */}
-        <div className="text-center mt-6 text-xs text-amber-900/60 tracking-wider">
+        <div className="text-center mt-6 text-xs text-neutral-500 tracking-wider">
           <p className="font-medium">GlamOS Haute Couture Edition · v0.1.0</p>
         </div>
       </div>
