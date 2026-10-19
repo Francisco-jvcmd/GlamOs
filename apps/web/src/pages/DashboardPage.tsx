@@ -17,7 +17,15 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCollection } from '../hooks/useCollection';
-import { formatCurrency, formatDate, ensureUuid } from '../lib/utils';
+import {
+  formatCurrency,
+  formatDate,
+  ensureUuid,
+  isTodayEcuador,
+  getEcuadorHour,
+  formatEditorialDateEcuador,
+  getEcuadorDateString,
+} from '../lib/utils';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -47,21 +55,8 @@ export function DashboardPage() {
     return localStorage.getItem('glamos_user_display_name') || 'José';
   }, [user]);
 
-  // Función para determinar si una fecha corresponde a hoy en zona horaria local
-  const isToday = (dateStr?: string) => {
-    if (!dateStr) return false;
-    try {
-      const d = new Date(dateStr);
-      const now = new Date();
-      return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth() &&
-        d.getDate() === now.getDate()
-      );
-    } catch {
-      return false;
-    }
-  };
+  // Función para determinar si una fecha corresponde a hoy en zona horaria oficial de Ecuador (America/Guayaquil)
+  const isToday = isTodayEcuador;
 
   // Helper para saber si un item es producto
   const isItemProduct = (item: any) => {
@@ -322,31 +317,31 @@ export function DashboardPage() {
     };
   }, [myTodaySales, saleItems, services, products]);
 
-  // Cumpleaños próximos (solo para Admin o equipo)
+  // Cumpleaños próximos en zona horaria de Ecuador (próximos 3 días)
   const upcomingBirthdays = useMemo(() => {
     if (!clients || clients.length === 0) return [];
-    const today = new Date();
+    const ecDateStr = getEcuadorDateString();
+    const parts = ecDateStr.split('-');
+    const currentMonth = parseInt(parts[1], 10);
+    const currentDay = parseInt(parts[2], 10);
 
     return clients.filter((c) => {
       if (!c.birth_date || c.deleted_at) return false;
-      const parts = c.birth_date.split('-');
-      if (parts.length < 3) return false;
-      const bMonth = parseInt(parts[1], 10);
-      const bDay = parseInt(parts[2], 10);
+      const cParts = c.birth_date.split('-');
+      if (cParts.length < 3) return false;
+      const bMonth = parseInt(cParts[1], 10);
+      const bDay = parseInt(cParts[2], 10);
 
-      for (let i = 0; i <= 3; i++) {
-        const target = new Date();
-        target.setDate(today.getDate() + i);
-        if (target.getMonth() + 1 === bMonth && target.getDate() === bDay) {
-          return true;
-        }
+      // Coincidencia dentro de los próximos 3 días
+      if (bMonth === currentMonth && bDay >= currentDay && bDay <= currentDay + 3) {
+        return true;
       }
       return false;
     });
   }, [clients]);
 
   const firstName = user?.email?.split('@')[0] || 'Estilista';
-  const hour = new Date().getHours();
+  const hour = getEcuadorHour();
   const greeting =
     hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
 
@@ -362,7 +357,7 @@ export function DashboardPage() {
             </Badge>
             <span className="text-neutral-600 text-xs hidden sm:inline">·</span>
             <span className="text-[11px] font-semibold text-neutral-400 hidden sm:inline uppercase tracking-wider">
-              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {formatEditorialDateEcuador()}
             </span>
             {userDisplayName && (
               <span className="text-[11px] font-bold text-amber-400/90 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">

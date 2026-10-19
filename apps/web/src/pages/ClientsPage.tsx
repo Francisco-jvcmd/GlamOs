@@ -12,7 +12,7 @@ import { MetricCard } from '../components/ui/MetricCard';
 import { Modal } from '../components/ui/Modal';
 import { Toast } from '../components/ui/Toast';
 import { Badge } from '../components/ui/Badge';
-import { ensureUuid, generateUuid } from '../lib/utils';
+import { ensureUuid, generateUuid, getEcuadorDateString } from '../lib/utils';
 import {
   Users,
   UserPlus,
@@ -45,7 +45,7 @@ export function ClientsPage() {
   const stats = useMemo(() => {
     const active = (clients || []).filter((c: any) => !c.deleted_at);
     const withPhone = active.filter((c: any) => !!(c.phone_whatsapp || c.phone)).length;
-    const currentMonth = new Date().getMonth() + 1;
+    const currentMonth = parseInt(getEcuadorDateString().split('-')[1], 10);
     const birthdays = active.filter((c: any) => {
       if (!c.birth_date) return false;
       const parts = c.birth_date.split('-');
@@ -70,7 +70,7 @@ export function ClientsPage() {
       if (filterType === 'WHATSAPP') return !!phone;
       if (filterType === 'BIRTHDAYS') {
         if (!c.birth_date) return false;
-        const currentMonth = new Date().getMonth() + 1;
+        const currentMonth = parseInt(getEcuadorDateString().split('-')[1], 10);
         const parts = c.birth_date.split('-');
         return parseInt(parts[1], 10) === currentMonth;
       }

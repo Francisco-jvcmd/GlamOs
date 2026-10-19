@@ -12,11 +12,91 @@ export function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-export function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(dateStr))
+export const ECUADOR_TIMEZONE = 'America/Guayaquil';
+
+/**
+ * Obtiene la fecha YYYY-MM-DD en la zona horaria oficial de Ecuador (America/Guayaquil - UTC-5)
+ */
+export function getEcuadorDateString(date: Date | string = new Date()): string {
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: ECUADOR_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(d);
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+/**
+ * Comprueba si una fecha/timestamp corresponde al día de "hoy" en Ecuador
+ */
+export function isTodayEcuador(dateStr?: string | null): boolean {
+  if (!dateStr) return false;
+  try {
+    const targetDate = new Date(dateStr);
+    if (isNaN(targetDate.getTime())) return false;
+    const targetDay = getEcuadorDateString(targetDate);
+    const todayDay = getEcuadorDateString(new Date());
+    return targetDay === todayDay;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Retorna la hora actual (0-23) en Ecuador para saludos y turnos
+ */
+export function getEcuadorHour(date: Date | string = new Date()): number {
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const hourStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: ECUADOR_TIMEZONE,
+      hour: 'numeric',
+      hour12: false,
+    }).format(d);
+    return parseInt(hourStr, 10);
+  } catch {
+    return new Date().getHours();
+  }
+}
+
+/**
+ * Formatea fecha y hora en español y estrictamente en zona horaria de Ecuador (America/Guayaquil)
+ */
+export function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return new Intl.DateTimeFormat('es-EC', {
+      timeZone: ECUADOR_TIMEZONE,
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(d);
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * Formatea fecha larga en español para cabeceras editoriales en Ecuador (ej. "lunes, 19 de octubre")
+ */
+export function formatEditorialDateEcuador(date: Date = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat('es-EC', {
+      timeZone: ECUADOR_TIMEZONE,
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(date);
+  } catch {
+    return date.toLocaleDateString('es-EC');
+  }
 }
 
 export function maskPhone(phone: string) {

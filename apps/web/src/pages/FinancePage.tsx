@@ -11,7 +11,7 @@ import { MetricCard } from '../components/ui/MetricCard';
 import { Modal } from '../components/ui/Modal';
 import { Toast } from '../components/ui/Toast';
 import { Badge } from '../components/ui/Badge';
-import { formatCurrency, generateUuid, ensureUuid } from '../lib/utils';
+import { formatCurrency, generateUuid, ensureUuid, getEcuadorDateString } from '../lib/utils';
 import {
   TrendingUp,
   TrendingDown,
@@ -47,7 +47,7 @@ export function FinancePage() {
   const [category, setCategory] = useState('RENT');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [expenseDate, setExpenseDate] = useState(() => getEcuadorDateString());
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 1. Cálculos de P&L (Estado de Resultados)
