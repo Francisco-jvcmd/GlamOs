@@ -58,6 +58,7 @@ export function AppLayout() {
     { to: '/services', icon: Scissors, label: 'Servicios', section: 'OPERACIONES' },
     ...(isAdmin ? [{ to: '/inventory', icon: Package, label: 'Inventario & Stock', section: 'GESTIÓN' }] : []),
     { to: '/clients', icon: Users, label: 'Cartera VIP Clientes', section: 'GESTIÓN' },
+    { to: '/nail-art', icon: Sparkles, label: 'Diseño de Uñas IA', badge: 'Studio IA', section: 'GESTIÓN' },
     ...(isAdmin ? [{ to: '/finance', icon: TrendingUp, label: 'Finanzas & P&L', section: 'GESTIÓN' }] : []),
   ];
 
@@ -114,7 +115,14 @@ export function AppLayout() {
               <span className="truncate">{item.label}</span>
             </div>
             {!item.primary && (
-              <ChevronRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-amber-400 transition-transform group-hover:translate-x-0.5" />
+              <div className="flex items-center gap-1.5 shrink-0">
+                {item.badge && (
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400/20 to-amber-200/10 text-amber-300 border border-amber-400/30">
+                    {item.badge}
+                  </span>
+                )}
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-amber-400 transition-transform group-hover:translate-x-0.5" />
+              </div>
             )}
           </NavLink>
         ))}

@@ -12,6 +12,7 @@ import { ServicesPage } from './pages/ServicesPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { FinancePage } from './pages/FinancePage';
 import { ClientsPage } from './pages/ClientsPage';
+import { NailArtStudioPage } from './pages/NailArtStudioPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
             <Route path="/sales/new" element={<NewSalePage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/nail-art" element={<NailArtStudioPage />} />
             <Route path="/settings" element={<SettingsPage />} />
 
             {/* Rutas Exclusivas de Administrador (Finanzas e Inventario) */}
