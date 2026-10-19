@@ -1,16 +1,40 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth-context';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Badge } from '../components/ui/Badge';
-import { LogOut, Store, KeyRound, Copy, Check, Users, Crown, Scissors, ShieldCheck, RefreshCw } from 'lucide-react';
+import { LogOut, Store, KeyRound, Copy, Check, Users, Crown, Scissors, ShieldCheck, RefreshCw, User } from 'lucide-react';
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout, unlinkOrganization } = useAuth();
   const [copied, setCopied] = useState(false);
+
+  const defaultInitialName = useMemo(() => {
+    if (user?.email) {
+      const stored = localStorage.getItem(`glamos_user_name_${user.email}`);
+      if (stored) return stored;
+      const part = user.email.split('@')[0];
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    }
+    return localStorage.getItem('glamos_user_display_name') || 'José';
+  }, [user]);
+
+  const [displayName, setDisplayName] = useState(defaultInitialName);
+  const [nameSaved, setNameSaved] = useState(false);
+
+  const handleSaveName = () => {
+    const clean = displayName.trim();
+    if (!clean) return;
+    if (user?.email) {
+      localStorage.setItem(`glamos_user_name_${user.email}`, clean);
+    }
+    localStorage.setItem('glamos_user_display_name', clean);
+    setNameSaved(true);
+    setTimeout(() => setNameSaved(false), 2500);
+  };
 
   const localJoinCode = localStorage.getItem('glamos_local_join_code') || 'GLAM-8842-A';
   const salonName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
@@ -108,6 +132,46 @@ export function SettingsPage() {
           <div className="pb-3.5 border-b border-white/[0.08]">
             <div className="text-[10px] text-neutral-500 uppercase tracking-wider font-bold">Correo Electrónico</div>
             <div className="font-semibold text-white text-sm mt-0.5">{user?.email}</div>
+          </div>
+
+          {/* Nombre Personalizado para Tickets y Comprobantes */}
+          <div className="pb-3.5 border-b border-white/[0.08] space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] text-neutral-500 uppercase tracking-wider font-bold">
+                Nombre del Profesional / Emisor del Ticket
+              </div>
+              {nameSaved && (
+                <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 animate-in fade-in">
+                  <Check className="w-3.5 h-3.5" /> Guardado
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => {
+                    setDisplayName(e.target.value);
+                    setNameSaved(false);
+                  }}
+                  placeholder="Ej. José, Carolina, Andrea..."
+                  className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-neutral-900/90 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/40"
+                />
+              </div>
+              <Button
+                onClick={handleSaveName}
+                variant="gold"
+                size="sm"
+                disabled={!displayName.trim()}
+              >
+                Guardar
+              </Button>
+            </div>
+            <p className="text-[11px] text-neutral-400">
+              Este nombre se imprimirá como <strong>"Atendido por: {displayName || 'Tu Nombre'}"</strong> en cada ticket y comprobante de venta.
+            </p>
           </div>
 
           <div className="pb-3.5 border-b border-white/[0.08]">

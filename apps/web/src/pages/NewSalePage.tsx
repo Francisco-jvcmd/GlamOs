@@ -20,6 +20,7 @@ import {
   CreditCard,
   ArrowRightLeft,
   UserPlus,
+  User,
   Sparkles,
   Scissors,
   Package,
@@ -265,11 +266,33 @@ export function NewSalePage() {
       transferToSave = transferNum;
     }
 
+    const userDisplayName =
+      (user?.email && localStorage.getItem(`glamos_user_name_${user.email}`)) ||
+      localStorage.getItem('glamos_user_display_name') ||
+      (user as any)?.name ||
+      (user?.email ? user.email.split('@')[0] : 'José');
+
+    const selectedClientObj = clients.find((c: any) => c.id === selectedClientId);
+    const clientFullName = selectedClientObj?.full_name || 'Cliente Ocasional';
+
+    const cartItemsData = cart.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      discount_percentage: item.discount_percentage,
+      line_total: item.line_total,
+      service_id: item.service_id || null,
+      product_id: item.product_id || null,
+    }));
+
     const saleDoc = {
       id: saleId,
       organization_id: orgId,
       employee_id: employeeId,
+      employee_name: userDisplayName,
+      stylist_name: userDisplayName,
       client_id: selectedClientId ? ensureUuid(selectedClientId) : null,
+      client_name: clientFullName,
       subtotal,
       discount_total: discountTotal,
       final_total: finalTotal,
@@ -279,6 +302,7 @@ export function NewSalePage() {
       transfer_amount: transferToSave,
       transfer_receipt_key: null,
       status: 'COMPLETED',
+      items: cartItemsData,
       voided_at: null,
       voided_by: null,
       void_reason: null,
@@ -396,11 +420,11 @@ export function NewSalePage() {
       }
 
       // 6. Mostrar Comprobante / Recibo de Venta Luxury
-      const selectedClientObj = clients.find((c: any) => c.id === selectedClientId);
       setCompletedSale({
         ...saleDoc,
         items: [...cart],
-        client_name: selectedClientObj?.full_name || 'Cliente Ocasional',
+        client_name: clientFullName,
+        employee_name: userDisplayName,
       });
     } catch (err) {
       console.error('Error al registrar venta:', err);
@@ -1306,10 +1330,17 @@ export function NewSalePage() {
             )}
 
             {/* Ticket Desglosado con Acabado de Seda */}
-            <div className="bg-black/60 rounded-2xl p-4 sm:p-5 border border-white/[0.08] text-left space-y-3 font-mono text-xs">
+            <div id="printable-ticket" className="bg-black/60 rounded-2xl p-4 sm:p-5 border border-white/[0.08] text-left space-y-3 font-mono text-xs">
               <div className="flex justify-between pb-2 border-b border-white/[0.08] text-neutral-400 font-sans">
                 <span className="font-semibold text-neutral-300">Cliente VIP:</span>
                 <span className="font-bold text-white">{completedSale.client_name}</span>
+              </div>
+              <div className="flex justify-between pb-2 border-b border-white/[0.08] text-neutral-400 font-sans">
+                <span className="font-semibold text-neutral-300">Atendido por:</span>
+                <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-amber-400" />
+                  {completedSale.employee_name || 'Estilista'}
+                </span>
               </div>
 
               <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 no-scrollbar">

@@ -192,4 +192,33 @@
   }
 }
 
+/* ── ESTILOS DE IMPRESIÓN DE TICKET FISCAL / POS ───────────────────────── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-ticket,
+  #printable-ticket * {
+    visibility: visible;
+  }
+  #printable-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    color: #000000 !important;
+    background: #ffffff !important;
+    border: 1px dashed #cccccc !important;
+    padding: 16px !important;
+  }
+  #printable-ticket * {
+    color: #000000 !important;
+    background: transparent !important;
+    border-color: #e5e5e5 !important;
+  }
+}
+
+
 
