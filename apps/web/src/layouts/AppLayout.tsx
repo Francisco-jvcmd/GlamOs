@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -15,9 +15,12 @@ import {
   Sparkles,
   LogOut,
   ChevronRight,
+  Cake,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../auth/auth-context';
-import { cn } from '../lib/utils';
+import { useCollection } from '../hooks/useCollection';
+import { cn, getBirthdayDetails, getBirthdayWhatsAppUrl } from '../lib/utils';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
 import { Badge } from '../components/ui/Badge';
 
@@ -25,8 +28,28 @@ export function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [birthdayDropdownOpen, setBirthdayDropdownOpen] = useState(false);
 
   const isAdmin = user?.role === 'OWNER_ADMIN';
+  const { docs: clients } = useCollection('clients');
+
+  const upcomingBirthdays = useMemo(() => {
+    if (!isAdmin || !clients || clients.length === 0) return [];
+    const list: Array<{
+      client: any;
+      details: { isUpcoming: boolean; daysLeft: number; label: string; isToday: boolean };
+    }> = [];
+
+    for (const c of clients) {
+      if (c.deleted_at || !c.birth_date) continue;
+      const details = getBirthdayDetails(c.birth_date);
+      if (details?.isUpcoming) {
+        list.push({ client: c, details });
+      }
+    }
+
+    return list.sort((a, b) => a.details.daysLeft - b.details.daysLeft);
+  }, [isAdmin, clients]);
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Inicio', section: 'PRINCIPAL' },
@@ -203,8 +226,107 @@ export function AppLayout() {
             </div>
           </div>
 
-          {/* User Profile on Header */}
-          <div className="flex items-center gap-3">
+          {/* User Profile & VIP Birthday Notification on Header */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {isAdmin && upcomingBirthdays.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setBirthdayDropdownOpen(!birthdayDropdownOpen)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-amber-300 hover:bg-amber-500/25 transition-all text-xs font-bold shadow-md cursor-pointer group active:scale-95"
+                  title="Notificación: Cumpleaños VIP Cercanos"
+                >
+                  <Cake className="w-4 h-4 text-amber-400 animate-pulse group-hover:scale-110 transition-transform" />
+                  <span className="hidden sm:inline">Cumpleaños VIP</span>
+                  <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 text-[10px] font-black flex items-center justify-center shadow-xs">
+                    {upcomingBirthdays.length}
+                  </span>
+                </button>
+
+                {/* Dropdown flotante de Notificaciones de Cumpleaños */}
+                {birthdayDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-72 sm:w-88 rounded-3xl bg-[#141218]/95 backdrop-blur-2xl border border-amber-400/30 shadow-[0_15px_50px_rgba(0,0,0,0.8)] p-4 z-50 animate-in fade-in zoom-in-95 duration-200 space-y-3">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
+                      <div className="flex items-center gap-2">
+                        <Cake className="w-4 h-4 text-amber-400" />
+                        <span className="font-editorial text-base font-bold text-white">
+                          Cumpleaños VIP
+                        </span>
+                      </div>
+                      <Badge variant="gold" className="text-[10px]">
+                        {upcomingBirthdays.length} {upcomingBirthdays.length === 1 ? 'clienta' : 'clientas'}
+                      </Badge>
+                    </div>
+
+                    <div className="max-h-72 overflow-y-auto space-y-2 pr-1 no-scrollbar">
+                      {upcomingBirthdays.map(({ client: c, details }) => {
+                        const phone = c.phone_whatsapp || c.phone;
+                        const waUrl = getBirthdayWhatsAppUrl(c.full_name, phone);
+
+                        return (
+                          <div
+                            key={c.id}
+                            className={`p-3 rounded-2xl border transition-all space-y-2 ${
+                              details.isToday
+                                ? 'bg-amber-500/10 border-amber-400/40'
+                                : 'bg-white/[0.03] border-white/[0.08]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-bold text-xs text-white truncate">
+                                {c.full_name}
+                              </span>
+                              <Badge variant={details.isToday ? 'gold' : 'glam'} className="text-[9px] shrink-0 font-bold">
+                                🎂 {details.label}
+                              </Badge>
+                            </div>
+
+                            {phone ? (
+                              <a
+                                href={waUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setBirthdayDropdownOpen(false)}
+                                className="w-full py-1.5 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Enviar Felicitación WhatsApp</span>
+                              </a>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBirthdayDropdownOpen(false);
+                                  navigate('/clients');
+                                }}
+                                className="w-full py-1.5 px-3 rounded-xl bg-white/[0.04] text-neutral-400 hover:text-white border border-white/10 text-[11px] font-medium flex items-center justify-center gap-1.5"
+                              >
+                                <span>Añadir Celular</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-2 border-t border-white/[0.08] flex justify-between items-center text-[11px]">
+                      <span className="text-neutral-500 text-[10px]">GlamOS Haute Beauté</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBirthdayDropdownOpen(false);
+                          navigate('/clients');
+                        }}
+                        className="text-amber-400 hover:underline font-bold cursor-pointer"
+                      >
+                        Ver Cartera VIP →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="text-right hidden sm:block">
               <span className="text-xs font-bold text-white block truncate max-w-[220px]">
                 {user?.email}

@@ -12,7 +12,7 @@ import { MetricCard } from '../components/ui/MetricCard';
 import { Modal } from '../components/ui/Modal';
 import { Toast } from '../components/ui/Toast';
 import { Badge } from '../components/ui/Badge';
-import { ensureUuid, generateUuid, getEcuadorDateString } from '../lib/utils';
+import { ensureUuid, generateUuid, getEcuadorDateString, getBirthdayDetails, getBirthdayWhatsAppUrl } from '../lib/utils';
 import {
   Users,
   UserPlus,
@@ -377,28 +377,43 @@ export function ClientsPage() {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
-                  {client.birth_date ? (
-                    <Badge variant="glam" dot>
-                      <Cake className="w-3 h-3 mr-0.5" />
-                      <span>{client.birth_date}</span>
-                    </Badge>
-                  ) : (
-                    <span className="text-neutral-500 font-medium">Sin cumpleaños</span>
-                  )}
+                {(() => {
+                  const bDetails = getBirthdayDetails(client.birth_date);
+                  const waUrl = bDetails?.isUpcoming
+                    ? getBirthdayWhatsAppUrl(client.full_name, cPhone)
+                    : cPhone
+                    ? `https://wa.me/${cPhone.replace(/\D/g, '')}`
+                    : '';
 
-                  {cPhone && (
-                    <a
-                      href={`https://wa.me/${cPhone.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-emerald-300 font-semibold bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl hover:bg-emerald-900/40 transition-all shadow-sm active:scale-95"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>WhatsApp</span>
-                    </a>
-                  )}
-                </div>
+                  return (
+                    <div className="mt-5 pt-3.5 border-t border-white/[0.08] flex items-center justify-between text-[11px] gap-2">
+                      {client.birth_date ? (
+                        <Badge variant={bDetails?.isToday ? 'gold' : bDetails?.isUpcoming ? 'gold' : 'glam'} dot>
+                          <Cake className="w-3 h-3 mr-0.5" />
+                          <span>{bDetails?.isUpcoming ? `🎂 ${bDetails.label}` : client.birth_date}</span>
+                        </Badge>
+                      ) : (
+                        <span className="text-neutral-500 font-medium">Sin cumpleaños</span>
+                      )}
+
+                      {cPhone && (
+                        <a
+                          href={waUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-xl transition-all shadow-sm active:scale-95 ${
+                            bDetails?.isUpcoming
+                              ? 'text-amber-200 bg-amber-500/20 border border-amber-400/40 hover:bg-amber-500/30'
+                              : 'text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 hover:bg-emerald-900/40'
+                          }`}
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>{bDetails?.isUpcoming ? 'Felicitar' : 'WhatsApp'}</span>
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
               </Card>
             );
           })}

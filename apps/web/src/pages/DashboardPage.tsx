@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   Calendar,
   UserCheck,
+  MessageCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCollection } from '../hooks/useCollection';
@@ -25,6 +26,8 @@ import {
   getEcuadorHour,
   formatEditorialDateEcuador,
   getEcuadorDateString,
+  getBirthdayDetails,
+  getBirthdayWhatsAppUrl,
 } from '../lib/utils';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
@@ -317,27 +320,23 @@ export function DashboardPage() {
     };
   }, [myTodaySales, saleItems, services, products]);
 
-  // Cumpleaños próximos en zona horaria de Ecuador (próximos 3 días)
+  // Cumpleaños próximos en zona horaria de Ecuador (hoy y próximos 3 días)
   const upcomingBirthdays = useMemo(() => {
     if (!clients || clients.length === 0) return [];
-    const ecDateStr = getEcuadorDateString();
-    const parts = ecDateStr.split('-');
-    const currentMonth = parseInt(parts[1], 10);
-    const currentDay = parseInt(parts[2], 10);
+    const list: Array<{
+      client: any;
+      details: { isUpcoming: boolean; daysLeft: number; label: string; isToday: boolean };
+    }> = [];
 
-    return clients.filter((c) => {
-      if (!c.birth_date || c.deleted_at) return false;
-      const cParts = c.birth_date.split('-');
-      if (cParts.length < 3) return false;
-      const bMonth = parseInt(cParts[1], 10);
-      const bDay = parseInt(cParts[2], 10);
-
-      // Coincidencia dentro de los próximos 3 días
-      if (bMonth === currentMonth && bDay >= currentDay && bDay <= currentDay + 3) {
-        return true;
+    for (const c of clients) {
+      if (c.deleted_at || !c.birth_date) continue;
+      const details = getBirthdayDetails(c.birth_date);
+      if (details?.isUpcoming) {
+        list.push({ client: c, details });
       }
-      return false;
-    });
+    }
+
+    return list.sort((a, b) => a.details.daysLeft - b.details.daysLeft);
   }, [clients]);
 
   const firstName = user?.email?.split('@')[0] || 'Estilista';
@@ -730,40 +729,97 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Alerta de Cumpleaños VIP de Alta Joyería */}
+          {/* Alerta de Cumpleaños VIP con Notificación y Envío de WhatsApp */}
           {!clientsLoading && upcomingBirthdays.length > 0 && (
-            <Card variant="glass" className="border-amber-400/25 bg-gradient-to-r from-amber-950/20 via-neutral-900/80 to-neutral-950 shadow-lg">
-              <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0 shadow-md">
-                    <Cake className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-editorial text-lg font-bold text-white">
-                        Cumpleaños VIP (Próximos 3 días)
-                      </h3>
-                      <Badge variant="glam">{upcomingBirthdays.length}</Badge>
+            <Card variant="glass" className="border-amber-400/30 bg-gradient-to-r from-amber-950/30 via-neutral-900/90 to-neutral-950 shadow-xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+              <CardContent className="p-5 sm:p-6 space-y-4 relative">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 flex items-center justify-center shrink-0 shadow-lg shadow-black/30 animate-pulse">
+                      <Cake className="w-6 h-6 stroke-[2.2]" />
                     </div>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Felicita a tus clientas por WhatsApp y ofréceles una cortesía especial.
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-editorial text-lg sm:text-xl font-bold text-white tracking-tight">
+                          Notificación VIP: Cumpleaños Cercanos
+                        </h3>
+                        <Badge variant="gold" dot className="font-bold">
+                          {upcomingBirthdays.length} {upcomingBirthdays.length === 1 ? 'clienta' : 'clientas'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-neutral-400 mt-0.5">
+                        Felicita a tus clientas con 1 toque por WhatsApp e invítalas al salón con una cortesía especial.
+                      </p>
+                    </div>
                   </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/clients')}
+                    className="shrink-0 text-xs"
+                  >
+                    Ver Cartera
+                  </Button>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
-                  {upcomingBirthdays.slice(0, 3).map((c: any) => (
-                    <div
-                      key={c.id}
-                      onClick={() => navigate('/clients')}
-                      className="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 shadow-xs text-xs flex items-center gap-2 cursor-pointer hover:border-amber-400/40 transition-colors"
-                    >
-                      <span className="font-bold text-neutral-200">{c.full_name}</span>
-                      <span className="text-[10px] text-amber-300 font-bold bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 rounded">
-                        🎂 {c.birth_date}
-                      </span>
-                    </div>
-                  ))}
+                {/* Lista de Cumpleañeras con Botón Directo de WhatsApp */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {upcomingBirthdays.map(({ client: c, details }) => {
+                    const phone = c.phone_whatsapp || c.phone;
+                    const waUrl = getBirthdayWhatsAppUrl(c.full_name, phone);
+
+                    return (
+                      <div
+                        key={c.id}
+                        className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                          details.isToday
+                            ? 'bg-amber-500/10 border-amber-400/40 shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                            : 'bg-white/[0.03] border-white/[0.08] hover:border-amber-400/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="font-bold text-sm text-white block truncate">
+                              {c.full_name}
+                            </span>
+                            <span className="text-[11px] text-neutral-400 block mt-0.5">
+                              {phone || 'Sin WhatsApp'}
+                            </span>
+                          </div>
+                          <Badge
+                            variant={details.isToday ? 'gold' : 'glam'}
+                            className={`text-[10px] shrink-0 font-bold ${
+                              details.isToday ? 'animate-bounce' : ''
+                            }`}
+                          >
+                            🎂 {details.label}
+                          </Badge>
+                        </div>
+
+                        {phone ? (
+                          <a
+                            href={waUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95 group"
+                          >
+                            <MessageCircle className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                            <span>Enviar WhatsApp</span>
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => navigate('/clients')}
+                            className="w-full py-2 px-3 rounded-xl bg-white/[0.04] text-neutral-400 hover:text-white border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <span>Añadir WhatsApp</span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
