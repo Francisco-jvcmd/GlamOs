@@ -23,6 +23,12 @@ import {
   Zap,
   SlidersHorizontal,
   Upload,
+  Key,
+  KeyRound,
+  ExternalLink,
+  Cpu,
+  AlertCircle,
+  EyeOff,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -30,6 +36,12 @@ import { Badge } from '../components/ui/Badge';
 import { PageHeader } from '../components/ui/PageHeader';
 import { formatCurrency } from '../lib/utils';
 import { useAuth } from '../auth/auth-context';
+import {
+  getStoredGeminiApiKey,
+  saveStoredGeminiApiKey,
+  generateNailDesignWithGemini,
+  GeminiNailAnalysis,
+} from '../lib/gemini';
 
 // ── DEFINICIONES DE TIPOS & TAXONOMÍA PROFESIONAL DE MANICURA ─────────────
 export type SkinToneId = 'porcelain' | 'fair' | 'warm-tan' | 'golden-caramel' | 'deep-bronze';
@@ -209,6 +221,70 @@ export function NailArtStudioPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [inputPrompt, setInputPrompt] = useState('');
   const [viewComparison, setViewComparison] = useState(false);
+
+  // Estados de Google Gemini 2.0 Flash (100% Gratis)
+  const [geminiApiKey, setGeminiApiKey] = useState(() => getStoredGeminiApiKey());
+  const [geminiModalOpen, setGeminiModalOpen] = useState(false);
+  const [tempKeyInput, setTempKeyInput] = useState('');
+  const [showKeyText, setShowKeyText] = useState(false);
+  const [keyValidationStatus, setKeyValidationStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [keyValidationMsg, setKeyValidationMsg] = useState('');
+
+  // Sincronizar clave al escuchar eventos del storage
+  useEffect(() => {
+    const syncKey = () => setGeminiApiKey(getStoredGeminiApiKey());
+    window.addEventListener('glamos_gemini_key_changed', syncKey);
+    return () => window.removeEventListener('glamos_gemini_key_changed', syncKey);
+  }, []);
+
+  const handleOpenGeminiModal = () => {
+    setTempKeyInput(geminiApiKey);
+    setKeyValidationStatus('idle');
+    setKeyValidationMsg('');
+    setGeminiModalOpen(true);
+  };
+
+  const handleSaveModalKey = () => {
+    saveStoredGeminiApiKey(tempKeyInput);
+    setGeminiApiKey(tempKeyInput.trim());
+    setKeyValidationStatus('success');
+    setKeyValidationMsg('¡Clave guardada con éxito!');
+    setTimeout(() => {
+      setGeminiModalOpen(false);
+      setKeyValidationStatus('idle');
+    }, 1200);
+  };
+
+  const handleTestModalKey = async () => {
+    const k = tempKeyInput.trim();
+    if (!k) return;
+    setKeyValidationStatus('testing');
+    setKeyValidationMsg('');
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Hola' }] }],
+          generationConfig: { maxOutputTokens: 5 },
+        }),
+      });
+      if (res.ok) {
+        saveStoredGeminiApiKey(k);
+        setGeminiApiKey(k);
+        setKeyValidationStatus('success');
+        setKeyValidationMsg('¡Conexión verificada! Gemini 2.0 Flash está activo y listo.');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setKeyValidationStatus('error');
+        setKeyValidationMsg(errData.error?.message || 'Error al validar clave con Google.');
+      }
+    } catch (e: any) {
+      setKeyValidationStatus('error');
+      setKeyValidationMsg(e?.message || 'Error de conexión.');
+    }
+  };
 
   // Canvas y Video Refs
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -567,7 +643,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
   }, [capturedImage, activeDesign, selectedSkinTone, selectedShape, selectedLength]);
 
   // Enviar Prompt en el Chat de la Estilista
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputPrompt.trim() || isGenerating) return;
 
     const userText = inputPrompt.trim();
@@ -584,9 +660,79 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
     setMessages((prev) => [...prev, newMsg]);
     setIsGenerating(true);
 
-    // Simulación de Generación Inteligente Multimodal
+    const key = getStoredGeminiApiKey();
+
+    if (key) {
+      try {
+        const geminiResult = await generateNailDesignWithGemini(userText, capturedImage, key);
+
+        // Mapear tono de piel sugerido si la IA lo detectó en la foto
+        if (geminiResult.detectedSkinTone) {
+          const lower = geminiResult.detectedSkinTone.toLowerCase();
+          if (lower.includes('porcelan') || lower.includes('rosad')) setSelectedSkinTone('porcelain');
+          else if (lower.includes('claro') || lower.includes('neutr')) setSelectedSkinTone('fair');
+          else if (lower.includes('cálid') || lower.includes('dorad')) setSelectedSkinTone('warm-tan');
+          else if (lower.includes('canela') || lower.includes('caramel')) setSelectedSkinTone('golden-caramel');
+          else if (lower.includes('moren') || lower.includes('éban') || lower.includes('profund')) setSelectedSkinTone('deep-bronze');
+        }
+
+        // Mapear silueta de uña sugerida
+        if (geminiResult.recommendedShape) {
+          const lower = geminiResult.recommendedShape.toLowerCase();
+          if (lower.includes('almen')) setSelectedShape('almond');
+          else if (lower.includes('coffin') || lower.includes('bailar')) setSelectedShape('coffin');
+          else if (lower.includes('cuadr')) setSelectedShape('square');
+          else if (lower.includes('oval')) setSelectedShape('oval');
+          else if (lower.includes('stiletto') || lower.includes('afil')) setSelectedShape('stiletto');
+          else if (lower.includes('cort') || lower.includes('natur')) setSelectedShape('natural-short');
+        }
+
+        const customDesign: PresetDesign = {
+          id: `gemini-${Date.now()}`,
+          name: geminiResult.designName || `Diseño Alta Costura`,
+          category: 'Google Gemini 2.0 Flash',
+          prompt: userText,
+          description: geminiResult.description || `Diseño exclusivo analizado para la anatomía y tono de piel del cliente.`,
+          difficulty: geminiResult.difficulty || 'Intermedio',
+          estimatedTime: geminiResult.estimatedTime || '65 min',
+          suggestedPrice: 38,
+          palette: geminiResult.palette && geminiResult.palette.length > 0 ? geminiResult.palette : [
+            { name: 'Color Primario', hex: '#D4AF37' },
+            { name: 'Base Nude', hex: '#EED9C4' },
+            { name: 'Acento Gloss', hex: '#FFFFFF' },
+          ],
+          accentFeatures: [geminiResult.technique, geminiResult.stylistAdvice].filter(Boolean),
+        };
+
+        setActiveDesign(customDesign);
+        renderNailArtOnCanvas(capturedImage, customDesign, selectedSkinTone, selectedShape);
+
+        const aiReply: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: 'assistant',
+          text: `✨ **${customDesign.name}**
+*(Diseño generado en tiempo real con Google Gemini 2.0 Flash)*
+
+${geminiResult.description}
+
+💅 **Técnica recomendada:** ${geminiResult.technique}
+🎯 **Consejo para la manicurista:** ${geminiResult.stylistAdvice}
+⏱️ **Tiempo estimado:** ${geminiResult.estimatedTime} · **Dificultad:** ${geminiResult.difficulty}
+🎨 **Paleta de colores:** ${customDesign.palette.map((p) => p.name).join(', ')}`,
+          timestamp: 'Ahora',
+          designPreview: customDesign,
+        };
+
+        setMessages((prev) => [...prev, aiReply]);
+        setIsGenerating(false);
+        return;
+      } catch (geminiError: any) {
+        console.warn('Error en consulta con Gemini, aplicando generador inteligente local:', geminiError);
+      }
+    }
+
+    // Motor Procedural Inteligente Local (Fallback Offline o Sin Clave)
     setTimeout(() => {
-      // Encontrar el diseño más afín o generar uno personalizado
       let matched = PRESET_DESIGNS.find(
         (p) =>
           userText.toLowerCase().includes(p.name.toLowerCase()) ||
@@ -596,8 +742,8 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
       if (!matched) {
         matched = {
           id: `custom-${Date.now()}`,
-          name: `Diseño Personalizado: "${userText.slice(0, 32)}..."`,
-          category: 'Creación Exclusiva IA',
+          name: `Diseño: "${userText.slice(0, 30)}..."`,
+          category: 'Creación Exclusiva GlamOS',
           prompt: userText,
           description: `Diseño a medida generado según la petición: "${userText}".`,
           difficulty: 'Intermedio',
@@ -620,14 +766,18 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
         sender: 'assistant',
         text: `¡Listo! He plasmado el diseño "${matched.name}" adaptándolo al tono ${SKIN_TONES.find((s) => s.id === selectedSkinTone)?.name} y forma ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}. 
         
-He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Puedes descargarlo en PNG de alta definición o enviárselo a tu clienta por WhatsApp.`,
+He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Puedes descargarlo en PNG de alta definición o enviárselo a tu clienta por WhatsApp.${
+          !key
+            ? '\n\n💡 *Tip VIP:* Puedes conectar tu clave gratuita de Google Gemini en el botón superior para analizar la foto real de la mano con visión multimodal 100% gratis.'
+            : ''
+        }`,
         timestamp: 'Ahora',
         designPreview: matched,
       };
 
       setMessages((prev) => [...prev, aiReply]);
       setIsGenerating(false);
-    }, 1200);
+    }, 800);
   };
 
   // Descargar Diseño en PNG de Alta Calidad con Marca de Agua GlamOS
@@ -715,7 +865,21 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
         badge="Alta Manicura Virtual"
         badgeVariant="gold"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenGeminiModal}
+              className={`text-xs font-bold border-amber-400/30 ${
+                geminiApiKey ? 'bg-amber-400/10 text-amber-300' : 'text-neutral-300 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+              <span>{geminiApiKey ? 'Google Gemini Activo' : 'Conectar Clave Google'}</span>
+              <Badge variant={geminiApiKey ? 'gold' : 'outline'} dot className="ml-1.5 scale-90">
+                {geminiApiKey ? '100% Gratis' : 'Offline'}
+              </Badge>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -1164,6 +1328,119 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
           </Card>
         </div>
       </div>
+
+      {/* ── MODAL FLOTANTE DE CONFIGURACIÓN CLAVE GOOGLE GEMINI (100% GRATIS) ── */}
+      {geminiModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-neutral-900 border border-amber-400/30 p-6 shadow-2xl space-y-4">
+            <button
+              onClick={() => setGeminiModalOpen(false)}
+              className="absolute top-5 right-5 text-neutral-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center border border-amber-400/30">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-editorial text-2xl font-bold text-white flex items-center gap-2">
+                  Google AI Studio (Gemini 2.0)
+                </h3>
+                <p className="text-xs text-neutral-400">100% Gratis de por vida · Sin tarjeta de crédito</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-400/20 text-xs text-neutral-300 space-y-2">
+              <p className="leading-relaxed">
+                Google AI Studio te ofrece <strong>1,500 peticiones diarias totalmente gratuitas</strong> para analizar con visión artificial la foto de la mano de tu clienta y diseñar uñas adaptadas a su tono de piel y fisonomía en tiempo real.
+              </p>
+              <div>
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 underline font-semibold"
+                >
+                  <span>1. Clic aquí para generar tu clave en Google AI Studio (10 seg)</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] text-neutral-400 uppercase tracking-wider font-bold">
+                2. Pega tu Clave de API de Google (AIzaSy...)
+              </label>
+              <div className="relative">
+                <input
+                  type={showKeyText ? 'text' : 'password'}
+                  value={tempKeyInput}
+                  onChange={(e) => {
+                    setTempKeyInput(e.target.value);
+                    setKeyValidationStatus('idle');
+                  }}
+                  placeholder="AIzaSy..."
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-neutral-950 border border-white/10 text-white font-mono text-xs placeholder:text-neutral-600 focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKeyText(!showKeyText)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                >
+                  {showKeyText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {keyValidationStatus === 'success' && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs">
+                <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>{keyValidationMsg}</span>
+              </div>
+            )}
+
+            {keyValidationStatus === 'error' && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                <span>{keyValidationMsg}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTestModalKey}
+                disabled={!tempKeyInput.trim() || keyValidationStatus === 'testing'}
+                className="border-amber-400/30 text-amber-300 hover:bg-amber-400/10"
+              >
+                {keyValidationStatus === 'testing' ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Zap className="w-3.5 h-3.5 mr-1" />}
+                {keyValidationStatus === 'testing' ? 'Verificando...' : 'Probar Clave'}
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setGeminiModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="gold"
+                  size="sm"
+                  onClick={handleSaveModalKey}
+                  disabled={!tempKeyInput.trim()}
+                >
+                  Guardar y Activar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
