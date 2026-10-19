@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDatabase } from '../hooks/useDatabase';
 import { useCollection } from '../hooks/useCollection';
@@ -26,6 +26,7 @@ import {
   Trash2,
   X,
   AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface CartItem {
@@ -68,6 +69,25 @@ export function NewSalePage() {
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientBirth, setNewClientBirth] = useState('');
+
+  // Toast / Alert states
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [lowStockAlerts, setLowStockAlerts] = useState<Array<{ name: string; stock: number; min: number }>>([]);
+
+  // Auto-dismiss toasts
+  useEffect(() => {
+    if (validationError) {
+      const t = setTimeout(() => setValidationError(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [validationError]);
+
+  useEffect(() => {
+    if (lowStockAlerts.length > 0) {
+      const t = setTimeout(() => setLowStockAlerts([]), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [lowStockAlerts]);
 
   // Totals calculations
   const subtotal = useMemo(
@@ -221,7 +241,7 @@ export function NewSalePage() {
 
     // Mixed payment validation
     if (paymentMethod === 'MIXED' && totalPaidInMixed < finalTotal - 0.01) {
-      alert(`El total cubierto ($${totalPaidInMixed.toFixed(2)}) es menor al total a pagar ($${finalTotal.toFixed(2)}). Ajusta los montos.`);
+      setValidationError(`El total cubierto (${formatCurrency(totalPaidInMixed)}) es menor al total a pagar (${formatCurrency(finalTotal)}). Ajusta los montos.`);
       return;
     }
 
@@ -293,7 +313,31 @@ export function NewSalePage() {
         console.warn('Aviso guardando venta local:', cacheErr);
       }
 
-      // 2. Persistir en RxDB
+      // 2. Decrementar stock de productos en caché local
+      const lowStockList: Array<{ name: string; stock: number; min: number }> = [];
+      try {
+        const cachedProducts = localStorage.getItem('glamos_local_products');
+        let productList: any[] = cachedProducts ? JSON.parse(cachedProducts) : [];
+        for (const item of cart) {
+          if (item.product_id) {
+            const idx = productList.findIndex((p: any) => p.id === item.product_id);
+            if (idx !== -1) {
+              const newStock = Math.max(0, (productList[idx].current_stock || 0) - item.quantity);
+              productList[idx] = { ...productList[idx], current_stock: newStock, updated_at: now };
+              const minAlert = productList[idx].min_stock_alert ?? 5;
+              if (newStock <= minAlert) {
+                lowStockList.push({ name: productList[idx].name, stock: newStock, min: minAlert });
+              }
+            }
+          }
+        }
+        localStorage.setItem('glamos_local_products', JSON.stringify(productList));
+        window.dispatchEvent(new Event('glamos_updated_products'));
+      } catch (stockCacheErr) {
+        console.warn('Aviso actualizando stock local:', stockCacheErr);
+      }
+
+      // 3. Persistir en RxDB
       try {
         let activeDb = db;
         if (!activeDb) activeDb = await getDatabase().catch(() => null);
@@ -321,17 +365,37 @@ export function NewSalePage() {
               }
             }
           }
+          // Actualizar current_stock en RxDB products
+          if (activeDb?.products) {
+            for (const item of cart) {
+              if (item.product_id) {
+                try {
+                  const productDoc = await activeDb.products.findOne({ selector: { id: item.product_id } }).exec();
+                  if (productDoc) {
+                    const oldStock = productDoc.current_stock ?? 0;
+                    const newStock = Math.max(0, oldStock - item.quantity);
+                    await productDoc.patch({ current_stock: newStock, updated_at: now });
+                  }
+                } catch {}
+              }
+            }
+          }
         }
       } catch (dbErr) {
         console.warn('Aviso persistiendo en RxDB:', dbErr);
       }
 
-      // 3. Sincronizar en la nube en segundo plano
+      // 4. Sincronizar en la nube en segundo plano
       try {
         triggerSync();
       } catch {}
 
-      // 4. Mostrar Comprobante / Recibo de Venta Luxury
+      // 5. Alertar productos con stock bajo
+      if (lowStockList.length > 0) {
+        setLowStockAlerts(lowStockList);
+      }
+
+      // 6. Mostrar Comprobante / Recibo de Venta Luxury
       const selectedClientObj = clients.find((c: any) => c.id === selectedClientId);
       setCompletedSale({
         ...saleDoc,
@@ -391,7 +455,41 @@ export function NewSalePage() {
   );
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-28 select-none">
+    <div className="space-y-6 max-w-4xl mx-auto pb-28 select-none relative">
+      {/* ── TOAST FLOTANTE: VALIDACIÓN DE PAGO / ERRORES ────────────────────── */}
+      {validationError && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#1A0B10]/95 text-rose-200 border border-rose-500/40 px-5 py-3 rounded-2xl shadow-[0_10px_35px_rgba(244,63,94,0.3)] flex items-center gap-3 text-xs font-semibold backdrop-blur-xl animate-in slide-in-from-top-4 duration-200">
+          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>{validationError}</span>
+          <button onClick={() => setValidationError(null)} className="ml-2 text-neutral-400 hover:text-white transition-colors cursor-pointer">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* ── TOAST FLOTANTE: ALERTA DE STOCK MÍNIMO TRAS VENTA ───────────────── */}
+      {lowStockAlerts.length > 0 && !completedSale && (
+        <div className="fixed top-6 right-6 z-50 max-w-sm bg-[#16130B]/95 border border-amber-400/50 p-4 rounded-2xl shadow-[0_10px_35px_rgba(212,175,55,0.3)] backdrop-blur-xl animate-in slide-in-from-right duration-200 space-y-2">
+          <div className="flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2">
+            <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wider">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span>Stock Mínimo Alcanzado</span>
+            </div>
+            <button onClick={() => setLowStockAlerts([])} className="text-neutral-400 hover:text-white cursor-pointer">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="text-[11px] text-neutral-300 space-y-1">
+            {lowStockAlerts.map((a, i) => (
+              <div key={i} className="flex justify-between items-center py-0.5">
+                <span className="text-white font-medium truncate pr-2">{a.name}</span>
+                <span className="text-amber-300 font-mono font-bold shrink-0">Quedan {a.stock} un. (Mín: {a.min})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── TOP NAV / STEPPER ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div className="flex items-center gap-3.5">
@@ -1183,6 +1281,29 @@ export function NewSalePage() {
                 Folio: #{completedSale.id.slice(0, 8).toUpperCase()} · {formatDate(completedSale.created_at)}
               </p>
             </div>
+
+            {/* Alerta de Stock Mínimo Alcanzado */}
+            {lowStockAlerts.length > 0 && (
+              <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-400/40 text-left space-y-1.5 animate-in slide-in-from-top-2">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wider">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>¡Alerta de Inventario Crítico!</span>
+                </div>
+                <p className="text-[11px] text-neutral-300 leading-snug">
+                  Los siguientes productos han alcanzado o caído por debajo de su stock mínimo recomendado:
+                </p>
+                <div className="space-y-1 pt-1">
+                  {lowStockAlerts.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs bg-black/40 px-2.5 py-1.5 rounded-xl border border-amber-400/20">
+                      <span className="font-semibold text-white truncate pr-2">{item.name}</span>
+                      <span className="font-mono text-amber-300 font-bold shrink-0">
+                        Quedan {item.stock} un. (Mín: {item.min})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Ticket Desglosado con Acabado de Seda */}
             <div className="bg-black/60 rounded-2xl p-4 sm:p-5 border border-white/[0.08] text-left space-y-3 font-mono text-xs">

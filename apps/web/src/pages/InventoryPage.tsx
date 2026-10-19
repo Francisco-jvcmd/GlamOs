@@ -46,6 +46,10 @@ export function InventoryPage() {
     p.sku?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const criticalStockProducts = products.filter(
+    (p: any) => !p.deleted_at && p.current_stock <= (p.min_stock_alert || 5),
+  );
+
   const handleOpenModal = (product?: any) => {
     if (product) {
       setEditingProductId(product.id);
@@ -242,6 +246,33 @@ export function InventoryPage() {
           </Button>
         }
       />
+
+      {/* Banner de Alerta de Stock Mínimo Crítico */}
+      {criticalStockProducts.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-3xl bg-[#1A1207]/90 border border-amber-400/40 shadow-lg backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                  <span>¡Alerta de Reabastecimiento Necesario!</span>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                    {criticalStockProducts.length} {criticalStockProducts.length === 1 ? 'producto crítico' : 'productos críticos'}
+                  </span>
+                </h4>
+                <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
+                  Hay productos que alcanzaron o están por debajo del nivel de alerta mínima:{' '}
+                  <span className="text-amber-200 font-semibold">
+                    {criticalStockProducts.map((p: any) => `${p.name} (${p.current_stock}/${p.min_stock_alert || 5})`).join(', ')}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Buscador */}
       <div className="max-w-md">

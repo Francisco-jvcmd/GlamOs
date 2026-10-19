@@ -26,6 +26,7 @@ interface AuthContextType {
   logout: () => void;
   refreshAccessToken: () => Promise<string>;
   setOrganization: (orgId: string, role: 'OWNER_ADMIN' | 'EMPLOYEE') => void;
+  unlinkOrganization: () => void;
   syncOfflineSessionWithCloud: () => Promise<boolean>;
 }
 
@@ -125,7 +126,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(storedTokens);
         setTokens(parsed);
-        const decoded = decodeJwt(parsed.access_token);
+        let decoded = decodeJwt(parsed.access_token);
+
+        // Sanear contaminación de demo en cuentas reales de Google
+        const isDemoEmail = decoded.email === 'duena.vip@glamos.app' || decoded.email === 'estilista.vip@glamos.app';
+        if (!isDemoEmail && decoded.org === '00000000-0000-4000-a000-000000000001') {
+          const userSpecificOrg = localStorage.getItem(`glamos_user_org_${decoded.email}`);
+          if (!userSpecificOrg) {
+            decoded.org = null;
+            // Actualizar token sin la org demo
+            try {
+              const parts = parsed.access_token.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                payload.org = null;
+                parsed.access_token = `${parts[0]}.${btoa(JSON.stringify(payload)).replace(/=/g, '')}.${parts[2]}`;
+                localStorage.setItem('glamos_tokens', JSON.stringify(parsed));
+              }
+            } catch {}
+          }
+        }
+
         setUser(decoded);
 
         // Si estaba en modo offline, intentar enlazar silenciosamente con Neon
@@ -189,14 +210,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error al decodificar Google idToken:', e);
       }
 
-      const existingLocalOrg = localStorage.getItem('glamos_local_org_id');
-      const existingLocalRole = (localStorage.getItem('glamos_local_role') as any) || googleClaims.role || 'EMPLOYEE';
+      const email = googleClaims.email || 'estilista@glamos.app';
+      const isDemoAccount = email === 'duena.vip@glamos.app' || email === 'estilista.vip@glamos.app';
+
+      // Aislar organización y rol por usuario específico (Evita que cuentas de Google hereden el salón demo)
+      const userOrgKey = `glamos_user_org_${email}`;
+      const userRoleKey = `glamos_user_role_${email}`;
+      const existingUserOrg = isDemoAccount
+        ? (googleClaims.org || '00000000-0000-4000-a000-000000000001')
+        : localStorage.getItem(userOrgKey);
+      const existingUserRole = isDemoAccount
+        ? (googleClaims.role || 'OWNER_ADMIN')
+        : ((localStorage.getItem(userRoleKey) as any) || googleClaims.role || 'EMPLOYEE');
 
       const offlineUser: JwtPayload = {
         sub: googleClaims.sub || 'offline_user',
-        email: googleClaims.email || 'estilista@glamos.app',
-        role: existingLocalRole,
-        org: existingLocalOrg || null, // Si es nuevo, es null para que vaya a /onboarding
+        email,
+        role: existingUserRole,
+        org: existingUserOrg || null, // Para cuentas nuevas de Google, es null -> va a /onboarding
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 90, // 90 días offline
         iat: Math.floor(Date.now() / 1000),
       };
@@ -229,6 +260,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     cancelSync().catch(console.error);
     localStorage.removeItem('glamos_tokens');
     localStorage.removeItem('glamos_offline_mode');
+    localStorage.removeItem('glamos_local_org_id');
+    localStorage.removeItem('glamos_local_role');
     setTokens(null);
     setUser(null);
     window.location.href = '/login';
@@ -273,6 +306,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('glamos_local_org_id', orgId);
     localStorage.setItem('glamos_local_role', role);
 
+    if (user?.email) {
+      localStorage.setItem(`glamos_user_org_${user.email}`, orgId);
+      localStorage.setItem(`glamos_user_role_${user.email}`, role);
+    }
+
     const stored = localStorage.getItem('glamos_tokens');
     if (stored) {
       try {
@@ -297,6 +335,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const unlinkOrganization = () => {
+    localStorage.removeItem('glamos_local_org_id');
+    localStorage.removeItem('glamos_local_role');
+    if (user?.email) {
+      localStorage.removeItem(`glamos_user_org_${user.email}`);
+      localStorage.removeItem(`glamos_user_role_${user.email}`);
+    }
+
+    const stored = localStorage.getItem('glamos_tokens');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const parts = parsed.access_token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          payload.role = 'EMPLOYEE';
+          payload.org = null;
+          const updatedToken = `${parts[0]}.${btoa(JSON.stringify(payload)).replace(/=/g, '')}.${parts[2]}`;
+          parsed.access_token = updatedToken;
+          localStorage.setItem('glamos_tokens', JSON.stringify(parsed));
+          setTokens(parsed);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (user) {
+      setUser({ ...user, org: null, role: 'EMPLOYEE' });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -308,6 +378,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshAccessToken,
         setOrganization,
+        unlinkOrganization,
         syncOfflineSessionWithCloud,
       }}
     >

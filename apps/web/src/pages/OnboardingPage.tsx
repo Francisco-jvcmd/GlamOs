@@ -6,10 +6,11 @@ import { generateUuid } from '../lib/utils';
 import { Crown, Scissors, ArrowRight, Sparkles, Building2, KeyRound, Check, Copy } from 'lucide-react';
 
 export function OnboardingPage() {
-  const { user, setOrganization, isLoading: authLoading } = useAuth();
+  const { user, setOrganization, logout, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<'SELECT' | 'CREATE_ADMIN' | 'JOIN_EMPLOYEE' | 'ADMIN_SUCCESS'>('SELECT');
+  const [joinRole, setJoinRole] = useState<'EMPLOYEE' | 'OWNER_ADMIN'>('EMPLOYEE');
   const [salonName, setSalonName] = useState('');
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
@@ -107,7 +108,8 @@ export function OnboardingPage() {
         if (data.access_token) {
           localStorage.setItem('glamos_tokens', JSON.stringify(data));
         }
-        updateLocalUser('EMPLOYEE', 'org_joined');
+        localStorage.setItem('glamos_local_join_code', cleanCode);
+        updateLocalUser(joinRole, data.organization_id || 'org_joined');
         navigate('/');
       } else {
         const errData = await res.json();
@@ -116,7 +118,8 @@ export function OnboardingPage() {
     } catch {
       // Fallback Offline: Si el formato es válido GLAM-XXXX-X
       if (/^GLAM-\d{4}-[A-Z]$/.test(cleanCode) || cleanCode.length >= 6) {
-        updateLocalUser('EMPLOYEE', 'org_offline_joined');
+        localStorage.setItem('glamos_local_join_code', cleanCode);
+        updateLocalUser(joinRole, 'org_offline_joined');
         navigate('/');
       } else {
         setError('El código debe tener el formato GLAM-XXXX-X proporcionado por tu administrador.');
@@ -299,9 +302,49 @@ export function OnboardingPage() {
                 </div>
               )}
 
+              {/* Selector de Rol al Vincular */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                  Código de Invitación
+                  ¿Cómo operarás en este Salón?
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setJoinRole('EMPLOYEE')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      joinRole === 'EMPLOYEE'
+                        ? 'bg-amber-400/15 border-amber-400/60 text-white shadow-sm'
+                        : 'bg-neutral-900/60 border-white/10 text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Scissors className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Estilista</span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 mt-0.5">Terminal POS y comisiones</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setJoinRole('OWNER_ADMIN')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      joinRole === 'OWNER_ADMIN'
+                        ? 'bg-amber-400/15 border-amber-400/60 text-white shadow-sm'
+                        : 'bg-neutral-900/60 border-white/10 text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Crown className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Administración</span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 mt-0.5">Gestión y control total</p>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Código de Invitación del Salón
                 </label>
                 <input
                   type="text"
@@ -379,6 +422,20 @@ export function OnboardingPage() {
                 className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#F5E5C4] to-[#D4AF37] text-neutral-950 font-bold text-sm shadow-lg hover:brightness-105 transition-all cursor-pointer"
               >
                 Entrar al Panel de Control de Salón
+              </button>
+            </div>
+          )}
+
+          {/* Opción para cambiar de cuenta de Google */}
+          {mode !== 'ADMIN_SUCCESS' && (
+            <div className="mt-6 text-center pt-4 border-t border-white/[0.08]">
+              <button
+                type="button"
+                onClick={logout}
+                className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <span>¿Deseas acceder con otra cuenta?</span>
+                <span className="text-amber-300 font-semibold underline underline-offset-4">Cambiar cuenta de Google</span>
               </button>
             </div>
           )}

@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth-context';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Badge } from '../components/ui/Badge';
-import { LogOut, Store, KeyRound, Copy, Check, Users, Crown, Scissors, ShieldCheck } from 'lucide-react';
+import { LogOut, Store, KeyRound, Copy, Check, Users, Crown, Scissors, ShieldCheck, RefreshCw } from 'lucide-react';
 
 export function SettingsPage() {
-  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout, unlinkOrganization } = useAuth();
   const [copied, setCopied] = useState(false);
 
   const localJoinCode = localStorage.getItem('glamos_local_join_code') || 'GLAM-8842-A';
@@ -134,14 +136,28 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Button
-        variant="destructive"
-        className="w-full sm:w-auto"
-        onClick={logout}
-      >
-        <LogOut className="w-4 h-4 mr-2" />
-        Cerrar Sesión Segura
-      </Button>
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto border-amber-400/30 text-[#F5E5C4] hover:bg-white/[0.06]"
+          onClick={() => {
+            unlinkOrganization();
+            navigate('/onboarding');
+          }}
+        >
+          <RefreshCw className="w-4 h-4 mr-2 text-amber-400" />
+          Cambiar de Salón o Vincular Código
+        </Button>
+
+        <Button
+          variant="destructive"
+          className="w-full sm:w-auto"
+          onClick={logout}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Cerrar Sesión Segura
+        </Button>
+      </div>
     </div>
   );
 }
