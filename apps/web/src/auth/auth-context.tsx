@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { getDatabase } from '../db/database';
 import { setupSync, startSync, cancelSync, triggerSync } from '../db/sync';
 import { ensureUuid } from '../lib/utils';
+import { syncGoogleUserWithNeon, pullAllDataFromNeon, uploadLocalDataToNeon } from '../db/neon';
 
 export interface JwtPayload {
   sub: string;
@@ -157,6 +158,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setupSync(db).then(() => startSync());
           }).catch(console.error);
         }
+
+        // Sincronización serverless directa con Neon PostgreSQL
+        if (decoded.org) {
+          pullAllDataFromNeon(decoded.org).catch(() => {});
+          uploadLocalDataToNeon(decoded.org).catch(() => {});
+        }
       } catch {
         localStorage.removeItem('glamos_tokens');
       }
@@ -165,6 +172,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Auto-sincronizar cuando el navegador detecta que volvió internet
     const handleOnline = () => {
+      const currentOrg = localStorage.getItem('glamos_local_org_id') || user?.org;
+      if (currentOrg) {
+        pullAllDataFromNeon(currentOrg).catch(() => {});
+        uploadLocalDataToNeon(currentOrg).catch(() => {});
+      }
       syncOfflineSessionWithCloud().catch(() => {});
       triggerSync();
     };
@@ -216,18 +228,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Aislar organización y rol por usuario específico (Evita que cuentas de Google hereden el salón demo)
       const userOrgKey = `glamos_user_org_${email}`;
       const userRoleKey = `glamos_user_role_${email}`;
-      const existingUserOrg = isDemoAccount
+      let existingUserOrg = isDemoAccount
         ? (googleClaims.org || '00000000-0000-4000-a000-000000000001')
         : localStorage.getItem(userOrgKey);
-      const existingUserRole = isDemoAccount
+      let existingUserRole = isDemoAccount
         ? (googleClaims.role || 'OWNER_ADMIN')
         : ((localStorage.getItem(userRoleKey) as any) || googleClaims.role || 'EMPLOYEE');
+
+      // Sincronización Serverless Directa con Neon (Válido para cualquier celular o PC en el mundo)
+      if (!isDemoAccount) {
+        try {
+          const neonSession = await syncGoogleUserWithNeon({
+            email,
+            sub: googleClaims.sub,
+            name: googleClaims.name,
+          });
+          if (neonSession?.organization_id) {
+            existingUserOrg = neonSession.organization_id;
+            existingUserRole = neonSession.role || 'OWNER_ADMIN';
+            localStorage.setItem(userOrgKey, existingUserOrg);
+            localStorage.setItem(userRoleKey, existingUserRole);
+            localStorage.setItem('glamos_local_org_id', existingUserOrg);
+            if (neonSession.business_name) {
+              localStorage.setItem('glamos_local_org_name', neonSession.business_name);
+            }
+            // Descargar de inmediato todos los datos de Neon al teléfono o PC
+            await pullAllDataFromNeon(existingUserOrg);
+            uploadLocalDataToNeon(existingUserOrg).catch(() => {});
+          }
+        } catch (neonErr) {
+          console.warn('Neon sync en login advertencia:', neonErr);
+        }
+      }
 
       const offlineUser: JwtPayload = {
         sub: googleClaims.sub || 'offline_user',
         email,
         role: existingUserRole,
-        org: existingUserOrg || null, // Para cuentas nuevas de Google, es null -> va a /onboarding
+        org: existingUserOrg || null,
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 90, // 90 días offline
         iat: Math.floor(Date.now() / 1000),
       };

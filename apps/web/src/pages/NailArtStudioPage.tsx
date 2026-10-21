@@ -8,37 +8,29 @@ import {
   RefreshCw,
   Send,
   Check,
-  Image as ImageIcon,
   Layers,
   Palette,
   Eye,
-  ArrowRight,
-  X,
   Sliders,
-  Scissors,
-  PlusCircle,
-  MessageCircle,
-  Info,
-  ChevronRight,
-  Zap,
   SlidersHorizontal,
   Upload,
-  Key,
-  KeyRound,
-  ExternalLink,
-  Cpu,
-  AlertCircle,
-  EyeOff,
+  MessageCircle,
+  ZoomIn,
+  Move,
+  Maximize2,
+  RotateCcw,
+  Sparkle,
+  ShieldCheck,
+  Flame,
+  Award,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PageHeader } from '../components/ui/PageHeader';
-import { formatCurrency } from '../lib/utils';
 import { useAuth } from '../auth/auth-context';
 import {
   getStoredGeminiApiKey,
-  saveStoredGeminiApiKey,
   generateNailDesignWithGemini,
   GeminiNailAnalysis,
 } from '../lib/gemini';
@@ -47,6 +39,7 @@ import {
 export type SkinToneId = 'porcelain' | 'fair' | 'warm-tan' | 'golden-caramel' | 'deep-bronze';
 export type NailShapeId = 'almond' | 'coffin' | 'square' | 'oval' | 'stiletto' | 'natural-short';
 export type NailLengthId = 'short' | 'medium' | 'long' | 'xl';
+export type ViewMode = 'hand' | 'macro';
 
 interface SkinTone {
   id: SkinToneId;
@@ -62,17 +55,18 @@ interface NailShape {
   curveFactor: number;
 }
 
-interface PresetDesign {
+export interface PresetDesign {
   id: string;
+  themeKey: 'spiderman' | 'marble-gold' | 'glazed-donut' | 'velvet-cat-eye' | 'cyber-chrome' | 'baby-boomer-bride' | 'emerald-glam' | 'noir-abstract' | 'custom';
   name: string;
   category: string;
   prompt: string;
   description: string;
   difficulty: 'Fácil' | 'Intermedio' | 'Avanzado';
   estimatedTime: string;
-  suggestedPrice: number;
   palette: Array<{ name: string; hex: string }>;
   accentFeatures: string[];
+  stylistNotes: string;
 }
 
 const SKIN_TONES: SkinTone[] = [
@@ -92,103 +86,149 @@ const NAIL_SHAPES: NailShape[] = [
   { id: 'natural-short', name: 'Corta Natural', description: 'Práctica, cómoda y prolija', curveFactor: 0.6 },
 ];
 
-const PRESET_DESIGNS: PresetDesign[] = [
+export const PRESET_DESIGNS: PresetDesign[] = [
   {
-    id: 'marble-gold',
-    name: 'Mármol Carrara & Pan de Oro 24K',
-    category: 'Haute Couture',
-    prompt: 'Efecto mármol blanco traslúcido con vetas cuarzo grises, detalles orgánicos de pan de oro de 24k en relieve y acabado ultra glossy espejo.',
-    description: 'Elegancia arquitectónica con vetas de piedra natural y destellos metálicos preciosos.',
-    difficulty: 'Intermedio',
-    estimatedTime: '75 min',
-    suggestedPrice: 38,
+    id: 'spiderman-haute',
+    themeKey: 'spiderman',
+    name: 'Spiderman Arácnido Marvel VIP',
+    category: 'Marvel & Pop Art',
+    prompt: 'Diseño hiperrealista Spider-Man: base rojo rubí metálico profundo con telarañas geométricas negras finas trazadas a mano, uña anular acento con la icónica máscara de ojos Spider-Man blanco puro y relieve negro, y acabado gel UV 3D ultra glossy espejo.',
+    description: 'La máxima tendencia geek-luxury: rojo rubí metalizado, micro-telarañas de precisión quirúrgica y ojos de Spider-Man plasmados con acabado de gel cristal en la uña de acento.',
+    difficulty: 'Avanzado',
+    estimatedTime: '80 min',
     palette: [
-      { name: 'Blanco Lechoso', hex: '#F8F9FA' },
-      { name: 'Gris Cuarzo', hex: '#9E9E9E' },
-      { name: 'Oro Puro 24K', hex: '#D4AF37' },
-      { name: 'Nude Base', hex: '#EED9C4' },
+      { name: 'Rojo Rubí Spider', hex: '#B91C1C' },
+      { name: 'Negro Telaraña', hex: '#0A0A0A' },
+      { name: 'Blanco Lentes Máscara', hex: '#FFFFFF' },
+      { name: 'Azul Noche Acento', hex: '#1E3A8A' },
     ],
-    accentFeatures: ['Foil de Oro', 'Veteado Manual', 'Esmalte Gel Lechoso'],
+    accentFeatures: [
+      'Microtelarañas radiales con arcos curvos',
+      'Lentes de máscara Spider-Man en uña anular',
+      'Reflejo gel de alta costura 3D',
+      'Rojo rubí metálico con destellos'
+    ],
+    stylistNotes: 'Aplica primero una base rojo rubí perlada curada en lámpara UV/LED. Traza la estructura de telaraña con pincel linner 000 y gel paint negro sin capa de dispersión. En el anular, esculpe los ojos angulados con blanco tiza y sella con top coat blindado 3D.',
   },
   {
     id: 'glazed-donut',
-    name: 'Glazed Donut Hailey Cromo',
-    category: 'Tendencia 2026',
-    prompt: 'Base nude semitransparente con polvo de cromo perla reflectante, efecto glaseado líquido brillante y cutícula limpia rusa.',
-    description: 'El fenómeno viral de alta costura: brillo aperlado iridiscente que refleja la luz con cada movimiento.',
+    themeKey: 'glazed-donut',
+    name: 'Glazed Donut Hailey Bieber Cromo',
+    category: 'Tendencia Pasarela',
+    prompt: 'Base nude semitransparente con polvo de cromo perla reflectante, efecto glaseado líquido iridiscente y cutícula rusa impecable.',
+    description: 'El fenómeno viral de alta costura: brillo aperlado iridiscente que refleja la luz con destellos prismáticos según el ángulo.',
     difficulty: 'Fácil',
     estimatedTime: '50 min',
-    suggestedPrice: 30,
     palette: [
       { name: 'Nude Perla', hex: '#F3E5D8' },
-      { name: 'Polvo Cromo', hex: '#FFFFFF' },
+      { name: 'Polvo Cromo Nácar', hex: '#FFFFFF' },
       { name: 'Gloss Cristal', hex: '#E6EEF8' },
     ],
     accentFeatures: ['Polvo Cromo Frotado', 'Efecto Iridiscente', 'Nude Translúcido'],
+    stylistNotes: 'Aplica una capa de nude lechoso semi-traslúcido, sella con top no-wipe 30 segundos y frota el pigmento de cromo perlado con aplicador de silicona.',
   },
   {
     id: 'velvet-cat-eye',
-    name: 'Velvet Cat Eye Vino Borgoña',
+    themeKey: 'velvet-cat-eye',
+    name: 'Velvet Cat Eye Vino Borgoña 3D',
     category: 'Gala & Fiesta',
-    prompt: 'Gel magnético ojo de gato aterciopelado en color vino tinto profundo con halo tridimensional de luz violeta y champaña.',
-    description: 'Textura óptica de terciopelo líquido con pigmentos magnéticos multidimensionales.',
+    prompt: 'Gel magnético ojo de gato aterciopelado en vino tinto profundo con halo tridimensional de luz champaña y acabado terciopelo líquido.',
+    description: 'Textura óptica de terciopelo líquido con pigmentos magnéticos multidimensionales que crean un halo de luz en movimiento.',
     difficulty: 'Intermedio',
     estimatedTime: '65 min',
-    suggestedPrice: 35,
     palette: [
       { name: 'Vino Borgoña', hex: '#4A0E17' },
       { name: 'Reflejo Velvet', hex: '#9B2242' },
       { name: 'Champaña Destello', hex: '#E5C378' },
     ],
     accentFeatures: ['Pigmento Magnético', 'Halo Terciopelo 3D', 'Vino Intenso'],
+    stylistNotes: 'Aplica sobre base negra o vino intenso. Usa el imán cilíndrico desde los laterales para concentrar el haz de luz en diagonal aterciopelada.',
+  },
+  {
+    id: 'marble-gold',
+    themeKey: 'marble-gold',
+    name: 'Mármol Carrara & Pan de Oro 24K',
+    category: 'Haute Couture',
+    prompt: 'Efecto mármol blanco traslúcido con vetas cuarzo grises, detalles orgánicos de pan de oro de 24k en relieve y acabado ultra glossy espejo.',
+    description: 'Elegancia arquitectónica con vetas de piedra natural y destellos metálicos preciosos.',
+    difficulty: 'Intermedio',
+    estimatedTime: '75 min',
+    palette: [
+      { name: 'Blanco Lechoso', hex: '#F8F9FA' },
+      { name: 'Gris Cuarzo', hex: '#8E8E93' },
+      { name: 'Oro Puro 24K', hex: '#D4AF37' },
+      { name: 'Nude Base', hex: '#EED9C4' },
+    ],
+    accentFeatures: ['Foil de Oro 24K', 'Veteado Manual con Alcohol', 'Esmalte Gel Lechoso'],
+    stylistNotes: 'Difumina las vetas de cuarzo con pincel mojado en alcohol isopropílico antes de curar. Coloca hojuelas de pan de oro con pinzas de precisión.',
+  },
+  {
+    id: 'cyber-chrome',
+    themeKey: 'cyber-chrome',
+    name: 'Cyber French Plata Líquida Espejo',
+    category: 'Futurismo & Cromo',
+    prompt: 'Base de negative space transparente con línea de sonrisa francesa en cromo plateado líquido reflectante y micro-gotas en relieve 3D.',
+    description: 'Vanguardia cyberpunk con efecto espejo líquido plateado y relieves táctiles sobre base limpia de cristal.',
+    difficulty: 'Intermedio',
+    estimatedTime: '60 min',
+    palette: [
+      { name: 'Plata Espejo', hex: '#CBD5E1' },
+      { name: 'Base Cristalina', hex: '#F1E5D8' },
+      { name: 'Cromo Cromado', hex: '#94A3B8' },
+    ],
+    accentFeatures: ['Cromo Plata Líquida', 'Sonrisa Francesa Invertida', 'Base Vidrio Transparente'],
+    stylistNotes: 'Dibuja la sonrisa francesa con gel painting blanco, cura y frota pigmento espejo de plata pura. Remata con gotas de builder gel transparente.',
   },
   {
     id: 'baby-boomer-bride',
-    name: 'Novias VIP Baby Boomer Perlado',
+    themeKey: 'baby-boomer-bride',
+    name: 'Novias VIP Baby Boomer & Swarovski',
     category: 'Novias & Eventos',
     prompt: 'Degradé perfecto ombré francés desde blanco nieve en la punta hacia nude rosado en la base, con microcristales Swarovski en la lúnula.',
-    description: 'Transición etérea sin cortes entre el blanco y el nude rosado, rematado con cristalería fina.',
+    description: 'Transición etérea sin cortes entre el blanco y el nude rosado, rematado con cristalería fina sobre la cutícula.',
     difficulty: 'Avanzado',
     estimatedTime: '85 min',
-    suggestedPrice: 45,
     palette: [
       { name: 'Blanco Francés', hex: '#FFFFFF' },
       { name: 'Rosa Nude Suave', hex: '#FAD2E1' },
       { name: 'Cristal Aurora', hex: '#E0F2FE' },
     ],
     accentFeatures: ['Degradé Esponja Airbrush', 'Cristal Swarovski', 'Top Coat Blindado'],
+    stylistNotes: 'Aplica degradado con aerógrafo o esponja de látex difuminada. Adhiere los cristales con gel de construcción de alta viscosidad.',
   },
   {
-    id: 'micro-french-sage',
-    name: 'Micro-French Verde Salvia Minimal',
-    category: 'Minimal Chic',
-    prompt: 'Base nude mate porcelana con línea de sonrisa francesa ultrafina de 1mm en verde salvia y líneas orgánicas doradas.',
-    description: 'Minimalismo escandinavo moderno con trazos milimétricos y contraste mate-brillo.',
-    difficulty: 'Fácil',
-    estimatedTime: '55 min',
-    suggestedPrice: 28,
+    id: 'emerald-glam',
+    themeKey: 'emerald-glam',
+    name: 'Esmeralda Imperial & Polvo de Oro',
+    category: 'Alta Joyería',
+    prompt: 'Verde esmeralda profundo con destellos de micro-glitter champaña y filo dorado en relieve sobre cutícula rusa limpia.',
+    description: 'Tonalidad regia inspirada en joyas imperiales con destellos dorados que enmarcan la uña.',
+    difficulty: 'Intermedio',
+    estimatedTime: '65 min',
     palette: [
-      { name: 'Verde Salvia', hex: '#87986A' },
-      { name: 'Nude Porcelana', hex: '#F5E6D3' },
-      { name: 'Línea Platino', hex: '#E2E8F0' },
+      { name: 'Verde Esmeralda', hex: '#064E3B' },
+      { name: 'Oro Micro-Glitter', hex: '#E5C378' },
+      { name: 'Nude Olivo', hex: '#D1C2A5' },
     ],
-    accentFeatures: ['Línea Micro-precisión', 'Acabado Mate Velvet', 'Trazo Orgánico'],
+    accentFeatures: ['Verde Joya Profundo', 'Polvo de Oro', 'Acabado Espejo'],
+    stylistNotes: 'Aplica dos capas finas de verde esmeralda y espolvorea el micro-glitter dorado antes del segundo curado.',
   },
   {
     id: 'noir-abstract',
-    name: 'Noir Editorial & Negative Space',
+    themeKey: 'noir-abstract',
+    name: 'Noir Vanguard & Negative Space',
     category: 'Vanguardia',
     prompt: 'Negro azabache profundo sobre base transparente de negative space con líneas geométricas curvas y detalles en cromo plateado líquido.',
     description: 'Diseño geométrico de pasarela con juego de transparencias negativas y trazos futuristas.',
     difficulty: 'Avanzado',
     estimatedTime: '90 min',
-    suggestedPrice: 42,
     palette: [
       { name: 'Negro Azabache', hex: '#121212' },
       { name: 'Plata Líquida', hex: '#CBD5E1' },
       { name: 'Negative Space', hex: '#F1E3D3' },
     ],
     accentFeatures: ['Espacio Negativo', 'Líneas Curvas Abstractas', 'Relieve Cromado'],
+    stylistNotes: 'Usa cinta para nail art para definir los bordes nítidos del espacio negativo antes de aplicar el gel negro opaco.',
   },
 ];
 
@@ -204,91 +244,36 @@ export function NailArtStudioPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Estados de Entrada / Cámara
+  // Modos de Entrada
   const [captureMode, setCaptureMode] = useState<'camera' | 'upload' | 'preset'>('preset');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  // Estados de Personalización Anatómica
+  // Modos de Visualización
+  const [viewMode, setViewMode] = useState<ViewMode>('hand');
+
+  // Personalización Anatómica
   const [selectedSkinTone, setSelectedSkinTone] = useState<SkinToneId>('warm-tan');
   const [selectedShape, setSelectedShape] = useState<NailShapeId>('almond');
   const [selectedLength, setSelectedLength] = useState<NailLengthId>('medium');
+
+  // Calibración Interactiva de Uñas sobre Mano Real
+  const [calibOffsetY, setCalibOffsetY] = useState<number>(0);
+  const [calibOffsetX, setCalibOffsetX] = useState<number>(0);
+  const [calibScale, setCalibScale] = useState<number>(1.0);
+  const [calibSpread, setCalibSpread] = useState<number>(1.0);
+  const [calibCurve, setCalibCurve] = useState<number>(0);
+  const [showCalibrationPanel, setShowCalibrationPanel] = useState(false);
 
   // Estados del Chat y Generación
   const [activeDesign, setActiveDesign] = useState<PresetDesign>(PRESET_DESIGNS[0]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [inputPrompt, setInputPrompt] = useState('');
-  const [viewComparison, setViewComparison] = useState(false);
-
-  // Estados de Google Gemini 2.0 Flash (100% Gratis)
-  const [geminiApiKey, setGeminiApiKey] = useState(() => getStoredGeminiApiKey());
-  const [geminiModalOpen, setGeminiModalOpen] = useState(false);
-  const [tempKeyInput, setTempKeyInput] = useState('');
-  const [showKeyText, setShowKeyText] = useState(false);
-  const [keyValidationStatus, setKeyValidationStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-  const [keyValidationMsg, setKeyValidationMsg] = useState('');
-
-  // Sincronizar clave al escuchar eventos del storage
-  useEffect(() => {
-    const syncKey = () => setGeminiApiKey(getStoredGeminiApiKey());
-    window.addEventListener('glamos_gemini_key_changed', syncKey);
-    return () => window.removeEventListener('glamos_gemini_key_changed', syncKey);
-  }, []);
-
-  const handleOpenGeminiModal = () => {
-    setTempKeyInput(geminiApiKey);
-    setKeyValidationStatus('idle');
-    setKeyValidationMsg('');
-    setGeminiModalOpen(true);
-  };
-
-  const handleSaveModalKey = () => {
-    saveStoredGeminiApiKey(tempKeyInput);
-    setGeminiApiKey(tempKeyInput.trim());
-    setKeyValidationStatus('success');
-    setKeyValidationMsg('¡Clave guardada con éxito!');
-    setTimeout(() => {
-      setGeminiModalOpen(false);
-      setKeyValidationStatus('idle');
-    }, 1200);
-  };
-
-  const handleTestModalKey = async () => {
-    const k = tempKeyInput.trim();
-    if (!k) return;
-    setKeyValidationStatus('testing');
-    setKeyValidationMsg('');
-    try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${k}`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Hola' }] }],
-          generationConfig: { maxOutputTokens: 5 },
-        }),
-      });
-      if (res.ok) {
-        saveStoredGeminiApiKey(k);
-        setGeminiApiKey(k);
-        setKeyValidationStatus('success');
-        setKeyValidationMsg('¡Conexión verificada! Gemini 2.0 Flash está activo y listo.');
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        setKeyValidationStatus('error');
-        setKeyValidationMsg(errData.error?.message || 'Error al validar clave con Google.');
-      }
-    } catch (e: any) {
-      setKeyValidationStatus('error');
-      setKeyValidationMsg(e?.message || 'Error de conexión.');
-    }
-  };
 
   // Canvas y Video Refs
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -297,9 +282,9 @@ export function NailArtStudioPage() {
     {
       id: '1',
       sender: 'assistant',
-      text: `¡Bienvenida al Nail Art Studio de GlamOS! ✨ He configurado el lienzo con tono de piel "${SKIN_TONES.find((s) => s.id === selectedSkinTone)?.name}" y forma "${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}". 
-      
-Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esmeralda con pan de oro para gala"), capturar la mano real de tu clienta con la cámara o seleccionar una de nuestras tendencias de alta costura.`,
+      text: `¡Bienvenida al Nail Art Studio de GlamOS! ✨ He cargado el nuevo diseño estrella **"${PRESET_DESIGNS[0].name}"** con tono de piel "${SKIN_TONES.find((s) => s.id === selectedSkinTone)?.name}" y forma "${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}".
+
+Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman", "uñas de mármol con pan de oro", "ojo de gato terciopelo"), capturar la mano real de tu clienta con la cámara o subir una foto para calibar y plasmar el diseño directamente sobre sus uñas reales.`,
       timestamp: 'Ahora',
       designPreview: PRESET_DESIGNS[0],
     },
@@ -309,7 +294,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
   useEffect(() => {
     let stream: MediaStream | null = null;
 
-    if (captureMode === 'camera') {
+    if (captureMode === 'camera' && !capturedImage) {
       setCameraError(null);
       navigator.mediaDevices
         ?.getUserMedia({
@@ -341,22 +326,22 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [captureMode, facingMode]);
+  }, [captureMode, facingMode, capturedImage]);
 
   // Tomar Foto con la Cámara
   const handleSnapPhoto = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    canvas.width = video.videoWidth || 720;
+    canvas.height = video.videoHeight || 720;
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
       setCapturedImage(dataUrl);
       setCaptureMode('camera');
-      renderNailArtOnCanvas(dataUrl, activeDesign, selectedSkinTone, selectedShape);
+      setShowCalibrationPanel(true);
     }
   };
 
@@ -369,19 +354,23 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
         const dataUrl = event.target?.result as string;
         setCapturedImage(dataUrl);
         setCaptureMode('upload');
-        renderNailArtOnCanvas(dataUrl, activeDesign, selectedSkinTone, selectedShape);
+        setShowCalibrationPanel(true);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Motor de Renderizado en Canvas (Hiperrealismo de Uñas)
-  const renderNailArtOnCanvas = (
-    baseHandImage: string | null,
-    design: PresetDesign,
-    skinToneId: SkinToneId,
-    shapeId: NailShapeId
-  ) => {
+  // Restablecer parámetros de calibración
+  const handleResetCalibration = () => {
+    setCalibOffsetY(0);
+    setCalibOffsetX(0);
+    setCalibScale(1.0);
+    setCalibSpread(1.0);
+    setCalibCurve(0);
+  };
+
+  // ── MOTOR DE RENDERIZADO EN CANVAS (HIPERREALISMO) ───────────────────────
+  const renderNailArt = () => {
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -390,59 +379,70 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
     canvas.width = 900;
     canvas.height = 900;
 
-    const tone = SKIN_TONES.find((t) => t.id === skinToneId) || SKIN_TONES[2];
-    const shape = NAIL_SHAPES.find((s) => s.id === shapeId) || NAIL_SHAPES[0];
+    const tone = SKIN_TONES.find((t) => t.id === selectedSkinTone) || SKIN_TONES[2];
+    const shape = NAIL_SHAPES.find((s) => s.id === selectedShape) || NAIL_SHAPES[0];
 
-    // Fondo elegante de salón de lujo (mármol ahumado / satinado)
+    // Fondo elegante de salón de lujo (mármol ahumado satinado)
     const bgGrad = ctx.createRadialGradient(450, 450, 100, 450, 450, 550);
-    bgGrad.addColorStop(0, '#1A1820');
-    bgGrad.addColorStop(1, '#0A090D');
+    bgGrad.addColorStop(0, '#15141B');
+    bgGrad.addColorStop(1, '#09080C');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Si hay foto capturada por la cámara, dibujarla como base
-    if (baseHandImage) {
-      const img = new window.Image();
-      img.onload = () => {
-        // Dibujar mano original con viñeta estética
-        ctx.save();
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        // Aplicar capa de uñas esculpidas con blend modes de alta costura
-        drawRealisticNails(ctx, design, tone, shape);
-      };
-      img.src = baseHandImage;
+    if (viewMode === 'macro') {
+      // ── MODO MACRO: ENFOQUE EN PRIMER PLANO DE LAS 5 UÑAS ────────────────
+      drawMacroNailsView(ctx, activeDesign, tone, shape);
     } else {
-      // Si está en modo preset virtual, dibujar mano estética con el tono de piel seleccionado
-      drawVirtualModelHand(ctx, tone);
-      drawRealisticNails(ctx, design, tone, shape);
+      // ── MODO MANO COMPLETA ───────────────────────────────────────────────
+      if (capturedImage) {
+        // Foto real de la mano capturada con la cámara o galería
+        const img = new window.Image();
+        img.onload = () => {
+          ctx.save();
+          // Dibujar la foto centrada
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          // Viñeta perimetral suave de estudio fotográfico
+          const vignette = ctx.createRadialGradient(450, 450, 300, 450, 450, 550);
+          vignette.addColorStop(0, 'rgba(0,0,0,0)');
+          vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
+          ctx.fillStyle = vignette;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          // Dibujar uñas calibradas sobre la mano real
+          drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
+        };
+        img.src = capturedImage;
+      } else {
+        // Modo Mano Virtual Modelo
+        drawVirtualModelHand(ctx, tone);
+        drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
+      }
     }
   };
 
-  // Dibuja una mano modelo hiperrealista con el tono de piel exacto
+  // Dibuja una mano modelo hiperrealista con textura suave y anatomía precisa
   const drawVirtualModelHand = (ctx: CanvasRenderingContext2D, tone: SkinTone) => {
     ctx.save();
 
-    // Sombra de la mano
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-    ctx.shadowBlur = 35;
-    ctx.shadowOffsetY = 20;
+    // Sombra suave proyectada bajo la mano
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 25;
 
-    // Gradiente anatómico de la piel
-    const skinGrad = ctx.createLinearGradient(450, 850, 450, 200);
+    // Gradiente anatómico de la piel con dispersión sub-superficial
+    const skinGrad = ctx.createLinearGradient(450, 850, 450, 180);
     skinGrad.addColorStop(0, tone.hex);
-    skinGrad.addColorStop(0.5, tone.hex);
-    skinGrad.addColorStop(1, adjustBrightness(tone.hex, 15));
-
+    skinGrad.addColorStop(0.6, tone.hex);
+    skinGrad.addColorStop(1, adjustBrightness(tone.hex, 16));
     ctx.fillStyle = skinGrad;
 
     // Palma y base de la mano
     ctx.beginPath();
-    ctx.ellipse(450, 680, 210, 200, 0, 0, Math.PI * 2);
+    ctx.ellipse(450, 680, 215, 205, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 5 Dedos extendidos perfectamente proporcionados
+    // Dedos con proporciones naturales
     const fingers = [
       { x: 260, y: 520, w: 46, h: 220, rot: -0.22 }, // Meñique
       { x: 350, y: 440, w: 50, h: 280, rot: -0.09 }, // Anular
@@ -457,18 +457,18 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
       ctx.rotate(f.rot);
 
       ctx.beginPath();
-      ctx.roundRect(-f.w / 2, -f.h / 2, f.w, f.h, [f.w / 2, f.w / 2, 20, 20]);
+      ctx.roundRect(-f.w / 2, -f.h / 2, f.w, f.h, [f.w / 2, f.w / 2, 22, 22]);
       ctx.fill();
 
-      // Pliegues y nudillos realistas
-      ctx.strokeStyle = adjustBrightness(tone.hex, -20);
-      ctx.lineWidth = 1.8;
-      ctx.globalAlpha = 0.35;
+      // Pliegues articulares y nudillos
+      ctx.strokeStyle = adjustBrightness(tone.hex, -22);
+      ctx.lineWidth = 1.6;
+      ctx.globalAlpha = 0.32;
       ctx.beginPath();
       ctx.arc(0, -f.h * 0.1, f.w * 0.3, 0, Math.PI);
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(0, f.h * 0.15, f.w * 0.32, 0, Math.PI);
+      ctx.arc(0, f.h * 0.16, f.w * 0.32, 0, Math.PI);
       ctx.stroke();
 
       ctx.restore();
@@ -477,8 +477,8 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
     ctx.restore();
   };
 
-  // Dibuja las uñas con el diseño, técnica, curvatura y brillo
-  const drawRealisticNails = (
+  // Dibuja las uñas sobre la mano con los controles de calibración interactiva
+  const drawCalibratedNailsOnRealHand = (
     ctx: CanvasRenderingContext2D,
     design: PresetDesign,
     tone: SkinTone,
@@ -486,144 +486,400 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
   ) => {
     ctx.save();
 
-    const nailPositions = [
-      { x: 262, y: 405, w: 26, h: 42, rot: -0.22 }, // Meñique
-      { x: 350, y: 295, w: 30, h: 48, rot: -0.09 }, // Anular
-      { x: 450, y: 255, w: 32, h: 50, rot: 0.00 },  // Medio
-      { x: 550, y: 302, w: 30, h: 47, rot: 0.09 },  // Índice
-      { x: 672, y: 485, w: 34, h: 46, rot: 0.35 },  // Pulgar
+    // Posiciones base de las 5 uñas
+    const basePositions = [
+      { id: 'pinky', label: 'Meñique', x: 262, y: 405, w: 28, h: 44, rot: -0.22, accent: false },
+      { id: 'ring', label: 'Anular', x: 350, y: 295, w: 32, h: 50, rot: -0.09, accent: true }, // Uña acento Spider-Man / Joya
+      { id: 'middle', label: 'Medio', x: 450, y: 255, w: 34, h: 52, rot: 0.00, accent: false },
+      { id: 'index', label: 'Índice', x: 550, y: 302, w: 32, h: 49, rot: 0.09, accent: false },
+      { id: 'thumb', label: 'Pulgar', x: 672, y: 485, w: 36, h: 48, rot: 0.35, accent: false },
     ];
 
-    nailPositions.forEach((np, idx) => {
-      ctx.save();
-      ctx.translate(np.x, np.y);
-      ctx.rotate(np.rot);
+    // Aplicar transformaciones de calibración interactiva
+    const centerX = 450;
+    const centerY = 450;
 
-      // Sombra proyectada del lecho ungueal
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 4;
+    basePositions.forEach((np, idx) => {
+      // Cálculo de desplazamiento y apertura
+      const relX = np.x - centerX;
+      const spreadX = relX * calibSpread;
+      const finalX = centerX + spreadX + calibOffsetX;
+      const finalY = np.y + calibOffsetY + (Math.abs(relX) / 100) * calibCurve;
 
-      // Trazo de la silueta de la uña según la forma elegida
-      ctx.beginPath();
-      if (shape.id === 'almond') {
-        ctx.moveTo(-np.w / 2, np.h / 2);
-        ctx.bezierCurveTo(-np.w / 2, -np.h * 0.2, -np.w * 0.2, -np.h / 2, 0, -np.h / 2);
-        ctx.bezierCurveTo(np.w * 0.2, -np.h / 2, np.w / 2, -np.h * 0.2, np.w / 2, np.h / 2);
-        ctx.quadraticCurveTo(0, np.h / 2 + 5, -np.w / 2, np.h / 2);
-      } else if (shape.id === 'coffin') {
-        ctx.moveTo(-np.w / 2, np.h / 2);
-        ctx.lineTo(-np.w * 0.35, -np.h / 2);
-        ctx.lineTo(np.w * 0.35, -np.h / 2);
-        ctx.lineTo(np.w / 2, np.h / 2);
-        ctx.quadraticCurveTo(0, np.h / 2 + 4, -np.w / 2, np.h / 2);
-      } else if (shape.id === 'stiletto') {
-        ctx.moveTo(-np.w / 2, np.h / 2);
-        ctx.lineTo(0, -np.h / 2 - 6);
-        ctx.lineTo(np.w / 2, np.h / 2);
-        ctx.quadraticCurveTo(0, np.h / 2 + 4, -np.w / 2, np.h / 2);
-      } else {
-        // Cuadrada o Redondeada natural
-        ctx.roundRect(-np.w / 2, -np.h / 2, np.w, np.h, [8, 8, 14, 14]);
-      }
-      ctx.closePath();
+      const finalW = np.w * calibScale;
+      const finalH = np.h * calibScale;
 
-      // Clip para dibujar el arte estrictamente dentro de la uña
-      ctx.clip();
-
-      // 1. Color base de esmalte
-      const baseColor = design.palette[0]?.hex || '#FFFFFF';
-      const secondaryColor = design.palette[1]?.hex || '#EED9C4';
-      const accentColor = design.palette[2]?.hex || '#D4AF37';
-
-      const nailGrad = ctx.createLinearGradient(0, np.h / 2, 0, -np.h / 2);
-      nailGrad.addColorStop(0, secondaryColor);
-      nailGrad.addColorStop(0.6, baseColor);
-      nailGrad.addColorStop(1, adjustBrightness(baseColor, 10));
-      ctx.fillStyle = nailGrad;
-      ctx.fillRect(-np.w, -np.h, np.w * 2, np.h * 2);
-
-      // 2. Arte y Efectos Específicos
-      if (design.id === 'marble-gold') {
-        // Vetas de Mármol orgánicas
-        ctx.strokeStyle = 'rgba(120, 120, 120, 0.4)';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(-np.w * 0.4, np.h * 0.4);
-        ctx.bezierCurveTo(0, 0, -np.w * 0.2, -np.h * 0.2, np.w * 0.3, -np.h * 0.4);
-        ctx.stroke();
-
-        // Pan de Oro 24K en relieve
-        ctx.fillStyle = '#D4AF37';
-        ctx.beginPath();
-        ctx.arc(-np.w * 0.1, -np.h * 0.1, 3.5, 0, Math.PI * 2);
-        ctx.arc(np.w * 0.2, np.h * 0.2, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (design.id === 'glazed-donut') {
-        // Brillo cromo nacarado iridiscente
-        const chromeGrad = ctx.createLinearGradient(-np.w, -np.h, np.w, np.h);
-        chromeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-        chromeGrad.addColorStop(0.5, 'rgba(230, 240, 255, 0.2)');
-        chromeGrad.addColorStop(1, 'rgba(255, 220, 230, 0.5)');
-        ctx.fillStyle = chromeGrad;
-        ctx.fillRect(-np.w, -np.h, np.w * 2, np.h * 2);
-      } else if (design.id === 'velvet-cat-eye') {
-        // Reflejo magnético ojo de gato en diagonal
-        const catEyeGrad = ctx.createLinearGradient(-np.w * 0.5, -np.h * 0.5, np.w * 0.5, np.h * 0.5);
-        catEyeGrad.addColorStop(0, 'rgba(74, 14, 23, 0.9)');
-        catEyeGrad.addColorStop(0.48, 'rgba(229, 195, 120, 0.85)');
-        catEyeGrad.addColorStop(0.52, 'rgba(255, 255, 255, 0.95)');
-        catEyeGrad.addColorStop(1, 'rgba(74, 14, 23, 0.9)');
-        ctx.fillStyle = catEyeGrad;
-        ctx.fillRect(-np.w, -np.h, np.w * 2, np.h * 2);
-      } else if (design.id === 'micro-french-sage') {
-        // Micro-french ultrafino en la punta
-        ctx.fillStyle = '#87986A';
-        ctx.fillRect(-np.w, -np.h / 2, np.w * 2, 6);
-      } else if (design.id === 'baby-boomer-bride') {
-        // Cristal Swarovski en el dedo anular (idx === 1)
-        if (idx === 1) {
-          ctx.fillStyle = '#FFFFFF';
-          ctx.beginPath();
-          ctx.arc(0, np.h * 0.35, 3.2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#D4AF37';
-          ctx.beginPath();
-          ctx.arc(0, np.h * 0.35, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // 3. Brillo de Top-Coat Gel Espejo (Specular Highlight)
-      const glossGrad = ctx.createLinearGradient(-np.w * 0.4, 0, np.w * 0.4, 0);
-      glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      glossGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.55)');
-      glossGrad.addColorStop(0.55, 'rgba(255, 255, 255, 0.8)');
-      glossGrad.addColorStop(0.8, 'rgba(255, 255, 255, 0)');
-
-      ctx.fillStyle = glossGrad;
-      ctx.fillRect(-np.w * 0.2, -np.h, np.w * 0.35, np.h * 2);
-
-      // Línea de cutícula sombreada para realismo de inserción
-      ctx.strokeStyle = adjustBrightness(tone.hex, -40);
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(0, np.h / 2, np.w * 0.45, 0, Math.PI);
-      ctx.stroke();
-
-      ctx.restore();
+      drawSingleSculptedNail(
+        ctx,
+        finalX,
+        finalY,
+        finalW,
+        finalH,
+        np.rot,
+        design,
+        tone,
+        shape,
+        np.accent,
+        idx
+      );
     });
 
     ctx.restore();
   };
 
+  // ── RENDERIZADOR MACRO PRIMER PLANO (ZOOM DE LAS 5 UÑAS) ─────────────────
+  const drawMacroNailsView = (
+    ctx: CanvasRenderingContext2D,
+    design: PresetDesign,
+    tone: SkinTone,
+    shape: NailShape
+  ) => {
+    ctx.save();
+
+    // Cabecera elegante en vista macro
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = 'bold 18px Cormorant Garamond, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('GLAMOS HAUTE NAIL ART · ENFOQUE MACRO 4K', 450, 110);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 30px Cormorant Garamond, serif';
+    ctx.fillText(design.name, 450, 150);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '13px Plus Jakarta Sans, sans-serif';
+    ctx.fillText(`Silueta: ${shape.name} · Acabado: Gel UV 3D Espejo`, 450, 180);
+
+    // 5 Uñas ampliadas en fila horizontal
+    const macroSlots = [
+      { label: 'Pulgar', x: 130, y: 480, w: 90, h: 190, accent: false, idx: 4 },
+      { label: 'Índice', x: 290, y: 460, w: 84, h: 185, accent: false, idx: 3 },
+      { label: 'Medio', x: 450, y: 440, w: 88, h: 200, accent: false, idx: 2 },
+      { label: 'Anular (Acento)', x: 610, y: 460, w: 86, h: 190, accent: true, idx: 1 },
+      { label: 'Meñique', x: 770, y: 495, w: 76, h: 165, accent: false, idx: 0 },
+    ];
+
+    macroSlots.forEach((slot) => {
+      // Dedo base de soporte
+      ctx.save();
+      ctx.fillStyle = tone.hex;
+      ctx.shadowColor = 'rgba(0,0,0,0.6)';
+      ctx.shadowBlur = 25;
+      ctx.shadowOffsetY = 15;
+      ctx.beginPath();
+      ctx.roundRect(slot.x - slot.w * 0.6, slot.y - slot.h * 0.2, slot.w * 1.2, slot.h * 1.5, [30, 30, 15, 15]);
+      ctx.fill();
+      ctx.restore();
+
+      // Etiqueta del dedo
+      ctx.fillStyle = slot.accent ? '#F5E5C4' : 'rgba(255, 255, 255, 0.7)';
+      ctx.font = slot.accent ? 'bold 13px Plus Jakarta Sans, sans-serif' : '12px Plus Jakarta Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(slot.label, slot.x, slot.y + slot.h * 0.65 + 40);
+
+      // Dibujar la uña esculpida en tamaño macro
+      drawSingleSculptedNail(
+        ctx,
+        slot.x,
+        slot.y,
+        slot.w,
+        slot.h,
+        0,
+        design,
+        tone,
+        shape,
+        slot.accent,
+        slot.idx
+      );
+    });
+
+    ctx.restore();
+  };
+
+  // ── ESCULPIDO INDIVIDUAL DE UNA UÑA CON DISEÑO DETALLADO ─────────────────
+  const drawSingleSculptedNail = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    rot: number,
+    design: PresetDesign,
+    tone: SkinTone,
+    shape: NailShape,
+    isAccent: boolean,
+    nailIndex: number
+  ) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+
+    // Sombra perimetral para realismo de inserción en el dedo
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+
+    // Silueta de la uña según la forma elegida
+    ctx.beginPath();
+    if (shape.id === 'almond') {
+      ctx.moveTo(-w / 2, h / 2);
+      ctx.bezierCurveTo(-w / 2, -h * 0.25, -w * 0.25, -h / 2, 0, -h / 2);
+      ctx.bezierCurveTo(w * 0.25, -h / 2, w / 2, -h * 0.25, w / 2, h / 2);
+      ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
+    } else if (shape.id === 'coffin') {
+      ctx.moveTo(-w / 2, h / 2);
+      ctx.lineTo(-w * 0.34, -h / 2);
+      ctx.lineTo(w * 0.34, -h / 2);
+      ctx.lineTo(w / 2, h / 2);
+      ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
+    } else if (shape.id === 'stiletto') {
+      ctx.moveTo(-w / 2, h / 2);
+      ctx.lineTo(0, -h / 2 - 8);
+      ctx.lineTo(w / 2, h / 2);
+      ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
+    } else if (shape.id === 'oval') {
+      ctx.moveTo(-w / 2, h / 2);
+      ctx.bezierCurveTo(-w / 2, -h * 0.35, -w * 0.4, -h / 2, 0, -h / 2);
+      ctx.bezierCurveTo(w * 0.4, -h / 2, w / 2, -h * 0.35, w / 2, h / 2);
+      ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
+    } else {
+      // Cuadrada o Natural Corta
+      ctx.roundRect(-w / 2, -h / 2, w, h, [7, 7, 14, 14]);
+    }
+    ctx.closePath();
+
+    // Recortar estrictamente dentro de la silueta de la uña
+    ctx.clip();
+
+    // ── 1. COLOR BASE DEL ESMALTE ─────────────────────────────────────────
+    const baseColor = design.palette[0]?.hex || '#B91C1C';
+    const secondaryColor = design.palette[1]?.hex || '#0A0A0A';
+    const accentColor = design.palette[2]?.hex || '#FFFFFF';
+
+    const nailGrad = ctx.createLinearGradient(0, h / 2, 0, -h / 2);
+    nailGrad.addColorStop(0, adjustBrightness(baseColor, -15));
+    nailGrad.addColorStop(0.5, baseColor);
+    nailGrad.addColorStop(1, adjustBrightness(baseColor, 12));
+    ctx.fillStyle = nailGrad;
+    ctx.fillRect(-w, -h * 1.5, w * 2, h * 3);
+
+    // ── 2. EFECTOS ESPECÍFICOS SEGÚN EL TEMA ──────────────────────────────
+    if (design.themeKey === 'spiderman') {
+      // ══════════════════════════════════════════════════════════════════════
+      // DISEÑO EXCLUSIVO SPIDER-MAN ARÁCNIDO MARVEL HAUTE COUTURE
+      // ══════════════════════════════════════════════════════════════════════
+      // Base rojo rubí metálico brillante con micro-destellos
+      const rubyGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, h);
+      rubyGrad.addColorStop(0, '#DC2626');
+      rubyGrad.addColorStop(0.7, '#B91C1C');
+      rubyGrad.addColorStop(1, '#7F1D1D');
+      ctx.fillStyle = rubyGrad;
+      ctx.fillRect(-w, -h, w * 2, h * 2);
+
+      if (isAccent) {
+        // ── UÑA ANULAR: MÁSCARA ICÓNICA DE SPIDER-MAN ─────────────────────
+        // Telaraña de fondo fina
+        ctx.strokeStyle = 'rgba(10, 10, 10, 0.45)';
+        ctx.lineWidth = Math.max(1, w * 0.035);
+        for (let i = -2; i <= 2; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, h * 0.4);
+          ctx.lineTo(i * (w * 0.25), -h * 0.5);
+          ctx.stroke();
+        }
+
+        // Ojos de la máscara Spider-Man (blanco perlado con borde negro grueso)
+        ctx.save();
+        const eyeW = w * 0.38;
+        const eyeH = h * 0.32;
+        const eyeY = -h * 0.05;
+
+        // Ojo Izquierdo
+        drawSpiderManEye(ctx, -w * 0.22, eyeY, eyeW, eyeH, -0.2);
+        // Ojo Derecho
+        drawSpiderManEye(ctx, w * 0.22, eyeY, eyeW, eyeH, 0.2);
+        ctx.restore();
+      } else {
+        // ── TELARAÑA ARÁCNIDA DE PRECISIÓN EN LAS DEMÁS UÑAS ──────────────
+        const originX = nailIndex % 2 === 0 ? -w * 0.3 : w * 0.3;
+        const originY = h * 0.35;
+
+        ctx.strokeStyle = '#0A0A0A';
+        ctx.lineWidth = Math.max(1.2, w * 0.04);
+        ctx.lineCap = 'round';
+
+        // Líneas radiales que nacen del origen
+        const rayAngles = [-1.4, -1.0, -0.6, -0.2, 0.2, 0.6, 1.0, 1.4];
+        const rayLength = h * 1.2;
+
+        rayAngles.forEach((ang) => {
+          ctx.beginPath();
+          ctx.moveTo(originX, originY);
+          ctx.lineTo(originX + Math.sin(ang) * rayLength, originY - Math.cos(ang) * rayLength);
+          ctx.stroke();
+        });
+
+        // Arcos concéntricos de telaraña que conectan los rayos
+        const webRadii = [h * 0.2, h * 0.4, h * 0.62, h * 0.85];
+        webRadii.forEach((r) => {
+          ctx.beginPath();
+          for (let i = 0; i < rayAngles.length - 1; i++) {
+            const a1 = rayAngles[i];
+            const a2 = rayAngles[i + 1];
+            const x1 = originX + Math.sin(a1) * r;
+            const y1 = originY - Math.cos(a1) * r;
+            const x2 = originX + Math.sin(a2) * r;
+            const y2 = originY - Math.cos(a2) * r;
+
+            const midA = (a1 + a2) / 2;
+            const curveSag = r * 0.88; // Sag hacia el centro
+            const cx = originX + Math.sin(midA) * curveSag;
+            const cy = originY - Math.cos(midA) * curveSag;
+
+            if (i === 0) ctx.moveTo(x1, y1);
+            ctx.quadraticCurveTo(cx, cy, x2, y2);
+          }
+          ctx.stroke();
+        });
+
+        // Detalle de acento azul zafiro en la punta o cutícula
+        if (nailIndex === 3 || nailIndex === 4) {
+          ctx.strokeStyle = 'rgba(30, 58, 138, 0.6)';
+          ctx.lineWidth = Math.max(2, w * 0.08);
+          ctx.beginPath();
+          ctx.arc(0, h * 0.35, w * 0.35, 0, Math.PI);
+          ctx.stroke();
+        }
+      }
+    } else if (design.themeKey === 'glazed-donut') {
+      // Brillo cromo nacarado iridiscente Hailey Bieber
+      const chromeGrad = ctx.createLinearGradient(-w, -h, w, h);
+      chromeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+      chromeGrad.addColorStop(0.3, 'rgba(235, 245, 255, 0.35)');
+      chromeGrad.addColorStop(0.6, 'rgba(255, 230, 245, 0.5)');
+      chromeGrad.addColorStop(1, 'rgba(240, 255, 250, 0.65)');
+      ctx.fillStyle = chromeGrad;
+      ctx.fillRect(-w, -h * 1.5, w * 2, h * 3);
+    } else if (design.themeKey === 'velvet-cat-eye') {
+      // Reflejo magnético terciopelo 3D en diagonal
+      const catEyeGrad = ctx.createLinearGradient(-w * 0.6, -h * 0.6, w * 0.6, h * 0.6);
+      catEyeGrad.addColorStop(0, 'rgba(74, 14, 23, 0.95)');
+      catEyeGrad.addColorStop(0.46, 'rgba(229, 195, 120, 0.85)');
+      catEyeGrad.addColorStop(0.52, 'rgba(255, 255, 255, 0.95)');
+      catEyeGrad.addColorStop(0.58, 'rgba(155, 34, 66, 0.9)');
+      catEyeGrad.addColorStop(1, 'rgba(74, 14, 23, 0.95)');
+      ctx.fillStyle = catEyeGrad;
+      ctx.fillRect(-w, -h * 1.5, w * 2, h * 3);
+    } else if (design.themeKey === 'marble-gold') {
+      // Mármol de Carrara con vetas orgánicas y pan de oro
+      ctx.strokeStyle = 'rgba(130, 130, 140, 0.45)';
+      ctx.lineWidth = Math.max(1.5, w * 0.045);
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.4, h * 0.35);
+      ctx.bezierCurveTo(0, 0, -w * 0.2, -h * 0.2, w * 0.35, -h * 0.42);
+      ctx.stroke();
+
+      // Hojuelas de Pan de Oro 24K en relieve
+      ctx.fillStyle = '#D4AF37';
+      ctx.beginPath();
+      ctx.arc(-w * 0.12, -h * 0.1, w * 0.1, 0, Math.PI * 2);
+      ctx.arc(w * 0.22, h * 0.18, w * 0.08, 0, Math.PI * 2);
+      ctx.arc(-w * 0.25, h * 0.28, w * 0.06, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (design.themeKey === 'cyber-chrome') {
+      // Francés invertido plata líquida
+      ctx.fillStyle = '#CBD5E1';
+      ctx.beginPath();
+      ctx.ellipse(0, -h * 0.4, w * 0.48, h * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (design.themeKey === 'baby-boomer-bride') {
+      // Cristal Swarovski en el dedo anular
+      if (isAccent) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(0, h * 0.35, Math.max(3, w * 0.1), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#D4AF37';
+        ctx.beginPath();
+        ctx.arc(0, h * 0.35, Math.max(1.2, w * 0.04), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (design.themeKey === 'emerald-glam') {
+      // Destellos dorados en el borde libre
+      ctx.fillStyle = '#E5C378';
+      ctx.beginPath();
+      ctx.arc(w * 0.2, -h * 0.3, w * 0.07, 0, Math.PI * 2);
+      ctx.arc(-w * 0.15, -h * 0.25, w * 0.05, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // ── 3. BRILLO DE TOP COAT GEL UV ESPEJO (SPECULAR HIGHLIGHT) ───────────
+    const glossGrad = ctx.createLinearGradient(-w * 0.4, 0, w * 0.4, 0);
+    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    glossGrad.addColorStop(0.38, 'rgba(255, 255, 255, 0.55)');
+    glossGrad.addColorStop(0.52, 'rgba(255, 255, 255, 0.85)');
+    glossGrad.addColorStop(0.78, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = glossGrad;
+    ctx.fillRect(-w * 0.25, -h * 1.5, w * 0.42, h * 3);
+
+    // ── 4. LÚNULA & CUTÍCULA SOMBREADA PARA INSERCIÓN ANATÓMICA ─────────────
+    ctx.strokeStyle = adjustBrightness(tone.hex, -38);
+    ctx.lineWidth = Math.max(1.5, w * 0.04);
+    ctx.beginPath();
+    ctx.arc(0, h / 2, w * 0.46, 0, Math.PI);
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  // Helper para dibujar los ojos angulados de Spider-Man
+  function drawSpiderManEye(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    angle: number
+  ) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+
+    // Silueta del ojo triangular-angulada
+    ctx.beginPath();
+    ctx.moveTo(0, -h / 2);
+    ctx.quadraticCurveTo(w * 0.6, -h * 0.1, w * 0.4, h / 2);
+    ctx.quadraticCurveTo(-w * 0.2, h * 0.35, -w * 0.5, -h * 0.1);
+    ctx.closePath();
+
+    // Relleno blanco con ligero destello plateado
+    const eyeGrad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+    eyeGrad.addColorStop(0, '#FFFFFF');
+    eyeGrad.addColorStop(0.7, '#F8FAFC');
+    eyeGrad.addColorStop(1, '#E2E8F0');
+    ctx.fillStyle = eyeGrad;
+    ctx.fill();
+
+    // Borde negro grueso estilizado
+    ctx.strokeStyle = '#050505';
+    ctx.lineWidth = Math.max(2, w * 0.2);
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
   // Helper para ajustar brillo de colores hex
   function adjustBrightness(col: string, percent: number) {
-    let num = parseInt(col.replace('#', ''), 16);
-    let amt = Math.round(2.55 * percent);
-    let R = (num >> 16) + amt;
-    let G = ((num >> 8) & 0x00ff) + amt;
-    let B = (num & 0x0000ff) + amt;
+    let clean = col.replace('#', '');
+    if (clean.length === 3) {
+      clean = clean.split('').map((c) => c + c).join('');
+    }
+    const num = parseInt(clean, 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = ((num >> 8) & 0x00ff) + amt;
+    const B = (num & 0x0000ff) + amt;
     return (
       '#' +
       (
@@ -637,19 +893,30 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
     );
   }
 
-  // Render inicial al cargar o cambiar parámetros
+  // Renderizar al cambiar estados
   useEffect(() => {
-    renderNailArtOnCanvas(capturedImage, activeDesign, selectedSkinTone, selectedShape);
-  }, [capturedImage, activeDesign, selectedSkinTone, selectedShape, selectedLength]);
+    renderNailArt();
+  }, [
+    capturedImage,
+    activeDesign,
+    selectedSkinTone,
+    selectedShape,
+    selectedLength,
+    viewMode,
+    calibOffsetY,
+    calibOffsetX,
+    calibScale,
+    calibSpread,
+    calibCurve,
+  ]);
 
-  // Enviar Prompt en el Chat de la Estilista
+  // ── ENVIAR MENSAJE AL ASISTENTE DE IA ────────────────────────────────────
   const handleSendMessage = async () => {
     if (!inputPrompt.trim() || isGenerating) return;
 
     const userText = inputPrompt.trim();
     setInputPrompt('');
 
-    // Mensaje del usuario
     const newMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
@@ -660,78 +927,112 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "quiero un estilo esme
     setMessages((prev) => [...prev, newMsg]);
     setIsGenerating(true);
 
-    const key = getStoredGeminiApiKey();
+    const lower = userText.toLowerCase();
 
-    if (key) {
-      try {
-        const geminiResult = await generateNailDesignWithGemini(userText, capturedImage, key);
+    // 1. Reconocimiento rápido para la temática Spider-Man
+    if (
+      lower.includes('spider') ||
+      lower.includes('aracn') ||
+      lower.includes('arácn') ||
+      lower.includes('hombre araña') ||
+      lower.includes('marvel')
+    ) {
+      const spideyDesign = PRESET_DESIGNS[0];
+      setActiveDesign(spideyDesign);
 
-        // Mapear tono de piel sugerido si la IA lo detectó en la foto
-        if (geminiResult.detectedSkinTone) {
-          const lower = geminiResult.detectedSkinTone.toLowerCase();
-          if (lower.includes('porcelan') || lower.includes('rosad')) setSelectedSkinTone('porcelain');
-          else if (lower.includes('claro') || lower.includes('neutr')) setSelectedSkinTone('fair');
-          else if (lower.includes('cálid') || lower.includes('dorad')) setSelectedSkinTone('warm-tan');
-          else if (lower.includes('canela') || lower.includes('caramel')) setSelectedSkinTone('golden-caramel');
-          else if (lower.includes('moren') || lower.includes('éban') || lower.includes('profund')) setSelectedSkinTone('deep-bronze');
-        }
-
-        // Mapear silueta de uña sugerida
-        if (geminiResult.recommendedShape) {
-          const lower = geminiResult.recommendedShape.toLowerCase();
-          if (lower.includes('almen')) setSelectedShape('almond');
-          else if (lower.includes('coffin') || lower.includes('bailar')) setSelectedShape('coffin');
-          else if (lower.includes('cuadr')) setSelectedShape('square');
-          else if (lower.includes('oval')) setSelectedShape('oval');
-          else if (lower.includes('stiletto') || lower.includes('afil')) setSelectedShape('stiletto');
-          else if (lower.includes('cort') || lower.includes('natur')) setSelectedShape('natural-short');
-        }
-
-        const customDesign: PresetDesign = {
-          id: `gemini-${Date.now()}`,
-          name: geminiResult.designName || `Diseño Alta Costura`,
-          category: 'Google Gemini 2.0 Flash',
-          prompt: userText,
-          description: geminiResult.description || `Diseño exclusivo analizado para la anatomía y tono de piel del cliente.`,
-          difficulty: geminiResult.difficulty || 'Intermedio',
-          estimatedTime: geminiResult.estimatedTime || '65 min',
-          suggestedPrice: 38,
-          palette: geminiResult.palette && geminiResult.palette.length > 0 ? geminiResult.palette : [
-            { name: 'Color Primario', hex: '#D4AF37' },
-            { name: 'Base Nude', hex: '#EED9C4' },
-            { name: 'Acento Gloss', hex: '#FFFFFF' },
-          ],
-          accentFeatures: [geminiResult.technique, geminiResult.stylistAdvice].filter(Boolean),
-        };
-
-        setActiveDesign(customDesign);
-        renderNailArtOnCanvas(capturedImage, customDesign, selectedSkinTone, selectedShape);
-
+      setTimeout(() => {
         const aiReply: ChatMessage = {
           id: (Date.now() + 1).toString(),
           sender: 'assistant',
-          text: `✨ **${customDesign.name}**
-*(Diseño generado en tiempo real con Google Gemini 2.0 Flash)*
+          text: `🕷️ **¡Activando ${spideyDesign.name}!**
+          
+He plasmado el diseño de Spider-Man con base rojo rubí metálico profundo, telarañas geométricas trazadas a mano y la icónica máscara arácnida en relieve sobre la uña de acento (anular).
+          
+💅 **Técnica en mesa:** ${spideyDesign.stylistNotes}
+⏱️ **Tiempo de aplicación:** ${spideyDesign.estimatedTime} · **Dificultad:** ${spideyDesign.difficulty}
+🎨 **Paleta de esmaltes:** ${spideyDesign.palette.map((p) => p.name).join(', ')}`,
+          timestamp: 'Ahora',
+          designPreview: spideyDesign,
+        };
+
+        setMessages((prev) => [...prev, aiReply]);
+        setIsGenerating(false);
+      }, 500);
+      return;
+    }
+
+    // 2. Consulta con Google Gemini (usando la clave maestra global sin pedir key al usuario)
+    try {
+      const geminiResult = await generateNailDesignWithGemini(userText, capturedImage);
+
+      // Mapear tono de piel sugerido
+      if (geminiResult.detectedSkinTone) {
+        const skLower = geminiResult.detectedSkinTone.toLowerCase();
+        if (skLower.includes('porcelan') || skLower.includes('rosad')) setSelectedSkinTone('porcelain');
+        else if (skLower.includes('claro') || skLower.includes('neutr')) setSelectedSkinTone('fair');
+        else if (skLower.includes('cálid') || skLower.includes('dorad')) setSelectedSkinTone('warm-tan');
+        else if (skLower.includes('canela') || skLower.includes('caramel')) setSelectedSkinTone('golden-caramel');
+        else if (skLower.includes('moren') || skLower.includes('éban') || skLower.includes('profund')) setSelectedSkinTone('deep-bronze');
+      }
+
+      // Mapear silueta de uña sugerida
+      if (geminiResult.recommendedShape) {
+        const shLower = geminiResult.recommendedShape.toLowerCase();
+        if (shLower.includes('almen')) setSelectedShape('almond');
+        else if (shLower.includes('coffin') || shLower.includes('bailar')) setSelectedShape('coffin');
+        else if (shLower.includes('cuadr')) setSelectedShape('square');
+        else if (shLower.includes('oval')) setSelectedShape('oval');
+        else if (shLower.includes('stiletto') || shLower.includes('afil')) setSelectedShape('stiletto');
+        else if (shLower.includes('cort') || shLower.includes('natur')) setSelectedShape('natural-short');
+      }
+
+      const customDesign: PresetDesign = {
+        id: `gemini-${Date.now()}`,
+        themeKey: 'custom',
+        name: geminiResult.designName || `Creación de Alta Costura`,
+        category: 'GlamOS Stylist AI',
+        prompt: userText,
+        description: geminiResult.description || `Diseño exclusivo analizado para la anatomía y tono de piel del cliente.`,
+        difficulty: geminiResult.difficulty || 'Intermedio',
+        estimatedTime: geminiResult.estimatedTime || '65 min',
+        palette:
+          geminiResult.palette && geminiResult.palette.length > 0
+            ? geminiResult.palette
+            : [
+                { name: 'Color Primario', hex: '#D4AF37' },
+                { name: 'Base Nude', hex: '#EED9C4' },
+                { name: 'Acento Gloss', hex: '#FFFFFF' },
+              ],
+        accentFeatures: [geminiResult.technique, geminiResult.stylistAdvice].filter(Boolean),
+        stylistNotes: geminiResult.stylistAdvice || 'Aplica base de adherencia y cura en lámpara UV/LED.',
+      };
+
+      setActiveDesign(customDesign);
+
+      const aiReply: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'assistant',
+        text: `✨ **${customDesign.name}**
+*(Diseño generado y adaptado en tiempo real)*
 
 ${geminiResult.description}
 
 💅 **Técnica recomendada:** ${geminiResult.technique}
 🎯 **Consejo para la manicurista:** ${geminiResult.stylistAdvice}
 ⏱️ **Tiempo estimado:** ${geminiResult.estimatedTime} · **Dificultad:** ${geminiResult.difficulty}
-🎨 **Paleta de colores:** ${customDesign.palette.map((p) => p.name).join(', ')}`,
-          timestamp: 'Ahora',
-          designPreview: customDesign,
-        };
+🎨 **Paleta de esmaltes:** ${customDesign.palette.map((p) => p.name).join(', ')}`,
+        timestamp: 'Ahora',
+        designPreview: customDesign,
+      };
 
-        setMessages((prev) => [...prev, aiReply]);
-        setIsGenerating(false);
-        return;
-      } catch (geminiError: any) {
-        console.warn('Error en consulta con Gemini, aplicando generador inteligente local:', geminiError);
-      }
+      setMessages((prev) => [...prev, aiReply]);
+      setIsGenerating(false);
+      return;
+    } catch (geminiError: any) {
+      console.warn('Fallback a catálogo inteligente:', geminiError);
     }
 
-    // Motor Procedural Inteligente Local (Fallback Offline o Sin Clave)
+    // 3. Fallback inteligente a catálogo predeterminado
     setTimeout(() => {
       let matched = PRESET_DESIGNS.find(
         (p) =>
@@ -742,100 +1043,103 @@ ${geminiResult.description}
       if (!matched) {
         matched = {
           id: `custom-${Date.now()}`,
-          name: `Diseño: "${userText.slice(0, 30)}..."`,
+          themeKey: 'custom',
+          name: `Diseño: "${userText.slice(0, 32)}..."`,
           category: 'Creación Exclusiva GlamOS',
           prompt: userText,
-          description: `Diseño a medida generado según la petición: "${userText}".`,
+          description: `Diseño a medida adaptado para la clienta según su petición: "${userText}".`,
           difficulty: 'Intermedio',
           estimatedTime: '70 min',
-          suggestedPrice: 35,
           palette: [
             { name: 'Color Primario', hex: '#800020' },
             { name: 'Acento Champaña', hex: '#D4AF37' },
             { name: 'Nude Base', hex: '#F5E6D3' },
           ],
           accentFeatures: ['Técnica Mixta', 'Acabado de Salón VIP', 'Capa Gloss Blindada'],
+          stylistNotes: 'Aplica técnica de esmaltado semipermanente con doble capa y sellado de bordes libres.',
         };
       }
 
       setActiveDesign(matched);
-      renderNailArtOnCanvas(capturedImage, matched, selectedSkinTone, selectedShape);
 
       const aiReply: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
-        text: `¡Listo! He plasmado el diseño "${matched.name}" adaptándolo al tono ${SKIN_TONES.find((s) => s.id === selectedSkinTone)?.name} y forma ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}. 
+        text: `¡Listo! He plasmado el diseño **"${matched.name}"** adaptándolo al tono ${SKIN_TONES.find((s) => s.id === selectedSkinTone)?.name} y silueta ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}. 
         
-He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Puedes descargarlo en PNG de alta definición o enviárselo a tu clienta por WhatsApp.${
-          !key
-            ? '\n\n💡 *Tip VIP:* Puedes conectar tu clave gratuita de Google Gemini en el botón superior para analizar la foto real de la mano con visión multimodal 100% gratis.'
-            : ''
-        }`,
+He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Puedes descargarlo en PNG de alta definición o enviarlo a tu clienta por WhatsApp.`,
         timestamp: 'Ahora',
         designPreview: matched,
       };
 
       setMessages((prev) => [...prev, aiReply]);
       setIsGenerating(false);
-    }, 800);
+    }, 500);
   };
 
-  // Descargar Diseño en PNG de Alta Calidad con Marca de Agua GlamOS
+  // ── DESCARGAR DISEÑO EN PNG DE ALTA CALIDAD (SIN VALORES DE COSTO) ────────
   const handleDownloadPng = () => {
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
 
-    // Crear canvas de exportación con membrete editorial de salón
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width = 1080;
-    exportCanvas.height = 1350; // Proporción Instagram / Portafolio
+    exportCanvas.height = 1350; // Proporción editorial de Instagram / Portafolio
     const eCtx = exportCanvas.getContext('2d');
     if (!eCtx) return;
 
     // Fondo oscuro de lujo
-    eCtx.fillStyle = '#09090B';
+    eCtx.fillStyle = '#09080C';
     eCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-    // Dibujar render de la mano centrado
-    eCtx.drawImage(canvas, 90, 160, 900, 900);
 
     // Cabecera Editorial
     eCtx.fillStyle = '#D4AF37';
-    eCtx.font = 'bold 24px Cormorant Garamond, serif';
-    eCtx.fillText('GLAMOS HAUTE SALON SUITE · VIRTUAL NAIL ART', 90, 80);
+    eCtx.font = 'bold 22px Cormorant Garamond, serif';
+    eCtx.fillText('GLAMOS HAUTE SALON SUITE · VIRTUAL NAIL ART', 90, 75);
 
     eCtx.fillStyle = '#FFFFFF';
-    eCtx.font = 'bold 36px Cormorant Garamond, serif';
+    eCtx.font = 'bold 38px Cormorant Garamond, serif';
     eCtx.fillText(activeDesign.name, 90, 125);
 
-    // Pie de Ficha Técnica
+    // Dibujar render central
+    eCtx.drawImage(canvas, 90, 160, 900, 900);
+
+    // Pie de Ficha Técnica Profesional (SIN PRECIOS NI COSTOS)
     eCtx.fillStyle = '#141218';
-    eCtx.roundRect(90, 1090, 900, 190, 24);
+    eCtx.roundRect(90, 1085, 900, 195, 24);
     eCtx.fill();
-    eCtx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
+    eCtx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
+    eCtx.lineWidth = 1.5;
     eCtx.stroke();
 
     eCtx.fillStyle = '#E5C378';
     eCtx.font = 'bold 18px Plus Jakarta Sans, sans-serif';
-    eCtx.fillText('FICHA TÉCNICA PARA MANICURISTA', 120, 1135);
+    eCtx.fillText('FICHA TÉCNICA DE MANICURA PROFESIONAL', 120, 1125);
 
     eCtx.fillStyle = '#FFFFFF';
-    eCtx.font = '16px Plus Jakarta Sans, sans-serif';
-    eCtx.fillText(`Forma: ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name} · Dificultad: ${activeDesign.difficulty} · Tiempo: ${activeDesign.estimatedTime}`, 120, 1175);
-    eCtx.fillText(`Precio Sugerido en Salón: ${formatCurrency(activeDesign.suggestedPrice)}`, 120, 1210);
+    eCtx.font = '15px Plus Jakarta Sans, sans-serif';
+    eCtx.fillText(
+      `Silueta: ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name} · Dificultad: ${activeDesign.difficulty} · Duración: ${activeDesign.estimatedTime}`,
+      120,
+      1165
+    );
 
-    // Paleta de colores en círculos
+    eCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    eCtx.font = '13px Plus Jakarta Sans, sans-serif';
+    const cleanNotes = activeDesign.stylistNotes.length > 95 ? activeDesign.stylistNotes.slice(0, 95) + '...' : activeDesign.stylistNotes;
+    eCtx.fillText(`Técnica en Mesa: ${cleanNotes}`, 120, 1200);
+
+    // Muestras de la Paleta de Colorimetría
     activeDesign.palette.forEach((p, i) => {
       eCtx.fillStyle = p.hex;
       eCtx.beginPath();
-      eCtx.arc(130 + i * 45, 1245, 12, 0, Math.PI * 2);
+      eCtx.arc(135 + i * 55, 1245, 14, 0, Math.PI * 2);
       eCtx.fill();
       eCtx.strokeStyle = '#FFFFFF';
-      eCtx.lineWidth = 1;
+      eCtx.lineWidth = 1.5;
       eCtx.stroke();
     });
 
-    // Descarga en formato PNG
     const link = document.createElement('a');
     link.download = `GlamOS-NailArt-${activeDesign.name.replace(/\s+/g, '-')}.png`;
     link.href = exportCanvas.toDataURL('image/png');
@@ -847,9 +1151,10 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
     const text = `¡Hola! ✨ Te comparto la simulación exclusiva de tu diseño de uñas en GlamOS:
 
 💅 *${activeDesign.name}*
-✨ *Forma:* ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}
+✨ *Forma Esculpida:* ${NAIL_SHAPES.find((s) => s.id === selectedShape)?.name}
 🎨 *Estilo:* ${activeDesign.description}
-⏱️ *Duración en salón:* ${activeDesign.estimatedTime}
+⏱️ *Duración en mesa:* ${activeDesign.estimatedTime}
+🎨 *Paleta:* ${activeDesign.palette.map((p) => p.name).join(', ')}
 
 ¡Quedará espectacular en tus manos! Nos vemos en el salón. 💖`;
 
@@ -861,7 +1166,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
       {/* ── HEADER DE PÁGINA ─────────────────────────────────────────────── */}
       <PageHeader
         title="Nail Art Studio IA"
-        subtitle="Captura la mano de tu clienta, genera nail art hiperrealista adaptado a su tono de piel y exporta la ficha técnica en PNG."
+        subtitle="Captura la mano real de tu clienta, calibra y plasma diseños hiperrealistas adaptados a su tono de piel."
         badge="Alta Manicura Virtual"
         badgeVariant="gold"
         actions={
@@ -869,16 +1174,13 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
             <Button
               variant="outline"
               size="sm"
-              onClick={handleOpenGeminiModal}
-              className={`text-xs font-bold border-amber-400/30 ${
-                geminiApiKey ? 'bg-amber-400/10 text-amber-300' : 'text-neutral-300 hover:text-white'
+              onClick={() => setViewMode((prev) => (prev === 'hand' ? 'macro' : 'hand'))}
+              className={`text-xs font-bold ${
+                viewMode === 'macro' ? 'bg-amber-400/20 text-amber-300 border-amber-400/50' : ''
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
-              <span>{geminiApiKey ? 'Google Gemini Activo' : 'Conectar Clave Google'}</span>
-              <Badge variant={geminiApiKey ? 'gold' : 'outline'} dot className="ml-1.5 scale-90">
-                {geminiApiKey ? '100% Gratis' : 'Offline'}
-              </Badge>
+              <ZoomIn className="w-4 h-4 mr-1.5 text-amber-400" />
+              <span>{viewMode === 'macro' ? 'Ver Mano Completa' : 'Zoom Macro 5 Uñas'}</span>
             </Button>
             <Button
               variant="outline"
@@ -887,16 +1189,16 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
               className="text-xs font-bold"
             >
               <Download className="w-4 h-4 mr-1.5 text-amber-400" />
-              <span>Descargar PNG</span>
+              <span>Descargar PNG 4K</span>
             </Button>
             <Button
               variant="glam"
               size="sm"
-              onClick={() => navigate('/sales/new')}
+              onClick={handleShareWhatsApp}
               className="text-xs font-bold"
             >
-              <PlusCircle className="w-4 h-4 mr-1.5" />
-              <span>Cobrar en Salón</span>
+              <MessageCircle className="w-4 h-4 mr-1.5" />
+              <span>Compartir WhatsApp</span>
             </Button>
           </div>
         }
@@ -910,16 +1212,21 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
             <CardHeader className="pb-3 border-b border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <CardTitle className="text-base">Lienzo Biométrico de la Mano</CardTitle>
+                <CardTitle className="text-base">
+                  {viewMode === 'macro' ? 'Lienzo Macro: Primer Plano de Uñas' : 'Lienzo Biométrico de la Mano'}
+                </CardTitle>
               </div>
 
               {/* Selector de Modo de Entrada */}
               <div className="flex items-center p-1 rounded-xl bg-white/[0.04] border border-white/10 text-xs">
                 <button
                   type="button"
-                  onClick={() => setCaptureMode('camera')}
+                  onClick={() => {
+                    setCapturedImage(null);
+                    setCaptureMode('camera');
+                  }}
                   className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
-                    captureMode === 'camera'
+                    captureMode === 'camera' && !capturedImage
                       ? 'bg-amber-400 text-neutral-950 shadow-xs'
                       : 'text-neutral-400 hover:text-white'
                   }`}
@@ -937,13 +1244,14 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   }`}
                 >
                   <Upload className="w-3.5 h-3.5" />
-                  <span>Galería</span>
+                  <span>Subir Foto</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setCapturedImage(null);
                     setCaptureMode('preset');
+                    setShowCalibrationPanel(false);
                   }}
                   className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
                     captureMode === 'preset'
@@ -952,7 +1260,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
-                  <span>Mano Virtual</span>
+                  <span>Mano Modelo</span>
                 </button>
               </div>
             </CardHeader>
@@ -970,16 +1278,16 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                       className="w-full h-full object-cover"
                     />
 
-                    {/* Silueta Guía de la Mano */}
+                    {/* Guía Silueta de la Mano */}
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <div className="w-64 h-80 rounded-full border-2 border-dashed border-amber-400/50 animate-pulse flex flex-col items-center justify-center p-4 text-center">
-                        <span className="text-[11px] font-bold text-amber-300 bg-neutral-950/80 px-3 py-1 rounded-full border border-amber-400/30">
-                          Coloca la mano aquí extendida
+                      <div className="w-64 h-84 rounded-full border-2 border-dashed border-amber-400/60 animate-pulse flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-[11px] font-bold text-amber-300 bg-neutral-950/85 px-3 py-1.5 rounded-full border border-amber-400/40">
+                          Alinea los dedos aquí extendidos
                         </span>
                       </div>
                     </div>
 
-                    {/* Botón Disparador Flotante */}
+                    {/* Controles de Disparo */}
                     <div className="absolute bottom-5 inset-x-0 flex items-center justify-center gap-4 z-10">
                       <button
                         type="button"
@@ -1020,6 +1328,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                     onClick={() => {
                       setCapturedImage(null);
                       setCaptureMode('camera');
+                      setShowCalibrationPanel(false);
                     }}
                     className="absolute top-4 right-4 py-1.5 px-3 rounded-xl bg-neutral-950/80 border border-white/20 text-xs text-neutral-300 hover:text-white flex items-center gap-1.5 backdrop-blur-md"
                   >
@@ -1028,9 +1337,25 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   </button>
                 )}
 
+                {/* Botón para alternar Calibrador Anatómico */}
+                {capturedImage && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCalibrationPanel(!showCalibrationPanel)}
+                    className={`absolute bottom-4 left-4 py-1.5 px-3 rounded-xl border text-xs font-bold flex items-center gap-1.5 backdrop-blur-md transition-all ${
+                      showCalibrationPanel
+                        ? 'bg-amber-400 text-neutral-950 border-amber-400 shadow-md'
+                        : 'bg-neutral-950/80 text-amber-300 border-amber-400/40 hover:bg-neutral-900'
+                    }`}
+                  >
+                    <Sliders className="w-3.5 h-3.5" />
+                    <span>{showCalibrationPanel ? 'Ocultar Calibrador' : 'Ajustar a las Uñas'}</span>
+                  </button>
+                )}
+
                 {/* Overlay de Carga de IA */}
                 {isGenerating && (
-                  <div className="absolute inset-0 bg-neutral-950/75 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20 animate-in fade-in">
+                  <div className="absolute inset-0 bg-neutral-950/80 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20 animate-in fade-in">
                     <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center animate-spin">
                       <Sparkles className="w-6 h-6" />
                     </div>
@@ -1038,7 +1363,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                       Esculpiendo Nail Art Hiperrealista...
                     </span>
                     <span className="text-xs text-neutral-400">
-                      Adaptando tonos, reflejos y cutículas en tiempo real
+                      Adaptando trazos, reflejos y cutículas en tiempo real
                     </span>
                   </div>
                 )}
@@ -1053,7 +1378,97 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                 onChange={handleFileUpload}
               />
 
-              {/* ── BARRA DE CALIBRACIÓN ANATÓMICA ─────────────────────────── */}
+              {/* ── PANEL DE CALIBRACIÓN ANATÓMICA SOBRE MANO REAL ─────────── */}
+              {capturedImage && showCalibrationPanel && (
+                <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-400/30 space-y-3 animate-in fade-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-400/20">
+                    <div className="flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-bold text-amber-200">
+                        Calibración Anatómica sobre la Mano de la Clienta
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleResetCalibration}
+                      className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 underline"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Restablecer</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {/* Offset Vertical Y */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] text-neutral-300">
+                        <span>Posición Vertical (Cutícula)</span>
+                        <span className="font-mono text-amber-400">{calibOffsetY}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="-140"
+                        max="140"
+                        value={calibOffsetY}
+                        onChange={(e) => setCalibOffsetY(Number(e.target.value))}
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Offset Horizontal X */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] text-neutral-300">
+                        <span>Posición Horizontal</span>
+                        <span className="font-mono text-amber-400">{calibOffsetX}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="-120"
+                        max="120"
+                        value={calibOffsetX}
+                        onChange={(e) => setCalibOffsetX(Number(e.target.value))}
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Escala / Tamaño de Uña */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] text-neutral-300">
+                        <span>Tamaño / Escala de Uñas</span>
+                        <span className="font-mono text-amber-400">{calibScale.toFixed(2)}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.6"
+                        max="1.6"
+                        step="0.05"
+                        value={calibScale}
+                        onChange={(e) => setCalibScale(Number(e.target.value))}
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Apertura de Dedos */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] text-neutral-300">
+                        <span>Separación de Dedos</span>
+                        <span className="font-mono text-amber-400">{calibSpread.toFixed(2)}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.7"
+                        max="1.4"
+                        step="0.02"
+                        value={calibSpread}
+                        onChange={(e) => setCalibSpread(Number(e.target.value))}
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── SELECTOR DE FORMA & TONO DE PIEL ───────────────────────── */}
               <div className="space-y-3.5 pt-2">
                 {/* Tono de Piel */}
                 <div>
@@ -1076,7 +1491,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                         }`}
                       >
                         <span
-                          className="w-5 h-5 rounded-lg border border-white/20 shrink-0"
+                          className="w-5 h-5 rounded-lg border border-white/20 shrink-0 shadow-xs"
                           style={{ backgroundColor: tone.hex }}
                         />
                         <span className="text-[11px]">{tone.name}</span>
@@ -1114,7 +1529,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
             </CardContent>
           </Card>
 
-          {/* ── FICHA TÉCNICA DEL DISEÑO ACTIVO ────────────────────────────── */}
+          {/* ── FICHA TÉCNICA DEL DISEÑO ACTIVO (CERO VALORES DE COSTO) ────── */}
           <Card variant="glass" className="border-amber-400/20 bg-gradient-to-br from-neutral-900/90 to-neutral-950">
             <CardContent className="p-5 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
@@ -1133,18 +1548,29 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
 
                 <div className="text-left sm:text-right shrink-0">
                   <span className="text-[10px] text-neutral-400 uppercase font-bold block">
-                    Precio Sugerido
+                    Tiempo de Ejecución
                   </span>
-                  <span className="font-editorial text-2xl font-extrabold text-amber-300 block">
-                    {formatCurrency(activeDesign.suggestedPrice)}
+                  <span className="font-editorial text-xl font-extrabold text-amber-300 block">
+                    ⏱️ {activeDesign.estimatedTime}
                   </span>
                   <span className="text-[11px] text-neutral-400 font-medium">
-                    ⏱️ {activeDesign.estimatedTime}
+                    Nivel: {activeDesign.difficulty}
                   </span>
                 </div>
               </div>
 
-              {/* Paleta de Colorimetría Recomendada */}
+              {/* Consejos para la Manicurista */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 text-xs text-neutral-300 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-[#F5E5C4]">
+                  <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Instrucciones Técnicas en Mesa:</span>
+                </div>
+                <p className="leading-relaxed text-neutral-300 text-xs">
+                  {activeDesign.stylistNotes}
+                </p>
+              </div>
+
+              {/* Paleta de Colorimetría */}
               <div>
                 <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">
                   Paleta de Esmaltes & Pigmentos
@@ -1166,7 +1592,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                 </div>
               </div>
 
-              {/* Botones de Acción Inmediata */}
+              {/* Botones de Acción */}
               <div className="flex items-center gap-2.5 pt-2">
                 <Button
                   variant="outline"
@@ -1175,7 +1601,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   className="flex-1 font-bold text-xs"
                 >
                   <Download className="w-4 h-4 mr-1.5 text-amber-400" />
-                  <span>Descargar PNG 4K</span>
+                  <span>Descargar Ficha en PNG 4K</span>
                 </Button>
 
                 <Button
@@ -1185,7 +1611,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   className="flex-1 font-bold text-xs text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40"
                 >
                   <MessageCircle className="w-4 h-4 mr-1.5" />
-                  <span>Enviar por WhatsApp</span>
+                  <span>Enviar a Clienta (WhatsApp)</span>
                 </Button>
               </div>
             </CardContent>
@@ -1196,18 +1622,18 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
         <div className="lg:col-span-5 space-y-4 flex flex-col">
           {/* ── CHAT CON EL ASISTENTE DE NAIL ART ──────────────────────────── */}
           <Card variant="glass" className="flex-1 flex flex-col h-[520px] border-amber-400/20">
-            <CardHeader className="pb-3 border-b border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <CardHeader className="pb-3 border-b border-white/[0.08] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 flex items-center justify-center font-bold text-xs">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 flex items-center justify-center font-bold text-xs shadow-xs">
                   AI
                 </div>
                 <div>
                   <CardTitle className="text-sm">GlamOS Nail Stylist AI</CardTitle>
-                  <span className="text-[10px] text-amber-400 font-semibold block">En Línea · Listo para Crear</span>
+                  <span className="text-[10px] text-amber-400 font-semibold block">Visión Multimodal & Colorimetría</span>
                 </div>
               </div>
               <Badge variant="gold" className="text-[10px]">
-                Modo Multimodal
+                En Línea
               </Badge>
             </CardHeader>
 
@@ -1256,7 +1682,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   type="text"
                   value={inputPrompt}
                   onChange={(e) => setInputPrompt(e.target.value)}
-                  placeholder="Describe un diseño, color o evento..."
+                  placeholder="Ej. Spiderman, cromo aperlado, ojo de gato..."
                   disabled={isGenerating}
                   className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400 transition-colors"
                 />
@@ -1285,10 +1711,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                 {PRESET_DESIGNS.map((preset) => (
                   <div
                     key={preset.id}
-                    onClick={() => {
-                      setActiveDesign(preset);
-                      renderNailArtOnCanvas(capturedImage, preset, selectedSkinTone, selectedShape);
-                    }}
+                    onClick={() => setActiveDesign(preset)}
                     className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${
                       activeDesign.id === preset.id
                         ? 'bg-amber-400/15 border-amber-400/50'
@@ -1317,8 +1740,8 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="font-editorial text-sm font-bold text-amber-300 block">
-                        {formatCurrency(preset.suggestedPrice)}
+                      <span className="text-[11px] text-amber-400 font-semibold block">
+                        ⏱️ {preset.estimatedTime}
                       </span>
                     </div>
                   </div>
@@ -1328,119 +1751,6 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
           </Card>
         </div>
       </div>
-
-      {/* ── MODAL FLOTANTE DE CONFIGURACIÓN CLAVE GOOGLE GEMINI (100% GRATIS) ── */}
-      {geminiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="relative w-full max-w-lg rounded-3xl bg-neutral-900 border border-amber-400/30 p-6 shadow-2xl space-y-4">
-            <button
-              onClick={() => setGeminiModalOpen(false)}
-              className="absolute top-5 right-5 text-neutral-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-amber-400/20 text-amber-400 flex items-center justify-center border border-amber-400/30">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-editorial text-2xl font-bold text-white flex items-center gap-2">
-                  Google AI Studio (Gemini 2.0)
-                </h3>
-                <p className="text-xs text-neutral-400">100% Gratis de por vida · Sin tarjeta de crédito</p>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-400/20 text-xs text-neutral-300 space-y-2">
-              <p className="leading-relaxed">
-                Google AI Studio te ofrece <strong>1,500 peticiones diarias totalmente gratuitas</strong> para analizar con visión artificial la foto de la mano de tu clienta y diseñar uñas adaptadas a su tono de piel y fisonomía en tiempo real.
-              </p>
-              <div>
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 underline font-semibold"
-                >
-                  <span>1. Clic aquí para generar tu clave en Google AI Studio (10 seg)</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] text-neutral-400 uppercase tracking-wider font-bold">
-                2. Pega tu Clave de API de Google (AIzaSy...)
-              </label>
-              <div className="relative">
-                <input
-                  type={showKeyText ? 'text' : 'password'}
-                  value={tempKeyInput}
-                  onChange={(e) => {
-                    setTempKeyInput(e.target.value);
-                    setKeyValidationStatus('idle');
-                  }}
-                  placeholder="AIzaSy..."
-                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-neutral-950 border border-white/10 text-white font-mono text-xs placeholder:text-neutral-600 focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/40"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKeyText(!showKeyText)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
-                >
-                  {showKeyText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {keyValidationStatus === 'success' && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs">
-                <Check className="w-4 h-4 shrink-0 text-emerald-400" />
-                <span>{keyValidationMsg}</span>
-              </div>
-            )}
-
-            {keyValidationStatus === 'error' && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-                <span>{keyValidationMsg}</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleTestModalKey}
-                disabled={!tempKeyInput.trim() || keyValidationStatus === 'testing'}
-                className="border-amber-400/30 text-amber-300 hover:bg-amber-400/10"
-              >
-                {keyValidationStatus === 'testing' ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Zap className="w-3.5 h-3.5 mr-1" />}
-                {keyValidationStatus === 'testing' ? 'Verificando...' : 'Probar Clave'}
-              </Button>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setGeminiModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="gold"
-                  size="sm"
-                  onClick={handleSaveModalKey}
-                  disabled={!tempKeyInput.trim()}
-                >
-                  Guardar y Activar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useCollection } from '../hooks/useCollection';
 import { useAuth } from '../auth/auth-context';
 import { getDatabase } from '../db/database';
 import { triggerSync } from '../db/sync';
+import { uploadLocalDataToNeon } from '../db/neon';
 import { formatCurrency, formatDate, ensureUuid, generateUuid } from '../lib/utils';
 import { Badge } from '../components/ui/Badge';
 import {
@@ -409,8 +410,11 @@ export function NewSalePage() {
         console.warn('Aviso persistiendo en RxDB:', dbErr);
       }
 
-      // 4. Sincronizar en la nube en segundo plano
+      // 4. Sincronizar en la nube en segundo plano (Neon Serverless + Sync)
       try {
+        if (orgId) {
+          uploadLocalDataToNeon(orgId).catch(console.warn);
+        }
         triggerSync();
       } catch {}
 

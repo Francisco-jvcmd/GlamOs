@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
 import { getDatabase } from '../db/database';
+import { uploadLocalDataToNeon } from '../db/neon';
 import { useAuth } from '../auth/auth-context';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -139,6 +140,10 @@ export function InventoryPage() {
         console.warn('Aviso sincronizando producto en RxDB:', dbErr);
       }
 
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
+      }
+
       setIsModalOpen(false);
       setSuccessMessage(editingProductId ? '¡Producto actualizado correctamente!' : '¡Producto agregado al inventario!');
       setTimeout(() => setSuccessMessage(null), 3500);
@@ -185,6 +190,9 @@ export function InventoryPage() {
           }
         }
       }
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
+      }
     } catch (err) {
       console.error('Error ajustando stock:', err);
     }
@@ -209,6 +217,9 @@ export function InventoryPage() {
             updated_at: new Date().toISOString(),
           });
         }
+      }
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
       }
       setSuccessMessage('Producto dado de baja del inventario.');
       setTimeout(() => setSuccessMessage(null), 3000);

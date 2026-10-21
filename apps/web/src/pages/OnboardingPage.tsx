@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth-context';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
 import { generateUuid } from '../lib/utils';
+import { executeNeonSql, pullAllDataFromNeon } from '../db/neon';
 import { Crown, Scissors, ArrowRight, Sparkles, Building2, KeyRound, Check, Copy } from 'lucide-react';
 
 export function OnboardingPage() {
@@ -63,7 +64,7 @@ export function OnboardingPage() {
         throw new Error('Error al conectar con el servidor.');
       }
     } catch {
-      // Fallback Offline-First Resiliente: crear salón localmente
+      // Fallback Offline-First Resiliente: crear salón directamente en Neon Serverless
       const randomCode = Math.floor(1000 + Math.random() * 9000);
       const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
       const localJoinCode = `GLAM-${randomCode}-${letter}`;
@@ -71,6 +72,25 @@ export function OnboardingPage() {
 
       localStorage.setItem('glamos_local_org_name', salonName.trim());
       localStorage.setItem('glamos_local_join_code', localJoinCode);
+
+      try {
+        await executeNeonSql(
+          `INSERT INTO organizations (id, business_name, join_code_hmac, join_code_expires_at, created_at, updated_at)
+           VALUES ($1, $2, $3, NOW() + INTERVAL '1 year', NOW(), NOW())
+           ON CONFLICT (id) DO UPDATE SET business_name = EXCLUDED.business_name`,
+          [localOrgId, salonName.trim(), localJoinCode]
+        );
+        if (user?.email) {
+          await executeNeonSql(
+            `INSERT INTO users (id, google_sub, email, full_name, role, organization_id, is_active, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, 'OWNER_ADMIN', $5, true, NOW(), NOW())
+             ON CONFLICT (google_sub) DO UPDATE SET organization_id = EXCLUDED.organization_id, role = 'OWNER_ADMIN'`,
+            [generateUuid(), user.sub || `sub_${Date.now()}`, user.email, user.email.split('@')[0], localOrgId]
+          );
+        }
+      } catch (neonErr) {
+        console.warn('Neon organization sync aviso:', neonErr);
+      }
 
       updateLocalUser('OWNER_ADMIN', localOrgId);
       setGeneratedCode(localJoinCode);
@@ -116,6 +136,33 @@ export function OnboardingPage() {
         throw new Error(errData.message || 'Código de invitación inválido o expirado.');
       }
     } catch {
+      // Intentar validación directa contra Neon Serverless
+      try {
+        const orgs = await executeNeonSql(
+          `SELECT id, business_name FROM organizations WHERE join_code_hmac = $1 LIMIT 1`,
+          [cleanCode]
+        );
+        if (orgs.length > 0) {
+          const org = orgs[0];
+          localStorage.setItem('glamos_local_join_code', cleanCode);
+          localStorage.setItem('glamos_local_org_name', org.business_name || 'Salón GlamOS');
+          updateLocalUser(joinRole, org.id);
+          if (user?.email) {
+            await executeNeonSql(
+              `INSERT INTO users (id, google_sub, email, full_name, role, organization_id, is_active, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+               ON CONFLICT (google_sub) DO UPDATE SET organization_id = EXCLUDED.organization_id, role = EXCLUDED.role`,
+              [generateUuid(), user.sub || `sub_${Date.now()}`, user.email, user.email.split('@')[0], joinRole, org.id]
+            ).catch(() => {});
+          }
+          await pullAllDataFromNeon(org.id);
+          navigate('/');
+          return;
+        }
+      } catch (neonJoinErr) {
+        console.warn('Aviso verificando código en Neon:', neonJoinErr);
+      }
+
       // Fallback Offline: Si el formato es válido GLAM-XXXX-X
       if (/^GLAM-\d{4}-[A-Z]$/.test(cleanCode) || cleanCode.length >= 6) {
         localStorage.setItem('glamos_local_join_code', cleanCode);

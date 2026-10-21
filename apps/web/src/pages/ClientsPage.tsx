@@ -4,6 +4,7 @@ import { useDatabase } from '../hooks/useDatabase';
 import { useAuth } from '../auth/auth-context';
 import { getDatabase } from '../db/database';
 import { triggerSync } from '../db/sync';
+import { uploadLocalDataToNeon } from '../db/neon';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -148,6 +149,9 @@ export function ClientsPage() {
       }
 
       try {
+        if (user?.org) {
+          uploadLocalDataToNeon(user.org).catch(console.warn);
+        }
         triggerSync();
       } catch {}
 
@@ -187,6 +191,9 @@ export function ClientsPage() {
       }
 
       try {
+        if (user?.org) {
+          uploadLocalDataToNeon(user.org).catch(console.warn);
+        }
         triggerSync();
       } catch {}
 

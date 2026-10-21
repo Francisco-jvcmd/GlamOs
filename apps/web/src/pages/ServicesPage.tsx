@@ -3,6 +3,7 @@ import { useAuth } from '../auth/auth-context';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
 import { getDatabase } from '../db/database';
+import { uploadLocalDataToNeon } from '../db/neon';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -111,6 +112,10 @@ export function ServicesPage() {
         console.warn('Aviso sincronizando en RxDB:', dbErr);
       }
 
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
+      }
+
       setIsModalOpen(false);
       setSuccessMessage(editingServiceId ? '¡Servicio actualizado correctamente!' : '¡Servicio guardado con éxito!');
       setTimeout(() => setSuccessMessage(null), 3500);
@@ -143,6 +148,9 @@ export function ServicesPage() {
             updated_at: new Date().toISOString(),
           });
         }
+      }
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
       }
       setSuccessMessage('Servicio eliminado del catálogo.');
       setTimeout(() => setSuccessMessage(null), 3000);

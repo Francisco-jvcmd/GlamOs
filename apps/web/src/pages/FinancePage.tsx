@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
 import { getDatabase } from '../db/database';
+import { uploadLocalDataToNeon } from '../db/neon';
 import { useAuth } from '../auth/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -140,6 +141,10 @@ export function FinancePage() {
         console.warn('Aviso sincronizando gasto en RxDB:', dbErr);
       }
 
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
+      }
+
       setIsModalOpen(false);
       setDescription('');
       setAmount('');
@@ -171,6 +176,9 @@ export function FinancePage() {
             updated_at: new Date().toISOString(),
           });
         }
+      }
+      if (user?.org) {
+        uploadLocalDataToNeon(user.org).catch(console.warn);
       }
       setSuccessMessage('Gasto eliminado.');
       setTimeout(() => setSuccessMessage(null), 3000);
