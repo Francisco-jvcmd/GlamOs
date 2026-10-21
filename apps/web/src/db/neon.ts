@@ -48,11 +48,11 @@ export async function syncGoogleUserWithNeon(googleUser: {
   name?: string;
 }): Promise<NeonUserSession> {
   const email = (googleUser.email || '').trim().toLowerCase();
-  const sub = googleUser.sub || `google_${Date.now()}`;
+  const sub = googleUser.sub || `google_${email}`;
   const fullName = googleUser.name || email.split('@')[0] || 'Usuario GlamOS';
 
-  // 1. Buscar si el usuario ya existe en Neon
   try {
+    // 1. Buscar si el usuario ya existe en Neon por correo o sub
     const existingUsers = await executeNeonSql<any>(
       `SELECT u.id, u.email, u.full_name, u.role, u.organization_id, o.business_name, o.id as org_id
        FROM users u
@@ -64,6 +64,12 @@ export async function syncGoogleUserWithNeon(googleUser: {
 
     if (existingUsers.length > 0 && existingUsers[0].organization_id) {
       const u = existingUsers[0];
+      // Si el salón existe en la base de datos central, asegurar que el usuario esté actualizado
+      await executeNeonSql(
+        `UPDATE users SET google_sub = $1, full_name = $2, updated_at = NOW() WHERE id = $3`,
+        [sub, fullName, u.id]
+      ).catch(() => {});
+
       return {
         id: u.id,
         email: u.email,
@@ -74,41 +80,47 @@ export async function syncGoogleUserWithNeon(googleUser: {
       };
     }
 
-    // 2. Si no tiene organización o es nuevo usuario, verificar si ya existe alguna organización registrada
+    // 2. Si es un nuevo usuario o inicia sesión desde otro dispositivo (teléfono),
+    // verificar si ya existe alguna organización registrada en el sistema para vincularla
     let orgId = '';
     let orgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
+    let joinCode = localStorage.getItem('glamos_local_join_code') || 'GLAM-7721-V';
 
     const existingOrgs = await executeNeonSql<any>(
       `SELECT * FROM organizations ORDER BY created_at ASC LIMIT 1`
     );
 
     if (existingOrgs.length > 0) {
+      // Reutilizar la organización existente: ambos dispositivos (PC y Teléfono) compartirán el mismo salón
       orgId = existingOrgs[0].id;
       orgName = existingOrgs[0].business_name || orgName;
     } else {
-      // Crear la organización principal en Neon
-      orgId = generateUuid();
-      const randomCode = Math.floor(1000 + Math.random() * 9000);
-      const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-      const joinCode = `GLAM-${randomCode}-${letter}`;
+      // Si es el primer dispositivo (ej. PC) y tiene un ID local, persistirlo en Neon
+      const localOrg = localStorage.getItem('glamos_local_org_id') || localStorage.getItem(`glamos_user_org_${email}`);
+      orgId = localOrg ? ensureUuid(localOrg) : '00000000-0000-4000-a000-000000000001';
 
       await executeNeonSql(
         `INSERT INTO organizations (id, business_name, join_code_hmac, join_code_expires_at, created_at, updated_at)
-         VALUES ($1, $2, $3, NOW() + INTERVAL '1 year', NOW(), NOW())
-         ON CONFLICT (id) DO NOTHING`,
+         VALUES ($1, $2, $3, NOW() + INTERVAL '10 years', NOW(), NOW())
+         ON CONFLICT (id) DO UPDATE SET business_name = EXCLUDED.business_name, updated_at = NOW()`,
         [orgId, orgName, joinCode]
       );
     }
 
     // 3. Insertar o actualizar el usuario en Neon vinculado a esta organización
-    const userId = generateUuid();
+    const userId = ensureUuid(sub && sub.length >= 32 ? sub : generateUuid());
     await executeNeonSql(
       `INSERT INTO users (id, google_sub, email, full_name, role, organization_id, is_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 'OWNER_ADMIN', $5, true, NOW(), NOW())
        ON CONFLICT (google_sub) DO UPDATE 
-       SET organization_id = EXCLUDED.organization_id, email = EXCLUDED.email, full_name = EXCLUDED.full_name, updated_at = NOW()`,
+       SET organization_id = EXCLUDED.organization_id, email = EXCLUDED.email, full_name = EXCLUDED.full_name, role = EXCLUDED.role, updated_at = NOW()`,
       [userId, sub, email, fullName, orgId]
-    );
+    ).catch(async () => {
+      await executeNeonSql(
+        `UPDATE users SET organization_id = $1, full_name = $2, role = 'OWNER_ADMIN', updated_at = NOW() WHERE LOWER(email) = LOWER($3)`,
+        [orgId, fullName, email]
+      );
+    });
 
     return {
       id: userId,
@@ -120,8 +132,7 @@ export async function syncGoogleUserWithNeon(googleUser: {
     };
   } catch (err) {
     console.warn('Advertencia en syncGoogleUserWithNeon (Modo Local Fallback):', err);
-    // Fallback local seguro
-    const fallbackOrgId = localStorage.getItem('glamos_local_org_id') || generateUuid();
+    const fallbackOrgId = localStorage.getItem('glamos_local_org_id') || '00000000-0000-4000-a000-000000000001';
     const fallbackOrgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
     return {
       id: generateUuid(),
@@ -227,8 +238,52 @@ export async function pullAllDataFromNeon(organizationId: string): Promise<void>
  */
 export async function uploadLocalDataToNeon(organizationId: string): Promise<void> {
   const orgId = ensureUuid(organizationId);
+  const orgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
+  const joinCode = localStorage.getItem('glamos_local_join_code') || 'GLAM-7721-V';
 
   try {
+    // 0. Asegurar que la Organización exista en Neon para que las claves foráneas no reboten
+    await executeNeonSql(
+      `INSERT INTO organizations (id, business_name, join_code_hmac, join_code_expires_at, created_at, updated_at)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '10 years', NOW(), NOW())
+       ON CONFLICT (id) DO UPDATE SET business_name = EXCLUDED.business_name, updated_at = NOW()`,
+      [orgId, orgName, joinCode]
+    );
+
+    // 0.1 Asegurar que el usuario activo de la sesión esté registrado en Neon
+    const storedTokens = localStorage.getItem('glamos_tokens');
+    if (storedTokens) {
+      try {
+        const parsed = JSON.parse(storedTokens);
+        const parts = parsed.access_token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (payload.email) {
+            const email = payload.email.trim().toLowerCase();
+            const sub = payload.sub || `google_${email}`;
+            const fullName = localStorage.getItem(`glamos_user_name_${email}`) || localStorage.getItem('glamos_user_display_name') || email.split('@')[0];
+            const role = payload.role || 'OWNER_ADMIN';
+            const userId = ensureUuid(payload.sub && payload.sub.length >= 32 ? payload.sub : generateUuid());
+
+            await executeNeonSql(
+              `INSERT INTO users (id, google_sub, email, full_name, role, organization_id, is_active, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, 'OWNER_ADMIN', $5, true, NOW(), NOW())
+               ON CONFLICT (google_sub) DO UPDATE 
+               SET organization_id = EXCLUDED.organization_id, email = EXCLUDED.email, full_name = EXCLUDED.full_name, role = EXCLUDED.role, updated_at = NOW()`,
+              [userId, sub, email, fullName, orgId]
+            ).catch(async () => {
+              await executeNeonSql(
+                `UPDATE users SET organization_id = $1, role = $2, updated_at = NOW() WHERE LOWER(email) = LOWER($3)`,
+                [orgId, role, email]
+              );
+            });
+          }
+        }
+      } catch (uErr) {
+        console.warn('Aviso sincronizando usuario activo en Neon:', uErr);
+      }
+    }
+
     // 1. Subir Clientes locales
     const localClientsStr = localStorage.getItem('glamos_local_clients');
     if (localClientsStr) {

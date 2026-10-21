@@ -159,10 +159,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }).catch(console.error);
         }
 
-        // Sincronización serverless directa con Neon PostgreSQL
-        if (decoded.org) {
-          pullAllDataFromNeon(decoded.org).catch(() => {});
-          uploadLocalDataToNeon(decoded.org).catch(() => {});
+        // Sincronización serverless bidireccional inmediata con Neon PostgreSQL (PC <-> Teléfono)
+        const userEmail = decoded.email?.trim().toLowerCase();
+        if (userEmail && userEmail !== 'duena.vip@glamos.app' && userEmail !== 'estilista.vip@glamos.app') {
+          syncGoogleUserWithNeon({ email: userEmail, sub: decoded.sub })
+            .then(async (neonSession) => {
+              if (neonSession?.organization_id) {
+                if (decoded.org !== neonSession.organization_id) {
+                  decoded.org = neonSession.organization_id;
+                  setUser({ ...decoded });
+                }
+                localStorage.setItem(`glamos_user_org_${userEmail}`, neonSession.organization_id);
+                localStorage.setItem('glamos_local_org_id', neonSession.organization_id);
+                if (neonSession.business_name) {
+                  localStorage.setItem('glamos_local_org_name', neonSession.business_name);
+                }
+                // Primero asegurar que la organización y los datos locales de la PC estén en Neon
+                await uploadLocalDataToNeon(neonSession.organization_id);
+                // Luego descargar cualquier actualización fresca
+                await pullAllDataFromNeon(neonSession.organization_id);
+              }
+            })
+            .catch(console.warn);
+        } else if (decoded.org) {
+          const validOrg = decoded.org;
+          uploadLocalDataToNeon(validOrg).then(() => {
+            pullAllDataFromNeon(validOrg);
+          }).catch(() => {});
         }
       } catch {
         localStorage.removeItem('glamos_tokens');

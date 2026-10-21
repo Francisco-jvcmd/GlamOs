@@ -67,6 +67,7 @@ export interface PresetDesign {
   palette: Array<{ name: string; hex: string }>;
   accentFeatures: string[];
   stylistNotes: string;
+  photoUrl?: string;
 }
 
 const SKIN_TONES: SkinTone[] = [
@@ -109,6 +110,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
       'Rojo rubí metálico con destellos'
     ],
     stylistNotes: 'Aplica primero una base rojo rubí perlada curada en lámpara UV/LED. Traza la estructura de telaraña con pincel linner 000 y gel paint negro sin capa de dispersión. En el anular, esculpe los ojos angulados con blanco tiza y sella con top coat blindado 3D.',
+    photoUrl: '/nails/spiderman.jpg',
   },
   {
     id: 'glazed-donut',
@@ -126,6 +128,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Polvo Cromo Frotado', 'Efecto Iridiscente', 'Nude Translúcido'],
     stylistNotes: 'Aplica una capa de nude lechoso semi-traslúcido, sella con top no-wipe 30 segundos y frota el pigmento de cromo perlado con aplicador de silicona.',
+    photoUrl: '/nails/glazed-donut.jpg',
   },
   {
     id: 'velvet-cat-eye',
@@ -143,6 +146,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Pigmento Magnético', 'Halo Terciopelo 3D', 'Vino Intenso'],
     stylistNotes: 'Aplica sobre base negra o vino intenso. Usa el imán cilíndrico desde los laterales para concentrar el haz de luz en diagonal aterciopelada.',
+    photoUrl: '/nails/velvet-cat-eye.jpg',
   },
   {
     id: 'marble-gold',
@@ -413,6 +417,20 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
           drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
         };
         img.src = capturedImage;
+      } else if (activeDesign.photoUrl) {
+        // Fotografía de estudio hiperrealista de alta costura (Catálogo Real)
+        const img = new window.Image();
+        img.onload = () => {
+          ctx.save();
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const vignette = ctx.createRadialGradient(450, 450, 320, 450, 450, 580);
+          vignette.addColorStop(0, 'rgba(0,0,0,0)');
+          vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+          ctx.fillStyle = vignette;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+        };
+        img.src = activeDesign.photoUrl;
       } else {
         // Modo Mano Virtual Modelo
         drawVirtualModelHand(ctx, tone);
@@ -1321,6 +1339,14 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                   }`}
                 />
 
+                {/* Badge de Fotografía de Estudio Real */}
+                {!capturedImage && activeDesign.photoUrl && (
+                  <div className="absolute top-4 left-4 py-1 px-3 rounded-full bg-neutral-950/85 border border-amber-400/50 text-[11px] font-bold text-amber-300 flex items-center gap-1.5 backdrop-blur-md shadow-md animate-in fade-in">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Fotografía 4K de Estudio Haute Couture</span>
+                  </div>
+                )}
+
                 {/* Si se tomó foto con cámara, botón para repetir */}
                 {capturedImage && (
                   <button
@@ -1719,15 +1745,23 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                      <div className="w-8 h-8 rounded-lg border border-white/20 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-                        <span
-                          className="w-full h-full"
-                          style={{
-                            background: `linear-gradient(135deg, ${preset.palette[0]?.hex || '#fff'}, ${
-                              preset.palette[1]?.hex || '#000'
-                            })`,
-                          }}
-                        />
+                      <div className="w-10 h-10 rounded-xl border border-white/20 flex items-center justify-center shrink-0 overflow-hidden shadow-xs bg-neutral-900">
+                        {preset.photoUrl ? (
+                          <img
+                            src={preset.photoUrl}
+                            alt={preset.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        ) : (
+                          <span
+                            className="w-full h-full"
+                            style={{
+                              background: `linear-gradient(135deg, ${preset.palette[0]?.hex || '#fff'}, ${
+                                preset.palette[1]?.hex || '#000'
+                              })`,
+                            }}
+                          />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <span className="font-bold text-xs text-white block truncate group-hover:text-amber-200">
