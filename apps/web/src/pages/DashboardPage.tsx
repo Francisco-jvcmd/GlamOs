@@ -380,7 +380,7 @@ export function DashboardPage() {
         </div>
 
         {/* Header Action Controls */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto shrink-0">
           {isAdmin && (
             <div className="flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/10">
               <button

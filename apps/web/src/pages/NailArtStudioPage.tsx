@@ -907,7 +907,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
         {/* COLUMNA IZQUIERDA: VISUALIZADOR & CÁMARA (7 Columnas) */}
         <div className="lg:col-span-7 space-y-4">
           <Card variant="glass" className="overflow-hidden border-amber-400/20">
-            <CardHeader className="pb-3 border-b border-white/[0.08] flex flex-row items-center justify-between">
+            <CardHeader className="pb-3 border-b border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <CardTitle className="text-base">Lienzo Biométrico de la Mano</CardTitle>
@@ -1196,7 +1196,7 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
         <div className="lg:col-span-5 space-y-4 flex flex-col">
           {/* ── CHAT CON EL ASISTENTE DE NAIL ART ──────────────────────────── */}
           <Card variant="glass" className="flex-1 flex flex-col h-[520px] border-amber-400/20">
-            <CardHeader className="pb-3 border-b border-white/[0.08] flex flex-row items-center justify-between">
+            <CardHeader className="pb-3 border-b border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#F5E5C4] via-[#D4AF37] to-[#B88A22] text-neutral-950 flex items-center justify-center font-bold text-xs">
                   AI

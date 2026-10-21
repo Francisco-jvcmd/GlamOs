@@ -1047,7 +1047,7 @@ export function NewSalePage() {
             {/* SECCIÓN ESPECIAL: PAGO MIXTO (EFECTIVO + TRANSFERENCIA) */}
             {paymentMethod === 'MIXED' && (
               <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2">
                     <ArrowRightLeft className="w-4 h-4 text-amber-400" />
                     <span className="font-bold text-xs text-amber-200 uppercase tracking-wide">
@@ -1055,7 +1055,7 @@ export function NewSalePage() {
                     </span>
                   </div>
                   {/* Botones de cálculo rápido */}
-                  <div className="flex gap-1.5">
+                  <div className="flex flex-wrap gap-1.5">
                     <button
                       type="button"
                       onClick={handleSetMixedSplit5050}
