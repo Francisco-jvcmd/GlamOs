@@ -26,14 +26,21 @@ export function useCollection<K extends keyof DatabaseCollections>(
     const handleStorageChange = () => {
       try {
         const cached = localStorage.getItem(`glamos_local_${collectionName}`);
-        if (cached) setDocs(JSON.parse(cached));
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            setDocs(parsed);
+          }
+        }
       } catch {}
     };
     window.addEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
 
     if (!db) {
       return () => {
         window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+        window.removeEventListener('storage', handleStorageChange);
       };
     }
     
@@ -42,6 +49,7 @@ export function useCollection<K extends keyof DatabaseCollections>(
       if (!collection) {
         return () => {
           window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+          window.removeEventListener('storage', handleStorageChange);
         };
       }
 
@@ -61,8 +69,27 @@ export function useCollection<K extends keyof DatabaseCollections>(
           const validDocs = results
             .map((d: any) => d.toJSON())
             .filter((d: any) => !d.deleted_at);
-          setDocs(validDocs);
-          localStorage.setItem(`glamos_local_${collectionName}`, JSON.stringify(validDocs));
+
+          if (validDocs.length > 0) {
+            setDocs(validDocs);
+            localStorage.setItem(`glamos_local_${collectionName}`, JSON.stringify(validDocs));
+          } else {
+            // Si RxDB aún no tiene datos o está arrancando en frío, proteger la caché local
+            try {
+              const cached = localStorage.getItem(`glamos_local_${collectionName}`);
+              if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  setDocs(parsed);
+                  // Repoblar RxDB con los documentos de la caché
+                  collection.bulkUpsert(parsed).catch(() => {});
+                  setLoading(false);
+                  return;
+                }
+              }
+            } catch {}
+            setDocs([]);
+          }
           setLoading(false);
         },
         error: (err: any) => {
@@ -74,11 +101,13 @@ export function useCollection<K extends keyof DatabaseCollections>(
       return () => {
         sub.unsubscribe();
         window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+        window.removeEventListener('storage', handleStorageChange);
       };
     } catch (e) {
       console.warn('Error iniciando query:', e);
       return () => {
         window.removeEventListener(`glamos_updated_${collectionName}`, handleStorageChange);
+        window.removeEventListener('storage', handleStorageChange);
       };
     }
   }, [db, collectionName, JSON.stringify(queryOptions)]);

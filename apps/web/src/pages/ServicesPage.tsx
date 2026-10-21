@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/auth-context';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
 import { getDatabase } from '../db/database';
-import { uploadLocalDataToNeon } from '../db/neon';
+import { uploadLocalDataToNeon, pullAllDataFromNeon } from '../db/neon';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -25,6 +25,14 @@ export function ServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Sincronización automática con la nube al entrar a Servicios
+  useEffect(() => {
+    if (user?.org) {
+      uploadLocalDataToNeon(user.org).catch(() => {});
+      pullAllDataFromNeon(user.org).catch(() => {});
+    }
+  }, [user?.org]);
 
   // Form fields
   const [name, setName] = useState('');

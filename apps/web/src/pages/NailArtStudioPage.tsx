@@ -263,6 +263,10 @@ export function NailArtStudioPage() {
   // Modos de Visualización
   const [viewMode, setViewMode] = useState<ViewMode>('hand');
 
+  // Innovación: Acabados de Salón y Mapeo Dedo por Dedo
+  const [selectedFinish, setSelectedFinish] = useState<'gloss' | 'matte' | 'chrome' | 'aurora'>('gloss');
+  const [selectedFinger, setSelectedFinger] = useState<'ALL' | 'THUMB' | 'INDEX' | 'MIDDLE' | 'RING' | 'PINKY'>('ALL');
+
   // Personalización Anatómica
   const [selectedSkinTone, setSelectedSkinTone] = useState<SkinToneId>('warm-tan');
   const [selectedShape, setSelectedShape] = useState<NailShapeId>('almond');
@@ -378,7 +382,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     setCalibCurve(0);
   };
 
-  // ── MOTOR DE RENDERIZADO EN CANVAS (HIPERREALISMO FOTOGRÁFICO) ────────────
+  // ── MOTOR DE RENDERIZADO EN CANVAS (ESTUDIO GENERATIVO DE ALTA MANICURA) ──
   const renderNailArt = () => {
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
@@ -391,104 +395,216 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     const tone = SKIN_TONES.find((t) => t.id === selectedSkinTone) || SKIN_TONES[2];
     const shape = NAIL_SHAPES.find((s) => s.id === selectedShape) || NAIL_SHAPES[0];
 
-    // Fondo elegante de salón de lujo (mármol ahumado satinado)
+    // Fondo elegante de estudio de manicura (mármol ahumado satinado)
     const bgGrad = ctx.createRadialGradient(450, 450, 100, 450, 450, 550);
     bgGrad.addColorStop(0, '#15141B');
     bgGrad.addColorStop(1, '#09080C');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (viewMode === 'macro') {
-      // ── MODO MACRO: ENFOQUE ÓPTICO 4K DE ALTA RESOLUCIÓN EN LAS UÑAS ─────
-      drawMacroPhotoView(ctx, activeDesign, shape);
-    } else {
-      // ── MODO MANO COMPLETA ───────────────────────────────────────────────
-      if (capturedImage) {
-        // Foto real de la mano capturada con la cámara o galería
-        const img = new window.Image();
-        img.onload = () => {
-          ctx.save();
-          // Dibujar la foto centrada
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          // Viñeta perimetral suave de estudio fotográfico
-          const vignette = ctx.createRadialGradient(450, 450, 300, 450, 450, 550);
-          vignette.addColorStop(0, 'rgba(0,0,0,0)');
-          vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
-          ctx.fillStyle = vignette;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.restore();
+    if (capturedImage) {
+      // ── MODO CÁMARA CLIENTA: FOTO REAL CON UÑAS ESCULPIDAS CALIBRADAS ───────
+      const img = new window.Image();
+      img.onload = () => {
+        ctx.save();
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const vignette = ctx.createRadialGradient(450, 450, 300, 450, 450, 550);
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
 
-          // Dibujar uñas calibradas sobre la mano real
-          drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
-        };
-        img.src = capturedImage;
-      } else {
-        // Fotografía de estudio hiperrealista de alta costura (Catálogo Real 4K)
-        const img = new window.Image();
-        img.onload = () => {
-          ctx.save();
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const vignette = ctx.createRadialGradient(450, 450, 320, 450, 450, 580);
-          vignette.addColorStop(0, 'rgba(0,0,0,0)');
-          vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
-          ctx.fillStyle = vignette;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.restore();
-        };
-        img.src = activeDesign.photoUrl || '/nails/spiderman.jpg';
-      }
+        drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
+      };
+      img.src = capturedImage;
+    } else if (selectedFinger !== 'ALL' || viewMode === 'macro') {
+      // ── MODO ENFOQUE MACRO 4K POR DEDO (FACTIBILIDAD TÉCNICA HUMANA) ───────
+      drawSingleNailMacroFocus(
+        ctx,
+        selectedFinger === 'ALL' ? 'RING' : selectedFinger,
+        activeDesign,
+        tone,
+        shape,
+        selectedLength,
+        selectedFinish
+      );
+    } else {
+      // ── MODO MANO ANATÓMICA COMPLETA DE ALTA MANICURA ──────────────────────
+      drawAnatomicalHandWithNails(
+        ctx,
+        activeDesign,
+        tone,
+        shape,
+        selectedLength,
+        selectedFinish
+      );
     }
   };
 
-  // ── RENDERIZADOR MACRO 4K FOTOGRÁFICO DE ALTA COSTURA ─────────────────────
-  const drawMacroPhotoView = (
+  // ── DIBUJA LA MANO ANATÓMICA CON LAS 5 UÑAS ESCULPIDAS VIVAS ─────────────
+  const drawAnatomicalHandWithNails = (
     ctx: CanvasRenderingContext2D,
     design: PresetDesign,
-    shape: NailShape
+    tone: SkinTone,
+    shape: NailShape,
+    length: NailLengthId,
+    finish: 'gloss' | 'matte' | 'chrome' | 'aurora'
   ) => {
     ctx.save();
-    const img = new window.Image();
-    img.onload = () => {
+
+    // Sombra perimetral suave de la mano sobre el lienzo
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 25;
+
+    // Palma anatómica con dispersión dérmica realista
+    const skinGrad = ctx.createLinearGradient(450, 850, 450, 220);
+    skinGrad.addColorStop(0, tone.hex);
+    skinGrad.addColorStop(0.65, tone.hex);
+    skinGrad.addColorStop(1, adjustBrightness(tone.hex, 14));
+    ctx.fillStyle = skinGrad;
+
+    ctx.beginPath();
+    ctx.ellipse(450, 680, 215, 200, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dedos anatómicos estilizados
+    const fingers = [
+      { id: 'pinky', x: 260, y: 510, w: 48, h: 220, rot: -0.22, nailX: 236, nailY: 410, nailW: 28, nailH: 44, accent: false, idx: 0 },
+      { id: 'ring', x: 352, y: 430, w: 52, h: 285, rot: -0.09, nailX: 340, nailY: 300, nailW: 33, nailH: 50, accent: true, idx: 1 }, // Uña acento Spider-Man
+      { id: 'middle', x: 450, y: 400, w: 54, h: 305, rot: 0.00, nailX: 450, nailY: 260, nailW: 35, nailH: 52, accent: false, idx: 2 },
+      { id: 'index', x: 548, y: 435, w: 52, h: 280, rot: 0.09, nailX: 560, nailY: 308, nailW: 33, nailH: 48, accent: false, idx: 3 },
+      { id: 'thumb', x: 655, y: 565, w: 56, h: 195, rot: 0.35, nailX: 680, nailY: 480, nailW: 36, nailH: 48, accent: false, idx: 4 },
+    ];
+
+    fingers.forEach((f) => {
       ctx.save();
-      // Recorte centrado con zoom óptico macro para ver detalles microscópicos
-      const cropW = img.naturalWidth * 0.72;
-      const cropH = img.naturalHeight * 0.72;
-      const cropX = (img.naturalWidth - cropW) / 2;
-      const cropY = (img.naturalHeight - cropH) / 2;
-      ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, 900, 900);
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.rot);
 
-      // Viñeta fotográfica de estudio
-      const vignette = ctx.createRadialGradient(450, 450, 280, 450, 450, 560);
-      vignette.addColorStop(0, 'rgba(0,0,0,0)');
-      vignette.addColorStop(1, 'rgba(0,0,0,0.55)');
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, 900, 900);
-
-      // Distintivo Haute Couture
-      ctx.fillStyle = 'rgba(18, 17, 24, 0.88)';
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
-      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(160, 35, 580, 56, 28);
+      ctx.roundRect(-f.w / 2, -f.h / 2, f.w, f.h, [f.w / 2, f.w / 2, 22, 22]);
       ctx.fill();
+
+      // Pliegues y nudillos
+      ctx.strokeStyle = adjustBrightness(tone.hex, -18);
+      ctx.lineWidth = 1.4;
+      ctx.globalAlpha = 0.28;
+      ctx.beginPath();
+      ctx.arc(0, -f.h * 0.08, f.w * 0.28, 0, Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, f.h * 0.18, f.w * 0.3, 0, Math.PI);
       ctx.stroke();
 
-      ctx.fillStyle = '#D4AF37';
-      ctx.font = 'bold 12px Plus Jakarta Sans, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('GLAMOS HAUTE NAIL ART · ENFOQUE MACRO 4K', 450, 58);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 15px Plus Jakarta Sans, sans-serif';
-      ctx.fillText(`${design.name} · Silueta ${shape.name}`, 450, 78);
-
       ctx.restore();
-    };
-    img.src = design.photoUrl || '/nails/spiderman.jpg';
+    });
+
+    // Factor de longitud
+    const lenMul = length === 'short' ? 0.88 : length === 'long' ? 1.28 : length === 'xl' ? 1.55 : 1.05;
+
+    // Dibujar las 5 uñas esculpidas con el arte artesanal
+    fingers.forEach((f) => {
+      drawSculptedArtisanNail(
+        ctx,
+        f.nailX,
+        f.nailY,
+        f.nailW,
+        f.nailH * lenMul,
+        f.rot,
+        design,
+        tone,
+        shape,
+        finish,
+        f.accent,
+        f.idx
+      );
+    });
+
     ctx.restore();
   };
 
-  // Dibuja las uñas sobre la mano con los controles de calibración interactiva
+  // ── ENFOQUE MACRO 4K DE UN DEDO ESPECÍFICO (FACTIBILIDAD TÉCNICA) ─────────
+  const drawSingleNailMacroFocus = (
+    ctx: CanvasRenderingContext2D,
+    fingerId: string,
+    design: PresetDesign,
+    tone: SkinTone,
+    shape: NailShape,
+    length: NailLengthId,
+    finish: 'gloss' | 'matte' | 'chrome' | 'aurora'
+  ) => {
+    ctx.save();
+
+    // Fondo macro con viñeta de estudio
+    const bgGrad = ctx.createRadialGradient(450, 450, 80, 450, 450, 540);
+    bgGrad.addColorStop(0, '#161420');
+    bgGrad.addColorStop(1, '#09080C');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 900, 900);
+
+    // Dedo en primer plano anatómico macro
+    ctx.save();
+    ctx.fillStyle = tone.hex;
+    ctx.shadowColor = 'rgba(0,0,0,0.65)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 20;
+    ctx.beginPath();
+    ctx.roundRect(330, 240, 240, 580, [120, 120, 40, 40]);
+    ctx.fill();
+    ctx.restore();
+
+    const lenMul = length === 'short' ? 0.88 : length === 'long' ? 1.28 : length === 'xl' ? 1.55 : 1.05;
+    const isAccent = fingerId === 'RING';
+    const nailW = 150;
+    const nailH = 220 * lenMul;
+
+    drawSculptedArtisanNail(
+      ctx,
+      450,
+      395,
+      nailW,
+      nailH,
+      0,
+      design,
+      tone,
+      shape,
+      finish,
+      isAccent,
+      isAccent ? 1 : fingerId === 'THUMB' ? 4 : fingerId === 'INDEX' ? 3 : fingerId === 'MIDDLE' ? 2 : 0
+    );
+
+    // Distintivo de Factibilidad Humana y Técnica
+    ctx.fillStyle = 'rgba(18, 17, 24, 0.9)';
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(140, 35, 620, 56, 28);
+    ctx.fill();
+    ctx.stroke();
+
+    const fingerNames: Record<string, string> = {
+      THUMB: 'DEDO PULGAR · TELARAÑA ASIMÉTRICA DE SOPORTE',
+      INDEX: 'DEDO ÍNDICE · ROJO RUBÍ PROFUNDO METÁLICO',
+      MIDDLE: 'DEDO MEDIO · TELARAÑA CONCÉNTRICA RADIAL',
+      RING: 'UÑA ANULAR · ACENTO MASTER MÁSCARA SPIDER-MAN 3D',
+      PINKY: 'DEDO MEÑIQUE · EQUILIBRIO CROMÁTICO Y GLOSS',
+    };
+
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = 'bold 12px Plus Jakarta Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('DISEÑO GENIAL & 100% FACTIBLE PARA ESTILISTA HUMANA', 450, 58);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 15px Plus Jakarta Sans, sans-serif';
+    ctx.fillText(fingerNames[fingerId] || 'ENFOQUE DETALLADO DE ALTA MANICURA', 450, 78);
+
+    ctx.restore();
+  };
+
+  // Dibuja las uñas sobre la mano real con los controles de calibración interactiva
   const drawCalibratedNailsOnRealHand = (
     ctx: CanvasRenderingContext2D,
     design: PresetDesign,
@@ -509,6 +625,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     // Aplicar transformaciones de calibración interactiva
     const centerX = 450;
     const centerY = 450;
+    const lenMul = selectedLength === 'short' ? 0.88 : selectedLength === 'long' ? 1.28 : selectedLength === 'xl' ? 1.55 : 1.05;
 
     basePositions.forEach((np, idx) => {
       // Cálculo de desplazamiento y apertura
@@ -518,9 +635,9 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
       const finalY = np.y + calibOffsetY + (Math.abs(relX) / 100) * calibCurve;
 
       const finalW = np.w * calibScale;
-      const finalH = np.h * calibScale;
+      const finalH = np.h * calibScale * lenMul;
 
-      drawSingleSculptedNail(
+      drawSculptedArtisanNail(
         ctx,
         finalX,
         finalY,
@@ -530,6 +647,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
         design,
         tone,
         shape,
+        selectedFinish,
         np.accent,
         idx
       );
@@ -538,9 +656,8 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     ctx.restore();
   };
 
-
-  // ── ESCULPIDO INDIVIDUAL DE UNA UÑA CON DISEÑO DETALLADO ─────────────────
-  const drawSingleSculptedNail = (
+  // ── ESCULPIDO INDIVIDUAL DE UNA UÑA CON DISEÑO DETALLADO Y FACTIBLE ───────
+  const drawSculptedArtisanNail = (
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
@@ -550,6 +667,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     design: PresetDesign,
     tone: SkinTone,
     shape: NailShape,
+    finish: 'gloss' | 'matte' | 'chrome' | 'aurora',
     isAccent: boolean,
     nailIndex: number
   ) => {
@@ -557,22 +675,22 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     ctx.translate(x, y);
     ctx.rotate(rot);
 
-    // Sombra perimetral para realismo de inserción en el dedo
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
-    ctx.shadowBlur = 10;
+    // Sombra de inserción en el surco periungueal
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+    ctx.shadowBlur = Math.max(8, w * 0.15);
     ctx.shadowOffsetY = 4;
 
-    // Silueta de la uña según la forma elegida
+    // ── SILUETA ANATÓMICA ESCULPIDA SEGÚN LA FORMA ELEGIDA ─────────────────
     ctx.beginPath();
     if (shape.id === 'almond') {
       ctx.moveTo(-w / 2, h / 2);
-      ctx.bezierCurveTo(-w / 2, -h * 0.25, -w * 0.25, -h / 2, 0, -h / 2);
-      ctx.bezierCurveTo(w * 0.25, -h / 2, w / 2, -h * 0.25, w / 2, h / 2);
+      ctx.bezierCurveTo(-w / 2, -h * 0.25, -w * 0.22, -h / 2, 0, -h / 2);
+      ctx.bezierCurveTo(w * 0.22, -h / 2, w / 2, -h * 0.25, w / 2, h / 2);
       ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
     } else if (shape.id === 'coffin') {
       ctx.moveTo(-w / 2, h / 2);
-      ctx.lineTo(-w * 0.34, -h / 2);
-      ctx.lineTo(w * 0.34, -h / 2);
+      ctx.lineTo(-w * 0.32, -h / 2);
+      ctx.lineTo(w * 0.32, -h / 2);
       ctx.lineTo(w / 2, h / 2);
       ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
     } else if (shape.id === 'stiletto') {
@@ -582,46 +700,42 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
       ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
     } else if (shape.id === 'oval') {
       ctx.moveTo(-w / 2, h / 2);
-      ctx.bezierCurveTo(-w / 2, -h * 0.35, -w * 0.4, -h / 2, 0, -h / 2);
-      ctx.bezierCurveTo(w * 0.4, -h / 2, w / 2, -h * 0.35, w / 2, h / 2);
+      ctx.bezierCurveTo(-w / 2, -h * 0.35, -w * 0.38, -h / 2, 0, -h / 2);
+      ctx.bezierCurveTo(w * 0.38, -h / 2, w / 2, -h * 0.35, w / 2, h / 2);
       ctx.quadraticCurveTo(0, h / 2 + 5, -w / 2, h / 2);
     } else {
       // Cuadrada o Natural Corta
-      ctx.roundRect(-w / 2, -h / 2, w, h, [7, 7, 14, 14]);
+      ctx.roundRect(-w / 2, -h / 2, w, h, [6, 6, 12, 12]);
     }
     ctx.closePath();
-
-    // Recortar estrictamente dentro de la silueta de la uña
     ctx.clip();
 
-    // ── 1. COLOR BASE DEL ESMALTE ─────────────────────────────────────────
+    // ── 1. COLORIMETRÍA BASE CON PROFUNDIDAD POLIMÉRICA 3D ──────────────────
     const baseColor = design.palette[0]?.hex || '#B91C1C';
-    const secondaryColor = design.palette[1]?.hex || '#0A0A0A';
-    const accentColor = design.palette[2]?.hex || '#FFFFFF';
 
-    const nailGrad = ctx.createLinearGradient(0, h / 2, 0, -h / 2);
-    nailGrad.addColorStop(0, adjustBrightness(baseColor, -15));
-    nailGrad.addColorStop(0.5, baseColor);
-    nailGrad.addColorStop(1, adjustBrightness(baseColor, 12));
+    // Gradiente cilíndrico lateral para dar volumen y ápice
+    const nailGrad = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+    nailGrad.addColorStop(0, adjustBrightness(baseColor, -25));
+    nailGrad.addColorStop(0.35, baseColor);
+    nailGrad.addColorStop(0.5, adjustBrightness(baseColor, 15));
+    nailGrad.addColorStop(0.75, baseColor);
+    nailGrad.addColorStop(1, adjustBrightness(baseColor, -25));
     ctx.fillStyle = nailGrad;
     ctx.fillRect(-w, -h * 1.5, w * 2, h * 3);
 
-    // ── 2. EFECTOS ESPECÍFICOS SEGÚN EL TEMA ──────────────────────────────
+    // ── 2. ARTE DE PRECISIÓN DE LA ESTILISTA HUMANA ─────────────────────────
     if (design.themeKey === 'spiderman') {
-      // ══════════════════════════════════════════════════════════════════════
-      // DISEÑO EXCLUSIVO SPIDER-MAN ARÁCNIDO MARVEL HAUTE COUTURE
-      // ══════════════════════════════════════════════════════════════════════
-      // Base rojo rubí metálico brillante con micro-destellos
+      // Fondo rojo rubí profundo con destellos de glitter
       const rubyGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, h);
       rubyGrad.addColorStop(0, '#DC2626');
-      rubyGrad.addColorStop(0.7, '#B91C1C');
-      rubyGrad.addColorStop(1, '#7F1D1D');
+      rubyGrad.addColorStop(0.65, '#B91C1C');
+      rubyGrad.addColorStop(1, '#5C0D0D');
       ctx.fillStyle = rubyGrad;
       ctx.fillRect(-w, -h, w * 2, h * 2);
 
       if (isAccent) {
-        // ── UÑA ANULAR: MÁSCARA ICÓNICA DE SPIDER-MAN ─────────────────────
-        // Telaraña de fondo fina
+        // ── UÑA ANULAR: MÁSCARA ICONICA SPIDER-MAN EN RELIEVE 3D ───────────
+        // Telaraña en abanico
         ctx.strokeStyle = 'rgba(10, 10, 10, 0.45)';
         ctx.lineWidth = Math.max(1, w * 0.035);
         for (let i = -2; i <= 2; i++) {
@@ -631,29 +745,29 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
           ctx.stroke();
         }
 
-        // Ojos de la máscara Spider-Man (blanco perlado con borde negro grueso)
+        // Ojos de la máscara Spider-Man esculpidos
         ctx.save();
         const eyeW = w * 0.38;
         const eyeH = h * 0.32;
         const eyeY = -h * 0.05;
 
         // Ojo Izquierdo
-        drawSpiderManEye(ctx, -w * 0.22, eyeY, eyeW, eyeH, -0.2);
+        drawSpiderManEye(ctx, -w * 0.22, eyeY, eyeW, eyeH, -0.22);
         // Ojo Derecho
-        drawSpiderManEye(ctx, w * 0.22, eyeY, eyeW, eyeH, 0.2);
+        drawSpiderManEye(ctx, w * 0.22, eyeY, eyeW, eyeH, 0.22);
         ctx.restore();
       } else {
-        // ── TELARAÑA ARÁCNIDA DE PRECISIÓN EN LAS DEMÁS UÑAS ──────────────
-        const originX = nailIndex % 2 === 0 ? -w * 0.3 : w * 0.3;
+        // ── UÑAS DE SOPORTE: MICRO-TELARAÑA DE PRECISIÓN CON PINCEL LINNER ──
+        const originX = nailIndex % 2 === 0 ? -w * 0.35 : w * 0.35;
         const originY = h * 0.35;
 
         ctx.strokeStyle = '#0A0A0A';
-        ctx.lineWidth = Math.max(1.2, w * 0.04);
+        ctx.lineWidth = Math.max(1.2, w * 0.038);
         ctx.lineCap = 'round';
 
-        // Líneas radiales que nacen del origen
+        // Rayos radiales
         const rayAngles = [-1.4, -1.0, -0.6, -0.2, 0.2, 0.6, 1.0, 1.4];
-        const rayLength = h * 1.2;
+        const rayLength = h * 1.3;
 
         rayAngles.forEach((ang) => {
           ctx.beginPath();
@@ -662,8 +776,8 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
           ctx.stroke();
         });
 
-        // Arcos concéntricos de telaraña que conectan los rayos
-        const webRadii = [h * 0.2, h * 0.4, h * 0.62, h * 0.85];
+        // Arcos concéntricos de telaraña trazados a mano
+        const webRadii = [h * 0.18, h * 0.38, h * 0.6, h * 0.85];
         webRadii.forEach((r) => {
           ctx.beginPath();
           for (let i = 0; i < rayAngles.length - 1; i++) {
@@ -675,7 +789,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
             const y2 = originY - Math.cos(a2) * r;
 
             const midA = (a1 + a2) / 2;
-            const curveSag = r * 0.88; // Sag hacia el centro
+            const curveSag = r * 0.88;
             const cx = originX + Math.sin(midA) * curveSag;
             const cy = originY - Math.cos(midA) * curveSag;
 
@@ -684,15 +798,6 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
           }
           ctx.stroke();
         });
-
-        // Detalle de acento azul zafiro en la punta o cutícula
-        if (nailIndex === 3 || nailIndex === 4) {
-          ctx.strokeStyle = 'rgba(30, 58, 138, 0.6)';
-          ctx.lineWidth = Math.max(2, w * 0.08);
-          ctx.beginPath();
-          ctx.arc(0, h * 0.35, w * 0.35, 0, Math.PI);
-          ctx.stroke();
-        }
       }
     } else if (design.themeKey === 'glazed-donut') {
       // Brillo cromo nacarado iridiscente Hailey Bieber
@@ -756,20 +861,40 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
       ctx.fill();
     }
 
-    // ── 3. BRILLO DE TOP COAT GEL UV ESPEJO (SPECULAR HIGHLIGHT) ───────────
-    const glossGrad = ctx.createLinearGradient(-w * 0.4, 0, w * 0.4, 0);
-    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-    glossGrad.addColorStop(0.38, 'rgba(255, 255, 255, 0.55)');
-    glossGrad.addColorStop(0.52, 'rgba(255, 255, 255, 0.85)');
-    glossGrad.addColorStop(0.78, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = glossGrad;
-    ctx.fillRect(-w * 0.25, -h * 1.5, w * 0.42, h * 3);
+    // ── 3. ACABADO DEL TOP COAT PERSONALIZABLE ──────────────────────────────
+    if (finish === 'gloss') {
+      // Brillo curvo de anillo LED de salón sobre el ápice
+      const glossGrad = ctx.createLinearGradient(-w * 0.4, 0, w * 0.4, 0);
+      glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      glossGrad.addColorStop(0.38, 'rgba(255, 255, 255, 0.45)');
+      glossGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.85)');
+      glossGrad.addColorStop(0.75, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = glossGrad;
+      ctx.fillRect(-w * 0.3, -h * 1.5, w * 0.5, h * 3);
+    } else if (finish === 'chrome') {
+      // Reflejo espejo metálico
+      const mirrorGrad = ctx.createLinearGradient(-w, -h, w, h);
+      mirrorGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+      mirrorGrad.addColorStop(0.5, 'rgba(200, 220, 240, 0.2)');
+      mirrorGrad.addColorStop(1, 'rgba(255, 255, 255, 0.6)');
+      ctx.fillStyle = mirrorGrad;
+      ctx.fillRect(-w, -h * 1.5, w * 2, h * 3);
+    } else if (finish === 'aurora') {
+      // Destello iridiscente prismático
+      const auroraGrad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+      auroraGrad.addColorStop(0, 'rgba(255, 180, 220, 0.3)');
+      auroraGrad.addColorStop(0.5, 'rgba(180, 240, 255, 0.35)');
+      auroraGrad.addColorStop(1, 'rgba(255, 240, 180, 0.3)');
+      ctx.fillStyle = auroraGrad;
+      ctx.fillRect(-w, -h * 1.5, w * 2, h * 3);
+    }
+    // En 'matte' no se dibuja brillo especular para mantener textura aterciopelada
 
-    // ── 4. LÚNULA & CUTÍCULA SOMBREADA PARA INSERCIÓN ANATÓMICA ─────────────
-    ctx.strokeStyle = adjustBrightness(tone.hex, -38);
+    // ── 4. LÚNULA & CUTÍCULA ANATÓMICA ──────────────────────────────────────
+    ctx.strokeStyle = adjustBrightness(tone.hex, -35);
     ctx.lineWidth = Math.max(1.5, w * 0.04);
     ctx.beginPath();
-    ctx.arc(0, h / 2, w * 0.46, 0, Math.PI);
+    ctx.arc(0, h / 2, w * 0.45, 0, Math.PI);
     ctx.stroke();
 
     ctx.restore();
@@ -1419,7 +1544,60 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                 </div>
               )}
 
-              {/* ── SELECTOR DE FORMA & TONO DE PIEL ───────────────────────── */}
+              {/* ── BARRA DE MAPEO DEDO POR DEDO (INSPECCIÓN MACRO 4K) ──────── */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
+                    <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Mapeo Dedo por Dedo (Inspección de Factibilidad Humana)</span>
+                  </div>
+                  <span className="text-[10px] text-amber-400 font-semibold">
+                    {selectedFinger === 'ALL'
+                      ? '🖐️ Vista Completa 5 Uñas'
+                      : selectedFinger === 'RING'
+                      ? '💍 Uña Anular (Acento Protagonista)'
+                      : selectedFinger === 'MIDDLE'
+                      ? '🖕 Dedo Medio (Telaraña)'
+                      : selectedFinger === 'INDEX'
+                      ? '☝️ Dedo Índice'
+                      : selectedFinger === 'THUMB'
+                      ? '👍 Dedo Pulgar'
+                      : '🤙 Dedo Meñique'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                  {[
+                    { id: 'ALL', label: '🖐️ Mano', sub: '5 Uñas' },
+                    { id: 'RING', label: '💍 Anular', sub: 'Spider-Man' },
+                    { id: 'MIDDLE', label: '🖕 Medio', sub: 'Telaraña' },
+                    { id: 'INDEX', label: '☝️ Índice', sub: 'Rubí Metálico' },
+                    { id: 'THUMB', label: '👍 Pulgar', sub: 'Macro Art' },
+                    { id: 'PINKY', label: '🤙 Meñique', sub: 'Delicado' },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedFinger(f.id as any);
+                        if (f.id !== 'ALL') setViewMode('macro');
+                        else setViewMode('hand');
+                      }}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                        selectedFinger === f.id
+                          ? 'bg-gradient-to-tr from-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold border-amber-400 shadow-md scale-[1.02]'
+                          : 'bg-white/[0.03] border-white/10 text-neutral-300 hover:border-amber-400/40 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <span className="text-[11px] block font-bold leading-tight">{f.label}</span>
+                      <span className={`text-[9px] block ${selectedFinger === f.id ? 'text-neutral-900 font-medium' : 'text-neutral-500'}`}>
+                        {f.sub}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── SELECTOR DE FORMA, LONGITUD, ACABADO & TONO DE PIEL ───────── */}
               <div className="space-y-3.5 pt-2">
                 {/* Tono de Piel */}
                 <div>
@@ -1476,6 +1654,80 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                     ))}
                   </div>
                 </div>
+
+                {/* Longitud Esculpida */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-neutral-300">Longitud de Estructura</span>
+                    <span className="text-[11px] text-amber-400 font-semibold">
+                      {selectedLength === 'short' && 'Corta Natural (Comodidad diaria)'}
+                      {selectedLength === 'medium' && 'Media Salón (Elegancia clásica)'}
+                      {selectedLength === 'long' && 'Larga Stylist (Alta Manicura)'}
+                      {selectedLength === 'xl' && 'XL Haute Couture (Pasarela)'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'short', name: 'Corta Natural', desc: 'Nivel 1' },
+                      { id: 'medium', name: 'Media Salón', desc: 'Nivel 2' },
+                      { id: 'long', name: 'Larga Stylist', desc: 'Nivel 3' },
+                      { id: 'xl', name: 'XL Couture', desc: 'Nivel 4' },
+                    ].map((len) => (
+                      <button
+                        key={len.id}
+                        type="button"
+                        onClick={() => setSelectedLength(len.id as any)}
+                        className={`p-2 rounded-xl border text-center transition-all ${
+                          selectedLength === len.id
+                            ? 'bg-gradient-to-tr from-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold border-amber-400 shadow-sm'
+                            : 'bg-white/[0.02] border-white/10 text-neutral-300 hover:border-amber-400/30'
+                        }`}
+                      >
+                        <span className="text-[11px] block font-bold">{len.name}</span>
+                        <span className={`text-[9px] block ${selectedLength === len.id ? 'text-neutral-900' : 'text-neutral-500'}`}>
+                          {len.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Acabado del Top Coat (Salón) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-neutral-300">Acabado del Top Coat (Salón)</span>
+                    <span className="text-[11px] text-amber-400 font-semibold">
+                      {selectedFinish === 'gloss' && '✨ Gel Gloss 3D UV (Brillo Espejo)'}
+                      {selectedFinish === 'matte' && '🌫️ Velvet Mate (Aterciopelado)'}
+                      {selectedFinish === 'chrome' && '🪞 Cromo Líquido (Ultra Reflectante)'}
+                      {selectedFinish === 'aurora' && '🌈 Aurora Prismática (Iridiscente)'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'gloss', name: '✨ Gel Gloss 3D', desc: 'Curva LED' },
+                      { id: 'matte', name: '🌫️ Velvet Mate', desc: 'Sin brillo' },
+                      { id: 'chrome', name: '🪞 Cromo Líquido', desc: 'Metálico' },
+                      { id: 'aurora', name: '🌈 Aurora Prism', desc: 'Nácar' },
+                    ].map((fin) => (
+                      <button
+                        key={fin.id}
+                        type="button"
+                        onClick={() => setSelectedFinish(fin.id as any)}
+                        className={`p-2 rounded-xl border text-center transition-all ${
+                          selectedFinish === fin.id
+                            ? 'bg-gradient-to-tr from-[#D4AF37] to-[#B88A22] text-neutral-950 font-bold border-amber-400 shadow-sm'
+                            : 'bg-white/[0.02] border-white/10 text-neutral-300 hover:border-amber-400/30'
+                        }`}
+                      >
+                        <span className="text-[11px] block font-bold">{fin.name}</span>
+                        <span className={`text-[9px] block ${selectedFinish === fin.id ? 'text-neutral-900' : 'text-neutral-500'}`}>
+                          {fin.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -1510,15 +1762,49 @@ He ajustado la paleta con ${matched.palette.map((p) => p.name).join(', ')}. Pued
                 </div>
               </div>
 
-              {/* Consejos para la Manicurista */}
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 text-xs text-neutral-300 space-y-1.5">
-                <div className="flex items-center gap-2 font-bold text-[#F5E5C4]">
-                  <Award className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Instrucciones Técnicas en Mesa:</span>
+              {/* Guía de Factibilidad Humana y Técnica para la Estilista */}
+              <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-400/30 text-xs text-neutral-300 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-amber-400/20">
+                  <div className="flex items-center gap-2 font-bold text-amber-200">
+                    <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Factibilidad Humana: 100% Realizable por Manicurista en Mesa</span>
+                  </div>
+                  <Badge variant="gold" className="text-[10px]">
+                    Sin Costos · Protocolo Puro
+                  </Badge>
                 </div>
-                <p className="leading-relaxed text-neutral-300 text-xs">
-                  {activeDesign.stylistNotes}
-                </p>
+
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-[#F5E5C4] block">
+                    Instrucciones Técnicas de Aplicación:
+                  </span>
+                  <p className="leading-relaxed text-neutral-300 text-xs">
+                    {activeDesign.stylistNotes}
+                  </p>
+                </div>
+
+                {/* Protocolo por Capas & Lámpara UV/LED */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-white/10 space-y-1">
+                    <span className="font-bold text-amber-300 block">🛠️ Herramientas de Mesa:</span>
+                    <ul className="text-neutral-300 list-disc list-inside space-y-0.5 text-[10.5px]">
+                      <li>Pincel linner 000 de cerda extra fina</li>
+                      <li>Punzón dotting tool punta micro</li>
+                      <li>Base rubber con nivelación de ápice</li>
+                      <li>Gel paint negro puro sin capa de dispersión</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-white/10 space-y-1">
+                    <span className="font-bold text-amber-300 block">⚡ Tiempos en Lámpara LED 48W:</span>
+                    <ul className="text-neutral-300 list-disc list-inside space-y-0.5 text-[10.5px]">
+                      <li>Base rubber & ápice: 60s</li>
+                      <li>Color base esmalte semi: 30s</li>
+                      <li>Líneas finas & nail art mano alzada: 60s</li>
+                      <li>Top coat blindado ({selectedFinish}): 60s</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
 
               {/* Paleta de Colorimetría */}

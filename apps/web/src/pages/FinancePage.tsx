@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
 import { getDatabase } from '../db/database';
-import { uploadLocalDataToNeon } from '../db/neon';
+import { uploadLocalDataToNeon, pullAllDataFromNeon } from '../db/neon';
 import { useAuth } from '../auth/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -50,6 +50,14 @@ export function FinancePage() {
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState(() => getEcuadorDateString());
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Sincronización automática con la nube al entrar a Finanzas
+  useEffect(() => {
+    if (user?.org) {
+      uploadLocalDataToNeon(user.org).catch(() => {});
+      pullAllDataFromNeon(user.org).catch(() => {});
+    }
+  }, [user?.org]);
 
   // 1. Cálculos de P&L (Estado de Resultados)
   const completedSales = useMemo(() => {

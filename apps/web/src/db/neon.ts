@@ -154,60 +154,142 @@ export async function pullAllDataFromNeon(organizationId: string): Promise<void>
 
   try {
     // 1. Clientes
-    const clients = await executeNeonSql(
+    const rawClients = await executeNeonSql(
       `SELECT * FROM clients WHERE organization_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC`,
       [orgId]
     );
+    const clients = rawClients.map((c: any) => ({
+      id: ensureUuid(c.id),
+      organization_id: ensureUuid(c.organization_id || orgId),
+      full_name: String(c.full_name || 'Cliente VIP'),
+      phone_whatsapp: c.phone_whatsapp || null,
+      birth_date: c.birth_date ? String(c.birth_date).split('T')[0] : null,
+      consent_given_at: c.consent_given_at || new Date().toISOString(),
+      created_at: c.created_at || new Date().toISOString(),
+      updated_at: c.updated_at || new Date().toISOString(),
+      deleted_at: c.deleted_at || null,
+    }));
     if (clients.length > 0 || !localStorage.getItem('glamos_local_clients')) {
       localStorage.setItem('glamos_local_clients', JSON.stringify(clients));
       window.dispatchEvent(new Event('glamos_updated_clients'));
     }
 
     // 2. Servicios
-    const services = await executeNeonSql(
+    const rawServices = await executeNeonSql(
       `SELECT * FROM services WHERE organization_id = $1 AND deleted_at IS NULL ORDER BY name ASC`,
       [orgId]
     );
+    const services = rawServices.map((s: any) => ({
+      id: ensureUuid(s.id),
+      organization_id: ensureUuid(s.organization_id || orgId),
+      name: String(s.name || 'Servicio de Manicura'),
+      base_price: parseFloat(s.base_price) || 0,
+      active_discount_percentage: parseFloat(s.active_discount_percentage) || 0,
+      discount_starts_at: s.discount_starts_at || null,
+      discount_ends_at: s.discount_ends_at || null,
+      created_at: s.created_at || new Date().toISOString(),
+      updated_at: s.updated_at || new Date().toISOString(),
+      deleted_at: s.deleted_at || null,
+    }));
     if (services.length > 0 || !localStorage.getItem('glamos_local_services')) {
       localStorage.setItem('glamos_local_services', JSON.stringify(services));
       window.dispatchEvent(new Event('glamos_updated_services'));
     }
 
     // 3. Productos
-    const products = await executeNeonSql(
+    const rawProducts = await executeNeonSql(
       `SELECT * FROM products WHERE organization_id = $1 AND deleted_at IS NULL ORDER BY name ASC`,
       [orgId]
     );
+    const products = rawProducts.map((p: any) => ({
+      id: ensureUuid(p.id),
+      organization_id: ensureUuid(p.organization_id || orgId),
+      name: String(p.name || 'Producto de Salón'),
+      sku: p.sku || null,
+      unit_cost: parseFloat(p.unit_cost) || 0,
+      unit_price: parseFloat(p.unit_price) || 0,
+      current_stock: parseFloat(p.current_stock) || 0,
+      min_stock_alert: parseFloat(p.min_stock_alert) || 5,
+      created_at: p.created_at || new Date().toISOString(),
+      updated_at: p.updated_at || new Date().toISOString(),
+      deleted_at: p.deleted_at || null,
+    }));
     if (products.length > 0 || !localStorage.getItem('glamos_local_products')) {
       localStorage.setItem('glamos_local_products', JSON.stringify(products));
       window.dispatchEvent(new Event('glamos_updated_products'));
     }
 
     // 4. Ventas
-    const sales = await executeNeonSql(
+    const rawSales = await executeNeonSql(
       `SELECT * FROM sales WHERE organization_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 500`,
       [orgId]
     );
+    const sales = rawSales.map((s: any) => ({
+      id: ensureUuid(s.id),
+      organization_id: ensureUuid(s.organization_id || orgId),
+      employee_id: ensureUuid(s.employee_id || '00000000-0000-4000-a000-000000000002'),
+      client_id: s.client_id ? ensureUuid(s.client_id) : null,
+      subtotal: parseFloat(s.subtotal) || 0,
+      discount_total: parseFloat(s.discount_total) || 0,
+      final_total: parseFloat(s.final_total) || 0,
+      tip_amount: parseFloat(s.tip_amount) || 0,
+      payment_method: s.payment_method || 'CASH',
+      cash_amount: s.cash_amount != null ? parseFloat(s.cash_amount) : null,
+      transfer_amount: s.transfer_amount != null ? parseFloat(s.transfer_amount) : null,
+      transfer_receipt_key: s.transfer_receipt_key || null,
+      status: s.status || 'COMPLETED',
+      voided_at: s.voided_at || null,
+      voided_by: s.voided_by || null,
+      void_reason: s.void_reason || null,
+      created_at: s.created_at || new Date().toISOString(),
+      updated_at: s.updated_at || new Date().toISOString(),
+      deleted_at: s.deleted_at || null,
+    }));
     if (sales.length > 0 || !localStorage.getItem('glamos_local_sales')) {
       localStorage.setItem('glamos_local_sales', JSON.stringify(sales));
       window.dispatchEvent(new Event('glamos_updated_sales'));
     }
 
     // 5. Items de Ventas
-    const saleItems = await executeNeonSql(
+    const rawSaleItems = await executeNeonSql(
       `SELECT * FROM sale_items WHERE organization_id = $1 ORDER BY created_at DESC LIMIT 1500`,
       [orgId]
     );
+    const saleItems = rawSaleItems.map((item: any) => ({
+      id: ensureUuid(item.id),
+      sale_id: ensureUuid(item.sale_id),
+      organization_id: ensureUuid(item.organization_id || orgId),
+      service_id: item.service_id ? ensureUuid(item.service_id) : null,
+      product_id: item.product_id ? ensureUuid(item.product_id) : null,
+      quantity: parseFloat(item.quantity) || 1,
+      unit_price: parseFloat(item.unit_price) || 0,
+      discount_percentage: parseFloat(item.discount_percentage) || 0,
+      line_total: parseFloat(item.line_total) || 0,
+      created_at: item.created_at || new Date().toISOString(),
+      updated_at: item.updated_at || new Date().toISOString(),
+    }));
     if (saleItems.length > 0) {
       localStorage.setItem('glamos_local_sale_items', JSON.stringify(saleItems));
       window.dispatchEvent(new Event('glamos_updated_sale_items'));
     }
 
     // 6. Gastos Fijos
-    const expenses = await executeNeonSql(
+    const rawExpenses = await executeNeonSql(
       `SELECT * FROM fixed_expenses WHERE organization_id = $1 AND deleted_at IS NULL ORDER BY expense_date DESC`,
       [orgId]
     );
+    const expenses = rawExpenses.map((e: any) => ({
+      id: ensureUuid(e.id),
+      organization_id: ensureUuid(e.organization_id || orgId),
+      category: e.category || 'OTHER',
+      description: e.description || null,
+      amount: parseFloat(e.amount) || 0,
+      expense_date: e.expense_date ? String(e.expense_date).split('T')[0] : new Date().toISOString().split('T')[0],
+      registered_by: e.registered_by ? ensureUuid(e.registered_by) : null,
+      created_at: e.created_at || new Date().toISOString(),
+      updated_at: e.updated_at || new Date().toISOString(),
+      deleted_at: e.deleted_at || null,
+    }));
     if (expenses.length > 0 || !localStorage.getItem('glamos_local_fixed_expenses')) {
       localStorage.setItem('glamos_local_fixed_expenses', JSON.stringify(expenses));
       window.dispatchEvent(new Event('glamos_updated_fixed_expenses'));

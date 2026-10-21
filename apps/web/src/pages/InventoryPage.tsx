@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCollection } from '../hooks/useCollection';
 import { useDatabase } from '../hooks/useDatabase';
 import { getDatabase } from '../db/database';
-import { uploadLocalDataToNeon } from '../db/neon';
+import { uploadLocalDataToNeon, pullAllDataFromNeon } from '../db/neon';
 import { useAuth } from '../auth/auth-context';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -33,6 +33,14 @@ export function InventoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Sincronización automática con la nube al entrar a Inventario
+  useEffect(() => {
+    if (user?.org) {
+      uploadLocalDataToNeon(user.org).catch(() => {});
+      pullAllDataFromNeon(user.org).catch(() => {});
+    }
+  }, [user?.org]);
 
   // Form state
   const [name, setName] = useState('');

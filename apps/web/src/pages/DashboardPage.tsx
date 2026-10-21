@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../auth/auth-context';
+import { uploadLocalDataToNeon, pullAllDataFromNeon } from '../db/neon';
 import {
   PlusCircle,
   Package,
@@ -48,6 +49,14 @@ export function DashboardPage() {
   const { docs: products } = useCollection('products');
 
   const userUuid = useMemo(() => (user?.sub ? ensureUuid(user?.sub) : null), [user?.sub]);
+
+  // Sincronización automática de salón con la nube
+  useEffect(() => {
+    if (user?.org) {
+      uploadLocalDataToNeon(user.org).catch(() => {});
+      pullAllDataFromNeon(user.org).catch(() => {});
+    }
+  }, [user?.org]);
   const userDisplayName = useMemo(() => {
     if (user?.email) {
       const stored = localStorage.getItem(`glamos_user_name_${user.email}`);

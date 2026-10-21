@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -17,18 +17,48 @@ import {
   ChevronRight,
   Cake,
   MessageCircle,
+  Cloud,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '../auth/auth-context';
 import { useCollection } from '../hooks/useCollection';
 import { cn, getBirthdayDetails, getBirthdayWhatsAppUrl } from '../lib/utils';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
 import { Badge } from '../components/ui/Badge';
+import { uploadLocalDataToNeon, pullAllDataFromNeon } from '../db/neon';
 
 export function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [birthdayDropdownOpen, setBirthdayDropdownOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  // Auto-sincronización periódica y al montar el layout
+  useEffect(() => {
+    if (user?.org) {
+      uploadLocalDataToNeon(user.org).catch(() => {});
+      pullAllDataFromNeon(user.org).catch(() => {});
+    }
+  }, [user?.org]);
+
+  const handleManualSync = async () => {
+    if (!user?.org || isSyncing) return;
+    setIsSyncing(true);
+    setSyncStatusMsg('Sincronizando...');
+    try {
+      await uploadLocalDataToNeon(user.org);
+      await pullAllDataFromNeon(user.org);
+      setSyncStatusMsg('¡Sincronizado!');
+      setTimeout(() => setSyncStatusMsg(null), 2500);
+    } catch {
+      setSyncStatusMsg('Error de red');
+      setTimeout(() => setSyncStatusMsg(null), 2500);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const isAdmin = user?.role === 'OWNER_ADMIN';
   const { docs: clients } = useCollection('clients');
@@ -234,8 +264,27 @@ export function AppLayout() {
             </div>
           </div>
 
-          {/* User Profile & VIP Birthday Notification on Header */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* User Profile, VIP Birthday Notification & Cloud Sync on Header */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Botón de Sincronización en la Nube Serverless */}
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
+                syncStatusMsg?.includes('Sincronizado')
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/50'
+                  : 'bg-neutral-900/80 text-emerald-400 border-emerald-500/30 hover:bg-neutral-800'
+              }`}
+              title="Sincronizar salón entre PC y celular a través de la nube"
+            >
+              <Cloud className={`w-3.5 h-3.5 ${isSyncing ? 'animate-bounce text-amber-400' : 'text-emerald-400'}`} />
+              <span className="hidden sm:inline">
+                {syncStatusMsg || (isSyncing ? 'Sincronizando...' : 'Nube Activa')}
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            </button>
+
             {isAdmin && upcomingBirthdays.length > 0 && (
               <div className="relative">
                 <button
