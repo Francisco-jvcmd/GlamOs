@@ -129,25 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTokens(parsed);
         let decoded = decodeJwt(parsed.access_token);
 
-        // Sanear contaminación de demo en cuentas reales de Google
-        const isDemoEmail = decoded.email === 'duena.vip@glamos.app' || decoded.email === 'estilista.vip@glamos.app';
-        if (!isDemoEmail && decoded.org === '00000000-0000-4000-a000-000000000001') {
-          const userSpecificOrg = localStorage.getItem(`glamos_user_org_${decoded.email}`);
-          if (!userSpecificOrg) {
-            decoded.org = null;
-            // Actualizar token sin la org demo
-            try {
-              const parts = parsed.access_token.split('.');
-              if (parts.length === 3) {
-                const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-                payload.org = null;
-                parsed.access_token = `${parts[0]}.${btoa(JSON.stringify(payload)).replace(/=/g, '')}.${parts[2]}`;
-                localStorage.setItem('glamos_tokens', JSON.stringify(parsed));
-              }
-            } catch {}
-          }
-        }
-
+        // Establecer usuario
         setUser(decoded);
 
         // Si estaba en modo offline, intentar enlazar silenciosamente con Neon
@@ -161,13 +143,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Sincronización serverless bidireccional inmediata con Neon PostgreSQL (PC <-> Teléfono)
         const userEmail = decoded.email?.trim().toLowerCase();
-        if (userEmail && userEmail !== 'duena.vip@glamos.app' && userEmail !== 'estilista.vip@glamos.app') {
+        if (userEmail) {
           syncGoogleUserWithNeon({ email: userEmail, sub: decoded.sub })
             .then(async (neonSession) => {
               if (neonSession?.organization_id) {
                 if (decoded.org !== neonSession.organization_id) {
                   decoded.org = neonSession.organization_id;
                   setUser({ ...decoded });
+
+                  // Actualizar token persistente con la organización correcta
+                  try {
+                    const parts = parsed.access_token.split('.');
+                    if (parts.length === 3) {
+                      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                      payload.org = neonSession.organization_id;
+                      parsed.access_token = `${parts[0]}.${btoa(JSON.stringify(payload)).replace(/=/g, '')}.${parts[2]}`;
+                      localStorage.setItem('glamos_tokens', JSON.stringify(parsed));
+                    }
+                  } catch {}
                 }
                 localStorage.setItem(`glamos_user_org_${userEmail}`, neonSession.organization_id);
                 localStorage.setItem('glamos_local_org_id', neonSession.organization_id);
@@ -176,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 // Primero asegurar que la organización y los datos locales de la PC estén en Neon
                 await uploadLocalDataToNeon(neonSession.organization_id);
-                // Luego descargar cualquier actualización fresca
+                // Luego descargar cualquier actualización fresca de otros dispositivos
                 await pullAllDataFromNeon(neonSession.organization_id);
               }
             })

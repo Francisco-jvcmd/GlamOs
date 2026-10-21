@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth-context';
 import { GlamOSEmblem } from '../components/GlamOSLogo';
 import { generateUuid } from '../lib/utils';
-import { executeNeonSql, pullAllDataFromNeon } from '../db/neon';
+import { executeNeonSql, pullAllDataFromNeon, syncGoogleUserWithNeon } from '../db/neon';
 import { Crown, Scissors, ArrowRight, Sparkles, Building2, KeyRound, Check, Copy } from 'lucide-react';
 
 export function OnboardingPage() {
@@ -25,9 +25,20 @@ export function OnboardingPage() {
         navigate('/login', { replace: true });
       } else if (user.org && mode !== 'ADMIN_SUCCESS') {
         navigate('/', { replace: true });
+      } else if (user.email) {
+        // Auto-recuperación instantánea de salón central en la nube
+        syncGoogleUserWithNeon({ email: user.email, sub: user.sub })
+          .then((session) => {
+            if (session?.organization_id) {
+              setOrganization(session.organization_id, session.role || 'OWNER_ADMIN');
+              pullAllDataFromNeon(session.organization_id).catch(() => {});
+              navigate('/', { replace: true });
+            }
+          })
+          .catch(() => {});
       }
     }
-  }, [user, authLoading, navigate, mode]);
+  }, [user, authLoading, navigate, mode, setOrganization]);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 

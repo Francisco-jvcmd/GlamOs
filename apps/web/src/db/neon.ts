@@ -57,7 +57,7 @@ export async function syncGoogleUserWithNeon(googleUser: {
       `SELECT u.id, u.email, u.full_name, u.role, u.organization_id, o.business_name, o.id as org_id
        FROM users u
        LEFT JOIN organizations o ON u.organization_id = o.id
-       WHERE LOWER(u.email) = LOWER($1) OR u.google_sub = $2
+       WHERE LOWER(u.email) = LOWER($1) OR (u.google_sub IS NOT NULL AND u.google_sub = $2)
        LIMIT 1`,
       [email, sub]
     );
@@ -76,14 +76,14 @@ export async function syncGoogleUserWithNeon(googleUser: {
         full_name: u.full_name || fullName,
         role: u.role || 'OWNER_ADMIN',
         organization_id: u.organization_id,
-        business_name: u.business_name || 'Mi Salón Glamour',
+        business_name: u.business_name || 'Salón GlamOS Principal',
       };
     }
 
     // 2. Si es un nuevo usuario o inicia sesión desde otro dispositivo (teléfono),
     // verificar si ya existe alguna organización registrada en el sistema para vincularla
     let orgId = '';
-    let orgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
+    let orgName = localStorage.getItem('glamos_local_org_name') || 'Salón GlamOS Principal';
     let joinCode = localStorage.getItem('glamos_local_join_code') || 'GLAM-7721-V';
 
     const existingOrgs = await executeNeonSql<any>(
@@ -95,7 +95,7 @@ export async function syncGoogleUserWithNeon(googleUser: {
       orgId = existingOrgs[0].id;
       orgName = existingOrgs[0].business_name || orgName;
     } else {
-      // Si es el primer dispositivo (ej. PC) y tiene un ID local, persistirlo en Neon
+      // Si es el primer salón, crear la organización central
       const localOrg = localStorage.getItem('glamos_local_org_id') || localStorage.getItem(`glamos_user_org_${email}`);
       orgId = localOrg ? ensureUuid(localOrg) : '00000000-0000-4000-a000-000000000001';
 
@@ -133,7 +133,7 @@ export async function syncGoogleUserWithNeon(googleUser: {
   } catch (err) {
     console.warn('Advertencia en syncGoogleUserWithNeon (Modo Local Fallback):', err);
     const fallbackOrgId = localStorage.getItem('glamos_local_org_id') || '00000000-0000-4000-a000-000000000001';
-    const fallbackOrgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
+    const fallbackOrgName = localStorage.getItem('glamos_local_org_name') || 'Salón GlamOS Principal';
     return {
       id: generateUuid(),
       email,
@@ -235,10 +235,11 @@ export async function pullAllDataFromNeon(organizationId: string): Promise<void>
 /**
  * Sube a Neon cualquier dato que se haya creado localmente en la PC o teléfono
  * para asegurar que ambos dispositivos tengan exactamente la misma información.
+ * Lee tanto de RxDB (IndexedDB) como de localStorage para máxima resiliencia.
  */
 export async function uploadLocalDataToNeon(organizationId: string): Promise<void> {
   const orgId = ensureUuid(organizationId);
-  const orgName = localStorage.getItem('glamos_local_org_name') || 'Mi Salón Glamour';
+  const orgName = localStorage.getItem('glamos_local_org_name') || 'Salón GlamOS Principal';
   const joinCode = localStorage.getItem('glamos_local_join_code') || 'GLAM-7721-V';
 
   try {
@@ -251,6 +252,7 @@ export async function uploadLocalDataToNeon(organizationId: string): Promise<voi
     );
 
     // 0.1 Asegurar que el usuario activo de la sesión esté registrado en Neon
+    let activeUserId = '00000000-0000-4000-a000-000000000002';
     const storedTokens = localStorage.getItem('glamos_tokens');
     if (storedTokens) {
       try {
@@ -263,14 +265,14 @@ export async function uploadLocalDataToNeon(organizationId: string): Promise<voi
             const sub = payload.sub || `google_${email}`;
             const fullName = localStorage.getItem(`glamos_user_name_${email}`) || localStorage.getItem('glamos_user_display_name') || email.split('@')[0];
             const role = payload.role || 'OWNER_ADMIN';
-            const userId = ensureUuid(payload.sub && payload.sub.length >= 32 ? payload.sub : generateUuid());
+            activeUserId = ensureUuid(payload.sub && payload.sub.length >= 32 ? payload.sub : generateUuid());
 
             await executeNeonSql(
               `INSERT INTO users (id, google_sub, email, full_name, role, organization_id, is_active, created_at, updated_at)
                VALUES ($1, $2, $3, $4, 'OWNER_ADMIN', $5, true, NOW(), NOW())
                ON CONFLICT (google_sub) DO UPDATE 
                SET organization_id = EXCLUDED.organization_id, email = EXCLUDED.email, full_name = EXCLUDED.full_name, role = EXCLUDED.role, updated_at = NOW()`,
-              [userId, sub, email, fullName, orgId]
+              [activeUserId, sub, email, fullName, orgId]
             ).catch(async () => {
               await executeNeonSql(
                 `UPDATE users SET organization_id = $1, role = $2, updated_at = NOW() WHERE LOWER(email) = LOWER($3)`,
@@ -284,136 +286,196 @@ export async function uploadLocalDataToNeon(organizationId: string): Promise<voi
       }
     }
 
-    // 1. Subir Clientes locales
-    const localClientsStr = localStorage.getItem('glamos_local_clients');
-    if (localClientsStr) {
-      const localClients = JSON.parse(localClientsStr);
-      for (const c of localClients) {
-        if (!c.id) continue;
-        await executeNeonSql(
-          `INSERT INTO clients (id, organization_id, full_name, phone_whatsapp, birth_date, consent_given_at, created_at, updated_at, deleted_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-           ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, phone_whatsapp = EXCLUDED.phone_whatsapp, birth_date = EXCLUDED.birth_date, updated_at = NOW()`,
-          [
-            ensureUuid(c.id),
-            orgId,
-            c.full_name || c.name || 'Cliente',
-            c.phone_whatsapp || c.phone || null,
-            c.birth_date || null,
-            c.consent_given_at || new Date().toISOString(),
-            c.created_at || new Date().toISOString(),
-            c.updated_at || new Date().toISOString(),
-            c.deleted_at || null,
-          ]
-        ).catch(() => {});
+    // Obtener instancia de base de datos local RxDB
+    const db = await getDatabase().catch(() => null);
+
+    // Función auxiliar para extraer registros combinados de RxDB y LocalStorage
+    const getCombinedRecords = async (tableName: string): Promise<any[]> => {
+      let records: any[] = [];
+      if (db && (db as any)[tableName]) {
+        try {
+          const docs = await (db as any)[tableName].find().exec();
+          records = docs.map((d: any) => d.toJSON());
+        } catch {}
       }
+      const localStr = localStorage.getItem(`glamos_local_${tableName}`);
+      if (localStr) {
+        try {
+          const list = JSON.parse(localStr);
+          const map = new Map<string, any>();
+          records.forEach((r) => map.set(r.id, r));
+          if (Array.isArray(list)) {
+            list.forEach((r: any) => {
+              if (r?.id && !map.has(r.id)) map.set(r.id, r);
+            });
+          }
+          records = Array.from(map.values());
+        } catch {}
+      }
+      return records;
+    };
+
+    // 1. Subir Clientes locales
+    const localClients = await getCombinedRecords('clients');
+    const validClientIds = new Set<string>();
+    for (const c of localClients) {
+      if (!c.id) continue;
+      const cId = ensureUuid(c.id);
+      validClientIds.add(cId);
+      await executeNeonSql(
+        `INSERT INTO clients (id, organization_id, full_name, phone_whatsapp, birth_date, consent_given_at, created_at, updated_at, deleted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, phone_whatsapp = EXCLUDED.phone_whatsapp, birth_date = EXCLUDED.birth_date, updated_at = NOW()`,
+        [
+          cId,
+          orgId,
+          c.full_name || c.name || 'Cliente VIP',
+          c.phone_whatsapp || c.phone || null,
+          c.birth_date || null,
+          c.consent_given_at || new Date().toISOString(),
+          c.created_at || new Date().toISOString(),
+          c.updated_at || new Date().toISOString(),
+          c.deleted_at || null,
+        ]
+      ).catch(() => {});
     }
 
     // 2. Subir Servicios locales
-    const localServicesStr = localStorage.getItem('glamos_local_services');
-    if (localServicesStr) {
-      const localServices = JSON.parse(localServicesStr);
-      for (const s of localServices) {
-        if (!s.id) continue;
-        await executeNeonSql(
-          `INSERT INTO services (id, organization_id, name, base_price, active_discount_percentage, created_at, updated_at, deleted_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-           ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, base_price = EXCLUDED.base_price, updated_at = NOW()`,
-          [
-            ensureUuid(s.id),
-            orgId,
-            s.name,
-            s.base_price || 0,
-            s.active_discount_percentage || 0,
-            s.created_at || new Date().toISOString(),
-            s.updated_at || new Date().toISOString(),
-            s.deleted_at || null,
-          ]
-        ).catch(() => {});
-      }
+    const localServices = await getCombinedRecords('services');
+    for (const s of localServices) {
+      if (!s.id) continue;
+      await executeNeonSql(
+        `INSERT INTO services (id, organization_id, name, base_price, active_discount_percentage, created_at, updated_at, deleted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, base_price = EXCLUDED.base_price, updated_at = NOW()`,
+        [
+          ensureUuid(s.id),
+          orgId,
+          s.name,
+          s.base_price || 0,
+          s.active_discount_percentage || 0,
+          s.created_at || new Date().toISOString(),
+          s.updated_at || new Date().toISOString(),
+          s.deleted_at || null,
+        ]
+      ).catch(() => {});
     }
 
     // 3. Subir Productos locales
-    const localProductsStr = localStorage.getItem('glamos_local_products');
-    if (localProductsStr) {
-      const localProducts = JSON.parse(localProductsStr);
-      for (const p of localProducts) {
-        if (!p.id) continue;
-        await executeNeonSql(
-          `INSERT INTO products (id, organization_id, name, sku, unit_cost, unit_price, current_stock, min_stock_alert, created_at, updated_at, deleted_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-           ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, current_stock = EXCLUDED.current_stock, unit_price = EXCLUDED.unit_price, updated_at = NOW()`,
-          [
-            ensureUuid(p.id),
-            orgId,
-            p.name,
-            p.sku || null,
-            p.unit_cost || 0,
-            p.unit_price || 0,
-            p.current_stock ?? 10,
-            p.min_stock_alert ?? 5,
-            p.created_at || new Date().toISOString(),
-            p.updated_at || new Date().toISOString(),
-            p.deleted_at || null,
-          ]
-        ).catch(() => {});
-      }
+    const localProducts = await getCombinedRecords('products');
+    for (const p of localProducts) {
+      if (!p.id) continue;
+      await executeNeonSql(
+        `INSERT INTO products (id, organization_id, name, sku, unit_cost, unit_price, current_stock, min_stock_alert, created_at, updated_at, deleted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, current_stock = EXCLUDED.current_stock, unit_price = EXCLUDED.unit_price, updated_at = NOW()`,
+        [
+          ensureUuid(p.id),
+          orgId,
+          p.name,
+          p.sku || null,
+          p.unit_cost || 0,
+          p.unit_price || 0,
+          p.current_stock ?? 10,
+          p.min_stock_alert ?? 5,
+          p.created_at || new Date().toISOString(),
+          p.updated_at || new Date().toISOString(),
+          p.deleted_at || null,
+        ]
+      ).catch(() => {});
     }
 
     // 4. Subir Ventas locales
-    const localSalesStr = localStorage.getItem('glamos_local_sales');
-    if (localSalesStr) {
-      const localSales = JSON.parse(localSalesStr);
-      for (const sale of localSales) {
-        if (!sale.id) continue;
-        await executeNeonSql(
-          `INSERT INTO sales (id, organization_id, employee_id, client_id, subtotal, discount_total, final_total, tip_amount, payment_method, cash_amount, transfer_amount, status, created_at, updated_at, deleted_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-           ON CONFLICT (id) DO NOTHING`,
-          [
-            ensureUuid(sale.id),
-            orgId,
-            sale.employee_id ? ensureUuid(sale.employee_id) : null,
-            sale.client_id ? ensureUuid(sale.client_id) : null,
-            sale.subtotal || sale.final_total || 0,
-            sale.discount_total || 0,
-            sale.final_total || 0,
-            sale.tip_amount || 0,
-            sale.payment_method || 'CASH',
-            sale.cash_amount || 0,
-            sale.transfer_amount || 0,
-            sale.status || 'COMPLETED',
-            sale.created_at || new Date().toISOString(),
-            sale.updated_at || new Date().toISOString(),
-            sale.deleted_at || null,
-          ]
-        ).catch(() => {});
-      }
+    const localSales = await getCombinedRecords('sales');
+    for (const sale of localSales) {
+      if (!sale.id) continue;
+      // Validar client_id foráneo para no rebotar
+      const cId = sale.client_id && validClientIds.has(ensureUuid(sale.client_id))
+        ? ensureUuid(sale.client_id)
+        : null;
+
+      const paymentMethod = ['CASH', 'TRANSFER', 'MIXED'].includes(sale.payment_method)
+        ? sale.payment_method
+        : 'CASH';
+
+      const status = ['COMPLETED', 'VOIDED'].includes(sale.status)
+        ? sale.status
+        : 'COMPLETED';
+
+      await executeNeonSql(
+        `INSERT INTO sales (id, organization_id, employee_id, client_id, subtotal, discount_total, final_total, tip_amount, payment_method, cash_amount, transfer_amount, status, created_at, updated_at, deleted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+         ON CONFLICT (id) DO UPDATE SET final_total = EXCLUDED.final_total, status = EXCLUDED.status, updated_at = NOW()`,
+        [
+          ensureUuid(sale.id),
+          orgId,
+          sale.employee_id ? ensureUuid(sale.employee_id) : activeUserId,
+          cId,
+          sale.subtotal || sale.final_total || 0,
+          sale.discount_total || 0,
+          sale.final_total || 0,
+          sale.tip_amount || 0,
+          paymentMethod,
+          sale.cash_amount || 0,
+          sale.transfer_amount || 0,
+          status,
+          sale.created_at || new Date().toISOString(),
+          sale.updated_at || new Date().toISOString(),
+          sale.deleted_at || null,
+        ]
+      ).catch(() => {});
     }
 
-    // 5. Subir Gastos locales
-    const localExpensesStr = localStorage.getItem('glamos_local_fixed_expenses');
-    if (localExpensesStr) {
-      const localExpenses = JSON.parse(localExpensesStr);
-      for (const exp of localExpenses) {
-        if (!exp.id) continue;
-        await executeNeonSql(
-          `INSERT INTO fixed_expenses (id, organization_id, category, description, amount, expense_date, created_at, updated_at, deleted_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-           ON CONFLICT (id) DO NOTHING`,
-          [
-            ensureUuid(exp.id),
-            orgId,
-            exp.category || 'OTHER',
-            exp.description || null,
-            exp.amount || 0,
-            exp.expense_date || new Date().toISOString().split('T')[0],
-            exp.created_at || new Date().toISOString(),
-            exp.updated_at || new Date().toISOString(),
-            exp.deleted_at || null,
-          ]
-        ).catch(() => {});
-      }
+    // 5. Subir Items de Ventas
+    const localSaleItems = await getCombinedRecords('sale_items');
+    for (const item of localSaleItems) {
+      if (!item.id || !item.sale_id) continue;
+      await executeNeonSql(
+        `INSERT INTO sale_items (id, sale_id, organization_id, service_id, product_id, quantity, unit_price, discount_percentage, line_total, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO UPDATE SET quantity = EXCLUDED.quantity, line_total = EXCLUDED.line_total, updated_at = NOW()`,
+        [
+          ensureUuid(item.id),
+          ensureUuid(item.sale_id),
+          orgId,
+          item.service_id ? ensureUuid(item.service_id) : null,
+          item.product_id ? ensureUuid(item.product_id) : null,
+          item.quantity || 1,
+          item.unit_price || 0,
+          item.discount_percentage || 0,
+          item.line_total || 0,
+          item.created_at || new Date().toISOString(),
+          item.updated_at || new Date().toISOString(),
+        ]
+      ).catch(() => {});
+    }
+
+    // 6. Subir Gastos Fijos locales
+    const localExpenses = await getCombinedRecords('fixed_expenses');
+    const validExpenseCategories = ['RENT', 'UTILITIES', 'SALARIES', 'SUPPLIES', 'MARKETING', 'OTHER'];
+    for (const exp of localExpenses) {
+      if (!exp.id) continue;
+      const cat = validExpenseCategories.includes(exp.category) ? exp.category : 'OTHER';
+      const expenseDate = exp.expense_date
+        ? String(exp.expense_date).split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
+      await executeNeonSql(
+        `INSERT INTO fixed_expenses (id, organization_id, category, description, amount, expense_date, created_at, updated_at, deleted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (id) DO UPDATE SET amount = EXCLUDED.amount, description = EXCLUDED.description, category = EXCLUDED.category, updated_at = NOW()`,
+        [
+          ensureUuid(exp.id),
+          orgId,
+          cat,
+          exp.description || 'Gasto Operativo',
+          exp.amount || 0,
+          expenseDate,
+          exp.created_at || new Date().toISOString(),
+          exp.updated_at || new Date().toISOString(),
+          exp.deleted_at || null,
+        ]
+      ).catch(() => {});
     }
   } catch (err) {
     console.warn('Aviso en uploadLocalDataToNeon:', err);

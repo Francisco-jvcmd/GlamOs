@@ -165,6 +165,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Foil de Oro 24K', 'Veteado Manual con Alcohol', 'Esmalte Gel Lechoso'],
     stylistNotes: 'Difumina las vetas de cuarzo con pincel mojado en alcohol isopropílico antes de curar. Coloca hojuelas de pan de oro con pinzas de precisión.',
+    photoUrl: '/nails/marble-gold.jpg',
   },
   {
     id: 'cyber-chrome',
@@ -182,6 +183,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Cromo Plata Líquida', 'Sonrisa Francesa Invertida', 'Base Vidrio Transparente'],
     stylistNotes: 'Dibuja la sonrisa francesa con gel painting blanco, cura y frota pigmento espejo de plata pura. Remata con gotas de builder gel transparente.',
+    photoUrl: '/nails/cyber-chrome.jpg',
   },
   {
     id: 'baby-boomer-bride',
@@ -199,6 +201,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Degradé Esponja Airbrush', 'Cristal Swarovski', 'Top Coat Blindado'],
     stylistNotes: 'Aplica degradado con aerógrafo o esponja de látex difuminada. Adhiere los cristales con gel de construcción de alta viscosidad.',
+    photoUrl: '/nails/baby-boomer-bride.jpg',
   },
   {
     id: 'emerald-glam',
@@ -216,6 +219,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Verde Joya Profundo', 'Polvo de Oro', 'Acabado Espejo'],
     stylistNotes: 'Aplica dos capas finas de verde esmeralda y espolvorea el micro-glitter dorado antes del segundo curado.',
+    photoUrl: '/nails/emerald-glam.jpg',
   },
   {
     id: 'noir-abstract',
@@ -233,6 +237,7 @@ export const PRESET_DESIGNS: PresetDesign[] = [
     ],
     accentFeatures: ['Espacio Negativo', 'Líneas Curvas Abstractas', 'Relieve Cromado'],
     stylistNotes: 'Usa cinta para nail art para definir los bordes nítidos del espacio negativo antes de aplicar el gel negro opaco.',
+    photoUrl: '/nails/noir-abstract.jpg',
   },
 ];
 
@@ -373,7 +378,7 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     setCalibCurve(0);
   };
 
-  // ── MOTOR DE RENDERIZADO EN CANVAS (HIPERREALISMO) ───────────────────────
+  // ── MOTOR DE RENDERIZADO EN CANVAS (HIPERREALISMO FOTOGRÁFICO) ────────────
   const renderNailArt = () => {
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
@@ -394,8 +399,8 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (viewMode === 'macro') {
-      // ── MODO MACRO: ENFOQUE EN PRIMER PLANO DE LAS 5 UÑAS ────────────────
-      drawMacroNailsView(ctx, activeDesign, tone, shape);
+      // ── MODO MACRO: ENFOQUE ÓPTICO 4K DE ALTA RESOLUCIÓN EN LAS UÑAS ─────
+      drawMacroPhotoView(ctx, activeDesign, shape);
     } else {
       // ── MODO MANO COMPLETA ───────────────────────────────────────────────
       if (capturedImage) {
@@ -417,8 +422,8 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
           drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
         };
         img.src = capturedImage;
-      } else if (activeDesign.photoUrl) {
-        // Fotografía de estudio hiperrealista de alta costura (Catálogo Real)
+      } else {
+        // Fotografía de estudio hiperrealista de alta costura (Catálogo Real 4K)
         const img = new window.Image();
         img.onload = () => {
           ctx.save();
@@ -430,68 +435,56 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.restore();
         };
-        img.src = activeDesign.photoUrl;
-      } else {
-        // Modo Mano Virtual Modelo
-        drawVirtualModelHand(ctx, tone);
-        drawCalibratedNailsOnRealHand(ctx, activeDesign, tone, shape);
+        img.src = activeDesign.photoUrl || '/nails/spiderman.jpg';
       }
     }
   };
 
-  // Dibuja una mano modelo hiperrealista con textura suave y anatomía precisa
-  const drawVirtualModelHand = (ctx: CanvasRenderingContext2D, tone: SkinTone) => {
+  // ── RENDERIZADOR MACRO 4K FOTOGRÁFICO DE ALTA COSTURA ─────────────────────
+  const drawMacroPhotoView = (
+    ctx: CanvasRenderingContext2D,
+    design: PresetDesign,
+    shape: NailShape
+  ) => {
     ctx.save();
-
-    // Sombra suave proyectada bajo la mano
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetY = 25;
-
-    // Gradiente anatómico de la piel con dispersión sub-superficial
-    const skinGrad = ctx.createLinearGradient(450, 850, 450, 180);
-    skinGrad.addColorStop(0, tone.hex);
-    skinGrad.addColorStop(0.6, tone.hex);
-    skinGrad.addColorStop(1, adjustBrightness(tone.hex, 16));
-    ctx.fillStyle = skinGrad;
-
-    // Palma y base de la mano
-    ctx.beginPath();
-    ctx.ellipse(450, 680, 215, 205, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Dedos con proporciones naturales
-    const fingers = [
-      { x: 260, y: 520, w: 46, h: 220, rot: -0.22 }, // Meñique
-      { x: 350, y: 440, w: 50, h: 280, rot: -0.09 }, // Anular
-      { x: 450, y: 410, w: 52, h: 300, rot: 0.00 },  // Medio
-      { x: 550, y: 445, w: 50, h: 275, rot: 0.09 },  // Índice
-      { x: 650, y: 580, w: 54, h: 190, rot: 0.35 },  // Pulgar
-    ];
-
-    fingers.forEach((f) => {
+    const img = new window.Image();
+    img.onload = () => {
       ctx.save();
-      ctx.translate(f.x, f.y);
-      ctx.rotate(f.rot);
+      // Recorte centrado con zoom óptico macro para ver detalles microscópicos
+      const cropW = img.naturalWidth * 0.72;
+      const cropH = img.naturalHeight * 0.72;
+      const cropX = (img.naturalWidth - cropW) / 2;
+      const cropY = (img.naturalHeight - cropH) / 2;
+      ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, 900, 900);
 
+      // Viñeta fotográfica de estudio
+      const vignette = ctx.createRadialGradient(450, 450, 280, 450, 450, 560);
+      vignette.addColorStop(0, 'rgba(0,0,0,0)');
+      vignette.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, 900, 900);
+
+      // Distintivo Haute Couture
+      ctx.fillStyle = 'rgba(18, 17, 24, 0.88)';
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(-f.w / 2, -f.h / 2, f.w, f.h, [f.w / 2, f.w / 2, 22, 22]);
+      ctx.roundRect(160, 35, 580, 56, 28);
       ctx.fill();
+      ctx.stroke();
 
-      // Pliegues articulares y nudillos
-      ctx.strokeStyle = adjustBrightness(tone.hex, -22);
-      ctx.lineWidth = 1.6;
-      ctx.globalAlpha = 0.32;
-      ctx.beginPath();
-      ctx.arc(0, -f.h * 0.1, f.w * 0.3, 0, Math.PI);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(0, f.h * 0.16, f.w * 0.32, 0, Math.PI);
-      ctx.stroke();
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = 'bold 12px Plus Jakarta Sans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('GLAMOS HAUTE NAIL ART · ENFOQUE MACRO 4K', 450, 58);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 15px Plus Jakarta Sans, sans-serif';
+      ctx.fillText(`${design.name} · Silueta ${shape.name}`, 450, 78);
 
       ctx.restore();
-    });
-
+    };
+    img.src = design.photoUrl || '/nails/spiderman.jpg';
     ctx.restore();
   };
 
@@ -545,74 +538,6 @@ Puedes pedirme cualquier diseño en lenguaje natural (ej. "diseño de Spiderman"
     ctx.restore();
   };
 
-  // ── RENDERIZADOR MACRO PRIMER PLANO (ZOOM DE LAS 5 UÑAS) ─────────────────
-  const drawMacroNailsView = (
-    ctx: CanvasRenderingContext2D,
-    design: PresetDesign,
-    tone: SkinTone,
-    shape: NailShape
-  ) => {
-    ctx.save();
-
-    // Cabecera elegante en vista macro
-    ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 18px Cormorant Garamond, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('GLAMOS HAUTE NAIL ART · ENFOQUE MACRO 4K', 450, 110);
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 30px Cormorant Garamond, serif';
-    ctx.fillText(design.name, 450, 150);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = '13px Plus Jakarta Sans, sans-serif';
-    ctx.fillText(`Silueta: ${shape.name} · Acabado: Gel UV 3D Espejo`, 450, 180);
-
-    // 5 Uñas ampliadas en fila horizontal
-    const macroSlots = [
-      { label: 'Pulgar', x: 130, y: 480, w: 90, h: 190, accent: false, idx: 4 },
-      { label: 'Índice', x: 290, y: 460, w: 84, h: 185, accent: false, idx: 3 },
-      { label: 'Medio', x: 450, y: 440, w: 88, h: 200, accent: false, idx: 2 },
-      { label: 'Anular (Acento)', x: 610, y: 460, w: 86, h: 190, accent: true, idx: 1 },
-      { label: 'Meñique', x: 770, y: 495, w: 76, h: 165, accent: false, idx: 0 },
-    ];
-
-    macroSlots.forEach((slot) => {
-      // Dedo base de soporte
-      ctx.save();
-      ctx.fillStyle = tone.hex;
-      ctx.shadowColor = 'rgba(0,0,0,0.6)';
-      ctx.shadowBlur = 25;
-      ctx.shadowOffsetY = 15;
-      ctx.beginPath();
-      ctx.roundRect(slot.x - slot.w * 0.6, slot.y - slot.h * 0.2, slot.w * 1.2, slot.h * 1.5, [30, 30, 15, 15]);
-      ctx.fill();
-      ctx.restore();
-
-      // Etiqueta del dedo
-      ctx.fillStyle = slot.accent ? '#F5E5C4' : 'rgba(255, 255, 255, 0.7)';
-      ctx.font = slot.accent ? 'bold 13px Plus Jakarta Sans, sans-serif' : '12px Plus Jakarta Sans, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(slot.label, slot.x, slot.y + slot.h * 0.65 + 40);
-
-      // Dibujar la uña esculpida en tamaño macro
-      drawSingleSculptedNail(
-        ctx,
-        slot.x,
-        slot.y,
-        slot.w,
-        slot.h,
-        0,
-        design,
-        tone,
-        shape,
-        slot.accent,
-        slot.idx
-      );
-    });
-
-    ctx.restore();
-  };
 
   // ── ESCULPIDO INDIVIDUAL DE UNA UÑA CON DISEÑO DETALLADO ─────────────────
   const drawSingleSculptedNail = (
